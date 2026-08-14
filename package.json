@@ -1,0 +1,26 @@
+{
+  "name": "prodixus",
+  "version": "1.0.0",
+  "description": "A modern productivity app for managing tasks, projects, and personal workflows.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davihenriquedev1/prodixus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davihenriquedev1/prodixus/issues"
+  },
+  "homepage": "https://github.com/davihenriquedev1/prodixus#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1"
+  }
+}
