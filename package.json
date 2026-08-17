@@ -4,7 +4,8 @@
   "description": "A modern productivity app for managing tasks, projects, and personal workflows.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,14 @@
     "lint-staged": "^16.4.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
