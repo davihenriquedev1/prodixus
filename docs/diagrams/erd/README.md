@@ -12,7 +12,7 @@ It serves as a reference for understanding the structure and organization of per
 
 The current diagram represents the overall data model:
 
-![Database ER Diagram](./images/database-erd.png)
+[See the Entity Relationship Diagram](./erd.md)
 
 ## Entities and Relationships
 
