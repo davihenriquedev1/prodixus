@@ -13,107 +13,133 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  settings  UserSettings?
-  projects  Project[]
+  settings UserSettings?
+  projects Project[]
 
-  tags      Tag[]
-  folders   Folder[]
+  tags          Tag[]
+  folders       Folder[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
 }
 
 model UserSettings {
   id        String   @id @default(uuid())
-  userId    String   @unique
+  userId    String   @unique @map("user_id")
   theme     String   @default("system")
   language  String   @default("en-US")
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 model Project {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   name              String
   notes             String?
-  completed         Boolean  @default(false)
-  archived          Boolean  @default(false)
-  estimatedDuration Int?
-  dueAt             DateTime?
-  userId            String
-  primaryColor      String?
-  accentColor       String?
-  errorColor        String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  completed         Boolean   @default(false)
+  archived          Boolean   @default(false)
+  estimatedDuration Int?      @map("estimated_duration")
+  dueAt             DateTime? @map("due_at")
+  primaryColor      String?   @map("primary_color")
+  accentColor       String?   @map("accent_color")
+  errorColor        String?   @map("error_color")
+  userId            String    @map("user_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  folderId          String?   @map("folder_id")
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks             Task[]
-  folderId          String?
+  tasks  Task[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
-  folder            Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  @@map("projects")
 }
 
 model Task {
-  id                String   @id @default(uuid())
+  id                String    @id @default(uuid())
   title             String
   notes             String?
-  archived          Boolean  @default(false)
-  priority          Int      @default(0)
-  completed         Boolean  @default(false)
-  estimatedDuration Int?
-  startAt           DateTime?
-  dueAt             DateTime?
-  projectId         String
-  parentTaskId      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  priority          Int       @default(0)
+  estimatedDuration Int?      @map("estimated_duration")
+  startAt           DateTime? @map("start_at")
+  dueAt             DateTime? @map("due_at")
+  completed         Boolean   @default(false)
+  archived          Boolean   @default(false)
+  projectId         String    @map("project_id")
+  parentId          String?   @map("parent_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parentTask        Task?    @relation("Subtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
-  subtasks          Task[]   @relation("Subtasks")
-  taskTags          TaskTag[]
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentTask Task?     @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks   Task[]    @relation("Subtasks")
+  taskTags   TaskTag[]
+
+  @@map("tasks")
 }
 
 model Tag {
   id        String   @id @default(uuid())
   name      String
   color     String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  taskTags  TaskTag[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskTags TaskTag[]
 
   @@unique([userId, name]) // Composite uniqueness constraint. The Tag name is unique within the user scope, not globally.
+  @@map("tags")
 }
 
 model TaskTag {
-  taskId    String
-  tagId     String
+  taskId String @map("task_id")
+  tagId  String @map("tag_id")
 
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([taskId, tagId]) // Composite primary key. The combination of taskId and tagId identifies a unique association.
+  @@map("task_tags")
 }
 
 model Folder {
-  id         String   @id @default(uuid())
-  name       String
-  userId     String
-  parentId   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  userId    String   @map("user_id")
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent     Folder?  @relation("Subfolders", fields: [parentId], references: [id], onDelete: Cascade)
-  subfolders Folder[] @relation("Subfolders")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     Folder?   @relation("Subfolders", fields: [parentId], references: [id], onDelete: Cascade)
+  subfolders Folder[]  @relation("Subfolders")
   projects   Project[]
+
+  @@map("folders")
 }
