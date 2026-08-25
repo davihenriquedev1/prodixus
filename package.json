@@ -31,8 +31,5 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
-  },
-  "dependencies": {
-    "@prisma/adapter-pg": "^7.9.1"
   }
 }
