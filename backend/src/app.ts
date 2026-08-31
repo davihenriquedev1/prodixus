@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import healthRouter from "./routes/health.routes.js";
+import authRouter from "./routes/auth.routes.js";
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error.middleware.js";
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api", healthRouter);
+app.use("/api/auth", authRouter);
 
 // Error handlers (middlewares)
 app.use(notFound);
