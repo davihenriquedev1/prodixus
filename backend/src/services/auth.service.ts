@@ -49,18 +49,21 @@ export const AuthService = {
       expiresAt,
     });
 
+    const safeUser = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
+
     return {
-      user,
+      user: safeUser,
       accessToken,
       refreshToken,
     };
   },
   async loginUser(data: z.infer<typeof loginSchema>) {
-    // 1. validar entrada (feito no controller)
-    // 2. buscar usuário
     const userDB = await UserRepository.findByEmail(data.email);
 
-    // 3. verificar se existe
     if (!userDB) {
       throw new AppError(
         401,
@@ -69,7 +72,6 @@ export const AuthService = {
       );
     }
 
-    // 4. comparar senha recebida com hash guardado no banco com bcrypt
     const passwordIsValid = await bcrypt.compare(
       data.password,
       userDB.passwordHash,
@@ -82,16 +84,13 @@ export const AuthService = {
       );
     }
 
-    // 5. gerar access token
     const accessToken = signAccessToken({ userId: userDB.id }, "30m");
-    // 6. gerar refresh token
     const refreshToken = signRefreshToken({ userId: userDB.id }, "4d");
 
     const tokenHash = await bcrypt.hash(refreshToken, 10);
 
     const expiresAt = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
 
-    // 7. salvar refresh token no banco
     await RefreshTokenRepository.create({
       tokenHash,
       user: {
@@ -102,13 +101,14 @@ export const AuthService = {
       expiresAt,
     });
 
-    // 8. retornar resultado
+    const safeUser = {
+      id: userDB.id,
+      name: userDB.name,
+      email: userDB.email,
+    };
+
     return {
-      user: {
-        id: userDB.id,
-        name: userDB.name,
-        email: userDB.email,
-      },
+      user: safeUser,
       accessToken,
       refreshToken,
     };
