@@ -22,4 +22,9 @@ export const AuthController = {
     const result = await AuthService.refreshToken(data);
     return res.status(200).json(result);
   },
+  async logout(req: Request, res: Response) {
+    const data = refreshTokenSchema.parse(req.body);
+    await AuthService.logoutUser(data);
+    return res.sendStatus(204);
+  },
 };

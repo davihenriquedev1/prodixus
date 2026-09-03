@@ -203,4 +203,58 @@ export const AuthService = {
       refreshToken,
     };
   },
+  async logoutUser(data: z.infer<typeof refreshTokenSchema>) {
+    // Verificar a assinatura do refresh token
+    const decoded = verifyRefreshToken(data.refreshToken);
+
+    // Validar o payload
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      !("userId" in decoded) ||
+      typeof decoded.userId !== "string"
+    ) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid Refresh Token");
+    }
+
+    // Gerar o hash SHA-256
+    const tokenHash = hashRefreshToken(data.refreshToken);
+
+    // Buscar o refresh token no banco
+    const storedToken = await RefreshTokenRepository.findByTokenHash(tokenHash);
+
+    // Se não existir → token inválido.
+    if (!storedToken) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+    }
+
+    // Verificar se já foi revogado
+    if (storedToken.revokedAt) {
+      throw new AppError(
+        401,
+        "REFRESH_TOKEN_REVOKED",
+        "Refresh token has been revoked",
+      );
+    }
+
+    // Verificar expiração
+    if (storedToken.expiresAt <= new Date()) {
+      throw new AppError(
+        401,
+        "REFRESH_TOKEN_EXPIRED",
+        "Refresh token has expired",
+      );
+    }
+
+    // Validar o usuário
+    const user = await UserRepository.findById(decoded.userId);
+
+    // Confirmar que o userId do token corresponde ao userId do registro RefreshToken.
+    if (!user || storedToken.userId !== user.id) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+    }
+
+    // Revogar o token
+    await RefreshTokenRepository.revoke(storedToken.id);
+  },
 };
