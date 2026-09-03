@@ -5,10 +5,16 @@ import type { Prisma } from "../../generated/prisma/client.js";
 import { z } from "zod";
 import type {
   loginSchema,
+  refreshTokenSchema,
   registerSchema,
 } from "@/validators/auth.validator.js";
-import { signAccessToken, signRefreshToken } from "@/utils/jwt.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from "@/utils/jwt.js";
 import { RefreshTokenRepository } from "@/repositories/refresh-token.repository.js";
+import { hashRefreshToken } from "@/utils/hash.js";
 
 export const AuthService = {
   async registerUser(data: z.infer<typeof registerSchema>) {
@@ -32,10 +38,16 @@ export const AuthService = {
 
     const user = await UserRepository.create(userData);
 
-    const accessToken = signAccessToken({ userId: user.id }, "30m");
-    const refreshToken = signRefreshToken({ userId: user.id }, "4d");
+    const accessToken = signAccessToken(
+      { userId: user.id, type: "access" },
+      "30m",
+    );
+    const refreshToken = signRefreshToken(
+      { userId: user.id, type: "refresh" },
+      "4d",
+    );
 
-    const tokenHash = await bcrypt.hash(refreshToken, 10);
+    const tokenHash = hashRefreshToken(refreshToken);
 
     const expiresAt = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
 
@@ -84,10 +96,16 @@ export const AuthService = {
       );
     }
 
-    const accessToken = signAccessToken({ userId: userDB.id }, "30m");
-    const refreshToken = signRefreshToken({ userId: userDB.id }, "4d");
+    const accessToken = signAccessToken(
+      { userId: userDB.id, type: "access" },
+      "30m",
+    );
+    const refreshToken = signRefreshToken(
+      { userId: userDB.id, type: "refresh" },
+      "4d",
+    );
 
-    const tokenHash = await bcrypt.hash(refreshToken, 10);
+    const tokenHash = hashRefreshToken(refreshToken);
 
     const expiresAt = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
 
@@ -109,6 +127,78 @@ export const AuthService = {
 
     return {
       user: safeUser,
+      accessToken,
+      refreshToken,
+    };
+  },
+  async refreshToken(data: z.infer<typeof refreshTokenSchema>) {
+    const decoded = verifyRefreshToken(data.refreshToken);
+
+    if (
+      typeof decoded !== "object" ||
+      decoded === null ||
+      !("userId" in decoded) ||
+      typeof decoded.userId !== "string"
+    ) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid Refresh Token");
+    }
+
+    const tokenHash = hashRefreshToken(data.refreshToken);
+
+    const storedToken = await RefreshTokenRepository.findByTokenHash(tokenHash);
+
+    if (!storedToken) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+    }
+
+    if (storedToken.revokedAt) {
+      throw new AppError(
+        401,
+        "REFRESH_TOKEN_REVOKED",
+        "Refresh token has been revoked",
+      );
+    }
+
+    if (storedToken.expiresAt <= new Date()) {
+      throw new AppError(
+        401,
+        "REFRESH_TOKEN_EXPIRED",
+        "Refresh token has expired",
+      );
+    }
+
+    const user = await UserRepository.findById(decoded.userId);
+
+    if (!user || storedToken.userId !== user.id) {
+      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+    }
+
+    const accessToken = signAccessToken(
+      { userId: user.id, type: "access" },
+      "30m",
+    );
+    const refreshToken = signRefreshToken(
+      { userId: user.id, type: "refresh" },
+      "4d",
+    );
+
+    const newTokenHash = hashRefreshToken(refreshToken);
+
+    const expiresAt = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
+
+    await RefreshTokenRepository.revoke(storedToken.id);
+
+    await RefreshTokenRepository.create({
+      tokenHash: newTokenHash,
+      user: {
+        connect: {
+          id: user.id,
+        },
+      },
+      expiresAt,
+    });
+
+    return {
       accessToken,
       refreshToken,
     };

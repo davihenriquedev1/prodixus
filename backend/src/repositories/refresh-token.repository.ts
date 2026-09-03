@@ -8,4 +8,21 @@ export const RefreshTokenRepository = {
     });
     return token;
   },
+  async findByTokenHash(tokenHash: string) {
+    return prisma.refreshToken.findUnique({
+      where: {
+        tokenHash,
+      },
+    });
+  },
+  async revoke(id: string) {
+    return prisma.refreshToken.update({
+      where: {
+        id,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  },
 };

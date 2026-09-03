@@ -44,7 +44,7 @@ model UserSettings {
 
 model RefreshToken {
   id        String    @id @default(uuid())
-  tokenHash String    @map("token_hash")
+  tokenHash String    @map("token_hash") @unique
   userId    String    @map("user_id")
   expiresAt DateTime  @map("expires_at")
   revokedAt DateTime? @map("revoked_at")
