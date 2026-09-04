@@ -25,4 +25,15 @@ export const UserRepository = {
     });
     return user;
   },
+  async changePassword(userId: string, passwordHash: string) {
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        passwordHash,
+      },
+    });
+    return user;
+  },
 };
