@@ -8,5 +8,8 @@ router.get("/me", authMiddleware, (req, res) => UserController.me(req, res));
 router.patch("/me", authMiddleware, (req, res) =>
   UserController.updateProfile(req, res),
 );
+router.patch("/me/password", authMiddleware, (req, res) =>
+  UserController.changePassword(req, res),
+);
 
 export default router;

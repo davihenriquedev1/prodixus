@@ -25,4 +25,15 @@ export const RefreshTokenRepository = {
       },
     });
   },
+  async revokeAllByUserId(userId: string) {
+    return prisma.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  },
 };
