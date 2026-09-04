@@ -16,4 +16,13 @@ export const UserRepository = {
     });
     return user;
   },
+  async update(userId: string, data: Prisma.UserUpdateInput) {
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data,
+    });
+    return user;
+  },
 };
