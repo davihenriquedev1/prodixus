@@ -1,9 +1,8 @@
-# Sequence Diagram - Auth - Login
+# Auth - Login
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant Frontend
     participant API
     participant AuthController
     participant AuthService
@@ -12,31 +11,39 @@ sequenceDiagram
     participant Prisma
     participant PostgreSQL
 
-    User->>Frontend: Enter email and password
-    Frontend->>API: POST /auth/login
-    API->>AuthController: login(request)
-    AuthController->>AuthService: login(email, password)
+    User->>API: POST /api/auth/login
+    API->>AuthController: login(req)
+    AuthController->>AuthController: Validate request with loginSchema
+    AuthController->>AuthService: loginUser(data)
 
     AuthService->>UserRepository: findByEmail(email)
-    UserRepository->>Prisma: user.findUnique()
-    Prisma->>PostgreSQL: SELECT user by email
+    UserRepository->>Prisma: findUnique(email)
+    Prisma->>PostgreSQL: SELECT user
     PostgreSQL-->>Prisma: User data
     Prisma-->>UserRepository: User
     UserRepository-->>AuthService: User
 
-    AuthService->>AuthService: Verify password
-    AuthService->>AuthService: Generate access token
-    AuthService->>AuthService: Generate refresh token
-    AuthService->>RefreshTokenRepository: create(refreshToken)
+    AuthService->>AuthService: Compare password with bcrypt
 
-    RefreshTokenRepository->>Prisma: refreshToken.create()
-    Prisma->>PostgreSQL: INSERT refresh token
-    PostgreSQL-->>Prisma: Created refresh token
-    Prisma-->>RefreshTokenRepository: RefreshToken
-    RefreshTokenRepository-->>AuthService: RefreshToken
+    alt Invalid credentials
+        AuthService-->>AuthController: AppError 401 INVALID_CREDENTIALS
+        AuthController-->>API: 401 Unauthorized
+        API-->>User: 401 Unauthorized
+    else Valid credentials
+        AuthService->>AuthService: Sign access token (RS256, 30m)
+        AuthService->>AuthService: Sign refresh token (RS256, 4d)
+        AuthService->>AuthService: Hash refresh token with SHA-256
+        AuthService->>AuthService: Calculate refresh token expiration
 
-    AuthService-->>AuthController: Authentication result
-    AuthController-->>API: 200 OK
-    API-->>Frontend: Access token + refresh token
-    Frontend-->>User: Redirect to application
+        AuthService->>RefreshTokenRepository: create(tokenHash, userId, expiresAt)
+        RefreshTokenRepository->>Prisma: create refresh token
+        Prisma->>PostgreSQL: INSERT refresh token
+        PostgreSQL-->>Prisma: Created refresh token
+        Prisma-->>RefreshTokenRepository: Refresh token
+        RefreshTokenRepository-->>AuthService: Refresh token
+
+        AuthService-->>AuthController: Safe user + accessToken + refreshToken
+        AuthController-->>API: 200 OK
+        API-->>User: Authentication response
+    end
 ```
