@@ -11,5 +11,8 @@ router.patch("/me", authMiddleware, (req, res) =>
 router.patch("/me/password", authMiddleware, (req, res) =>
   UserController.changePassword(req, res),
 );
+router.delete("/me", authMiddleware, (req, res) =>
+  UserController.deleteAccount(req, res),
+);
 
 export default router;
