@@ -20,4 +20,8 @@ export const UserController = {
     await UserService.changePassword(req.userId, data);
     return res.sendStatus(204);
   },
+  async deleteAccount(req: Request, res: Response) {
+    await UserService.deleteAccount(req.userId);
+    return res.sendStatus(204);
+  },
 };

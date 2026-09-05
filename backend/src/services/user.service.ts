@@ -100,4 +100,17 @@ export const UserService = {
 
     await RefreshTokenRepository.revokeAllByUserId(userId);
   },
+  async deleteAccount(userId: string | undefined) {
+    if (!userId) {
+      throw new AppError(409, "ID_REQUIRED", "User id not received");
+    }
+
+    const userDB = await UserRepository.findById(userId);
+
+    if (!userDB) {
+      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+    }
+
+    await UserRepository.delete(userId);
+  },
 };
