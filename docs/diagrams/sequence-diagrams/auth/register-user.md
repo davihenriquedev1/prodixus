@@ -1,9 +1,8 @@
-# Sequence Diagram - Auth - Register User
+# Auth - Register User
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant Frontend
     participant API
     participant AuthController
     participant AuthService
@@ -12,40 +11,45 @@ sequenceDiagram
     participant Prisma
     participant PostgreSQL
 
-    User->>Frontend: Enter registration data
-    Frontend->>API: POST /auth/register
-    API->>AuthController: register(request)
+    User->>API: POST /api/auth/register
+    API->>AuthController: register(req)
+    AuthController->>AuthController: Validate request with registerSchema
     AuthController->>AuthService: registerUser(data)
 
     AuthService->>UserRepository: findByEmail(email)
-    UserRepository->>Prisma: user.findUnique()
-    Prisma->>PostgreSQL: SELECT user by email
-    PostgreSQL-->>Prisma: User or null
+    UserRepository->>Prisma: findUnique(email)
+    Prisma->>PostgreSQL: SELECT user
+    PostgreSQL-->>Prisma: User data
     Prisma-->>UserRepository: User or null
     UserRepository-->>AuthService: User or null
 
-    AuthService->>AuthService: Validate registration data
-    AuthService->>AuthService: Hash password
+    alt User already exists
+        AuthService-->>AuthController: AppError 409 USER_ALREADY_EXISTS
+        AuthController-->>API: 409 Conflict
+        API-->>User: 409 Conflict
+    else User does not exist
+        AuthService->>AuthService: Hash password with bcrypt
+        AuthService->>UserRepository: create(userData)
+        UserRepository->>Prisma: create user
+        Prisma->>PostgreSQL: INSERT user
+        PostgreSQL-->>Prisma: Created user
+        Prisma-->>UserRepository: User
+        UserRepository-->>AuthService: User
 
-    AuthService->>UserRepository: create(userData)
-    UserRepository->>Prisma: user.create()
-    Prisma->>PostgreSQL: INSERT user
-    PostgreSQL-->>Prisma: Created user
-    Prisma-->>UserRepository: User
-    UserRepository-->>AuthService: User
+        AuthService->>AuthService: Sign access token (RS256, 30m)
+        AuthService->>AuthService: Sign refresh token (RS256, 4d)
+        AuthService->>AuthService: Hash refresh token with SHA-256
+        AuthService->>AuthService: Calculate refresh token expiration
 
-    AuthService->>AuthService: Generate access token
-    AuthService->>AuthService: Generate refresh token
+        AuthService->>RefreshTokenRepository: create(tokenHash, userId, expiresAt)
+        RefreshTokenRepository->>Prisma: create refresh token
+        Prisma->>PostgreSQL: INSERT refresh token
+        PostgreSQL-->>Prisma: Created refresh token
+        Prisma-->>RefreshTokenRepository: Refresh token
+        RefreshTokenRepository-->>AuthService: Refresh token
 
-    AuthService->>RefreshTokenRepository: create(refreshToken)
-    RefreshTokenRepository->>Prisma: refreshToken.create()
-    Prisma->>PostgreSQL: INSERT refresh token
-    PostgreSQL-->>Prisma: Created refresh token
-    Prisma-->>RefreshTokenRepository: RefreshToken
-    RefreshTokenRepository-->>AuthService: RefreshToken
-
-    AuthService-->>AuthController: Authentication result
-    AuthController-->>API: 201 Created
-    API-->>Frontend: Access token + refresh token
-    Frontend-->>User: Redirect to application
+        AuthService-->>AuthController: Safe user + accessToken + refreshToken
+        AuthController-->>API: 201 Created
+        API-->>User: Registration response
+    end
 ```
