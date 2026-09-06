@@ -1,5 +1,8 @@
 import { ProjectService } from "@/services/project.service.js";
-import { createProjectSchema } from "@/validators/project.validator.js";
+import {
+  createProjectSchema,
+  updateProjectSchema,
+} from "@/validators/project.validator.js";
 import type { Request, Response } from "express";
 
 export const ProjectController = {
@@ -15,6 +18,16 @@ export const ProjectController = {
   async getProject(req: Request, res: Response) {
     const projectId = req.params.id as string;
     const result = await ProjectService.getProject(req.userId, projectId);
+    return res.status(200).json(result);
+  },
+  async update(req: Request, res: Response) {
+    const data = updateProjectSchema.parse(req.body);
+    const projectId = req.params.id as string;
+    const result = await ProjectService.updateProject(
+      req.userId,
+      projectId,
+      data,
+    );
     return res.status(200).json(result);
   },
 };

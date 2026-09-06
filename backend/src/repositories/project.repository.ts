@@ -20,4 +20,22 @@ export const ProjectRepository = {
       },
     });
   },
+  async update(
+    userId: string,
+    projectId: string,
+    data: Prisma.ProjectUpdateInput,
+  ) {
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId },
+    });
+
+    if (!project) return null;
+
+    return prisma.project.update({
+      where: {
+        id: projectId,
+      },
+      data,
+    });
+  },
 };
