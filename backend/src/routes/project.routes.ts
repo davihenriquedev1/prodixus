@@ -13,5 +13,8 @@ router.get("/", authMiddleware, (req, res) =>
 router.get("/:id", authMiddleware, (req, res) =>
   ProjectController.getProject(req, res),
 );
+router.patch("/:id", authMiddleware, (req, res) =>
+  ProjectController.update(req, res),
+);
 
 export default router;

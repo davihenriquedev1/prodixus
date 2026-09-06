@@ -12,3 +12,5 @@ export const createProjectSchema = z.object({
   errorColor: z.string().optional(),
   folderId: z.uuid().optional(),
 });
+
+export const updateProjectSchema = createProjectSchema.partial();
