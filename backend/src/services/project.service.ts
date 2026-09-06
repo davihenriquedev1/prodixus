@@ -39,20 +39,31 @@ export const ProjectService = {
 
     const projectData: Prisma.ProjectCreateInput = {
       name: data.name,
-      notes: data.notes,
-      completed: data.completed,
-      archived: data.archived,
-      estimatedDuration: data.estimatedDuration,
-      dueAt: data.dueAt,
-      primaryColor: data.primaryColor,
-      accentColor: data.accentColor,
-      errorColor: data.errorColor,
+
+      ...(data.notes !== undefined && { notes: data.notes }),
+      ...(data.completed !== undefined && { completed: data.completed }),
+      ...(data.archived !== undefined && { archived: data.archived }),
+      ...(data.estimatedDuration !== undefined && {
+        estimatedDuration: data.estimatedDuration,
+      }),
+      ...(data.dueAt !== undefined && { dueAt: data.dueAt }),
+      ...(data.primaryColor !== undefined && {
+        primaryColor: data.primaryColor,
+      }),
+      ...(data.accentColor !== undefined && {
+        accentColor: data.accentColor,
+      }),
+      ...(data.errorColor !== undefined && {
+        errorColor: data.errorColor,
+      }),
+
       user: {
         connect: {
           id: userId,
         },
       },
-      ...(data.folderId && {
+
+      ...(data.folderId !== undefined && {
         folder: {
           connect: {
             id: data.folderId,
