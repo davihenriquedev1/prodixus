@@ -8,4 +8,13 @@ export const ProjectController = {
     const result = await ProjectService.createProject(req.userId, data);
     return res.status(201).json(result);
   },
+  async getProjects(req: Request, res: Response) {
+    const result = await ProjectService.getProjects(req.userId);
+    return res.status(200).json(result);
+  },
+  async getProject(req: Request, res: Response) {
+    const projectId = req.params.id as string;
+    const result = await ProjectService.getProject(req.userId, projectId);
+    return res.status(200).json(result);
+  },
 };
