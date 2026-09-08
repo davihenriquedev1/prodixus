@@ -38,4 +38,17 @@ export const ProjectRepository = {
       data,
     });
   },
+  async delete(userId: string, projectId: string) {
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId },
+    });
+
+    if (!project) return null;
+
+    return prisma.project.delete({
+      where: {
+        id: projectId,
+      },
+    });
+  },
 };

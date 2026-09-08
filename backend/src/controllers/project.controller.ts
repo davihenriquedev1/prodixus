@@ -30,4 +30,9 @@ export const ProjectController = {
     );
     return res.status(200).json(result);
   },
+  async delete(req: Request, res: Response) {
+    const projectId = req.params.id as string;
+    await ProjectService.deleteProject(req.userId, projectId);
+    return res.sendStatus(204);
+  },
 };
