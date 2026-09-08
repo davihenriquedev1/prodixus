@@ -1,9 +1,8 @@
-# Projects - Update
+# Project - Update
 
 ```mermaid
 sequenceDiagram
     actor User
-
     participant Frontend
     participant API
     participant AuthMiddleware
@@ -13,30 +12,30 @@ sequenceDiagram
     participant Prisma
     participant PostgreSQL
 
-    User->>Frontend: Edit project (name, complete, archive, etc.)
+    User->>Frontend: Edit project data
     Frontend->>API: PATCH /projects/:id
-
     API->>AuthMiddleware: Authenticate request
     AuthMiddleware->>AuthMiddleware: Validate access token
     AuthMiddleware-->>API: userId
 
     API->>ProjectController: update(req, res)
     ProjectController->>ProjectController: Validate request data (Zod)
-
     ProjectController->>ProjectService: updateProject(userId, projectId, data)
-    ProjectService->>ProjectRepository: update(projectId, userId, data)
+    ProjectService->>ProjectRepository: update(userId, projectId, projectData)
 
-    ProjectRepository->>Prisma: execute update operation
-    Note right of ProjectRepository: The query itself enforces ownership<br>(where: { id, userId })
+    ProjectRepository->>Prisma: project.findFirst()
+    Prisma->>PostgreSQL: SELECT WHERE id = projectId AND userId = userId
+    PostgreSQL-->>Prisma: Project or null
+    Prisma-->>ProjectRepository: Project or null
 
-    Prisma->>PostgreSQL: UPDATE project WHERE id = projectId AND userId = userId
+    ProjectRepository->>Prisma: project.update()
+    Prisma->>PostgreSQL: UPDATE project WHERE id = projectId
     PostgreSQL-->>Prisma: Updated project
-    Prisma-->>ProjectRepository: Project
+    Prisma-->>ProjectRepository: Updated project
 
-    ProjectRepository-->>ProjectService: Project
+    ProjectRepository-->>ProjectService: Updated project
     ProjectService-->>ProjectController: Project
-
-    ProjectController-->>API: 200 OK (Project JSON)
-    API-->>Frontend: Updated project
-    Frontend-->>User: Display updated project state
+    ProjectController-->>API: 200 OK
+    API-->>Frontend: Updated project JSON
+    Frontend-->>User: Display updated project
 ```
