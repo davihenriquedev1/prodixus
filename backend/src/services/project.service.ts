@@ -174,4 +174,23 @@ export const ProjectService = {
 
     return project;
   },
+  async deleteProject(
+    userId: string | undefined,
+    projectId: string | undefined,
+  ) {
+    if (!userId) {
+      throw new AppError(409, "ID_REQUIRED", "User id not received");
+    }
+    if (!projectId) {
+      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+    }
+
+    const project = await ProjectRepository.delete(userId, projectId);
+
+    if (project == null) {
+      throw new AppError(404, "PROJECT_NOT_FOUND", "Project not found");
+    }
+
+    return project;
+  },
 };
