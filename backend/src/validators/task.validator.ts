@@ -9,6 +9,5 @@ export const createTaskSchema = z.object({
   dueAt: z.coerce.date().optional(),
   completed: z.boolean().optional(),
   archived: z.boolean().optional(),
-  projectId: z.uuid(),
   parentId: z.uuid().optional(),
 });
