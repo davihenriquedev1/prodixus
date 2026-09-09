@@ -11,3 +11,7 @@ export const createTaskSchema = z.object({
   archived: z.boolean().optional(),
   parentId: z.uuid().optional(),
 });
+
+export const updateTaskSchema = createTaskSchema
+  .extend({ parentId: z.uuid().nullable().optional() })
+  .partial();
