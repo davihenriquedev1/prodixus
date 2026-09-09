@@ -11,5 +11,8 @@ router.get("/", authMiddleware, (req, res) =>
 router.get("/:taskId", authMiddleware, (req, res) =>
   TaskController.getTask(req, res),
 );
+router.patch("/:taskId", authMiddleware, (req, res) =>
+  TaskController.update(req, res),
+);
 
 export default router;

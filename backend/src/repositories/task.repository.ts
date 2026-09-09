@@ -18,4 +18,12 @@ export const TaskRepository = {
       where: { projectId },
     });
   },
+  async update(taskId: string, data: Prisma.TaskUpdateInput) {
+    return prisma.task.update({
+      data,
+      where: {
+        id: taskId,
+      },
+    });
+  },
 };

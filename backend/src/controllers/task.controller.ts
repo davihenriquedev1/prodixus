@@ -1,5 +1,8 @@
 import { TaskService } from "@/services/task.service.js";
-import { createTaskSchema } from "@/validators/task.validator.js";
+import {
+  createTaskSchema,
+  updateTaskSchema,
+} from "@/validators/task.validator.js";
 import type { Request, Response } from "express";
 
 export const TaskController = {
@@ -19,6 +22,19 @@ export const TaskController = {
     const projectId = req.params.projectId as string;
     const taskId = req.params.taskId as string;
     const result = await TaskService.getTask(req.userId, projectId, taskId);
+    return res.status(200).json(result);
+  },
+
+  async update(req: Request, res: Response) {
+    const projectId = req.params.projectId as string;
+    const taskId = req.params.taskId as string;
+    const data = updateTaskSchema.parse(req.body);
+    const result = await TaskService.updateTask(
+      req.userId,
+      projectId,
+      taskId,
+      data,
+    );
     return res.status(200).json(result);
   },
 };
