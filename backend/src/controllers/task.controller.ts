@@ -5,7 +5,8 @@ import type { Request, Response } from "express";
 export const TaskController = {
   async create(req: Request, res: Response) {
     const data = createTaskSchema.parse(req.body);
-    const result = await TaskService.createTask(req.userId, data);
+    const projectId = req.params.projectId as string;
+    const result = await TaskService.createTask(req.userId, projectId, data);
     return res.status(201).json(result);
   },
   async getTasks(req: Request, res: Response) {

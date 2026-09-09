@@ -8,15 +8,20 @@ import type { Prisma } from "../../generated/prisma/client.js";
 export const TaskService = {
   async createTask(
     userId: string | undefined,
+    projectId: string | undefined,
     data: z.infer<typeof createTaskSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+    }
+
+    if (!projectId) {
+      throw new AppError(409, "PROJECT_ID_REQUIRED", "Project id not received");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
       userId,
-      data.projectId,
+      projectId,
     );
 
     if (!project) {
@@ -61,7 +66,7 @@ export const TaskService = {
 
       project: {
         connect: {
-          id: data.projectId,
+          id: projectId,
         },
       },
 
