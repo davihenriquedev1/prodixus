@@ -241,4 +241,46 @@ export const TaskService = {
 
     return taskUpdated;
   },
+  async deleteTask(
+    userId: string | undefined,
+    projectId: string | undefined,
+    taskId: string | undefined,
+  ) {
+    if (!userId) {
+      throw new AppError(409, "ID_REQUIRED", "User id not received");
+    }
+
+    if (!projectId) {
+      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+    }
+
+    if (!taskId) {
+      throw new AppError(409, "ID_REQUIRED", "Task id not received");
+    }
+
+    const project = await ProjectRepository.findFirstByUserId(
+      userId,
+      projectId,
+    );
+
+    if (!project) {
+      throw new AppError(
+        404,
+        "PROJECT_NOT_FOUND",
+        "Project not found or does not belong to user",
+      );
+    }
+
+    const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
+
+    if (!task) {
+      throw new AppError(
+        404,
+        "TASK_NOT_FOUND",
+        "Task not found or does not belong to user",
+      );
+    }
+
+    await TaskRepository.delete(taskId);
+  },
 };

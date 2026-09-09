@@ -26,4 +26,11 @@ export const TaskRepository = {
       },
     });
   },
+  async delete(taskId: string) {
+    return prisma.task.delete({
+      where: {
+        id: taskId,
+      },
+    });
+  },
 };

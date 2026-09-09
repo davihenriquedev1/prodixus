@@ -1,4 +1,4 @@
-# Sequence Diagram - Task - Delete
+# Task - Delete
 
 ```mermaid
 sequenceDiagram
@@ -6,58 +6,90 @@ sequenceDiagram
     actor User
 
     participant Frontend
-
     participant API
-
     participant TaskController
-
     participant TaskService
-
+    participant ProjectRepository
     participant TaskRepository
-
     participant Prisma
-
     participant PostgreSQL
 
     User->>Frontend: Delete task
 
-    Frontend->>API: DELETE /tasks/:id
+    Frontend->>API: DELETE /projects/:projectId/tasks/:taskId
 
     API->>TaskController: delete(request)
 
-    TaskController->>TaskService: deleteTask(userId, taskId)
+    TaskController->>TaskService: deleteTask(userId, projectId, taskId)
 
-    TaskService->>TaskRepository: findById(taskId)
+    TaskService->>TaskService: Validate required IDs
 
-    TaskRepository->>Prisma: task.findUnique()
+    alt Missing userId, projectId or taskId
+        TaskService-->>TaskController: ID_REQUIRED
+        TaskController-->>API: 409 Conflict
+        API-->>Frontend: Error
+        Frontend-->>User: Display error
+    else Valid IDs
 
-    Prisma->>PostgreSQL: SELECT task
+        TaskService->>ProjectRepository: findFirstByUserId(userId, projectId)
 
-    PostgreSQL-->>Prisma: Task
+        ProjectRepository->>Prisma: project.findFirst()
 
-    Prisma-->>TaskRepository: Task
+        Prisma->>PostgreSQL: SELECT project WHERE id AND userId
 
-    TaskRepository-->>TaskService: Task
+        PostgreSQL-->>Prisma: Project
 
-    TaskService->>TaskService: Validate ownership
+        Prisma-->>ProjectRepository: Project
 
-    TaskService->>TaskRepository: delete(taskId)
+        ProjectRepository-->>TaskService: Project
 
-    TaskRepository->>Prisma: task.delete()
+        alt Project not found or does not belong to user
+            TaskService-->>TaskController: PROJECT_NOT_FOUND
+            TaskController-->>API: 404 Not Found
+            API-->>Frontend: Error
+            Frontend-->>User: Display error
+        else Project authorized
 
-    Prisma->>PostgreSQL: DELETE task
+            TaskService->>TaskRepository: findFirstByProjectId(projectId, taskId)
 
-    PostgreSQL-->>Prisma: Task deleted
+            TaskRepository->>Prisma: task.findFirst()
 
-    Prisma-->>TaskRepository: Deleted task
+            Prisma->>PostgreSQL: SELECT task WHERE projectId AND id
 
-    TaskRepository-->>TaskService: Deletion completed
+            PostgreSQL-->>Prisma: Task
 
-    TaskService-->>TaskController: Deletion completed
+            Prisma-->>TaskRepository: Task
 
-    TaskController-->>API: 204 No Content
+            TaskRepository-->>TaskService: Task
 
-    API-->>Frontend: Delete successful
+            alt Task not found
+                TaskService-->>TaskController: TASK_NOT_FOUND
+                TaskController-->>API: 404 Not Found
+                API-->>Frontend: Error
+                Frontend-->>User: Display error
+            else Task found
 
-    Frontend-->>User: Remove task from interface
+                TaskService->>TaskRepository: delete(taskId)
+
+                TaskRepository->>Prisma: task.delete()
+
+                Prisma->>PostgreSQL: DELETE task
+
+                PostgreSQL-->>Prisma: Task deleted
+                Note over PostgreSQL: Cascade deletes related TaskTag records and subtasks
+
+                Prisma-->>TaskRepository: Deleted task
+
+                TaskRepository-->>TaskService: Deletion completed
+
+                TaskService-->>TaskController: Deletion completed
+
+                TaskController-->>API: 204 No Content
+
+                API-->>Frontend: Delete successful
+
+                Frontend-->>User: Remove task from interface
+            end
+        end
+    end
 ```
