@@ -22,7 +22,7 @@ app.use("/api", healthRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/projects", projectRouter);
-app.use("/api/tasks", taskRouter);
+app.use("/api/projects/:projectId/tasks", taskRouter);
 
 // Error handlers (middlewares)
 app.use(notFound);

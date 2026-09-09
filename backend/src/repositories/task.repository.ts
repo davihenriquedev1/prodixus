@@ -13,4 +13,9 @@ export const TaskRepository = {
       },
     });
   },
+  async findManyByProjectId(projectId: string) {
+    return prisma.task.findMany({
+      where: { projectId },
+    });
+  },
 };
