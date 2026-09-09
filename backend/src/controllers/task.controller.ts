@@ -37,4 +37,10 @@ export const TaskController = {
     );
     return res.status(200).json(result);
   },
+  async delete(req: Request, res: Response) {
+    const projectId = req.params.projectId as string;
+    const taskId = req.params.taskId as string;
+    await TaskService.deleteTask(req.userId, projectId, taskId);
+    return res.sendStatus(204);
+  },
 };
