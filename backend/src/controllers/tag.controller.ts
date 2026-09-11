@@ -26,4 +26,9 @@ export const TagController = {
     const result = await TagService.updateTag(req.userId, id, data);
     return res.status(200).json(result);
   },
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    await TagService.deleteTag(req.userId, id);
+    return res.sendStatus(204);
+  },
 };
