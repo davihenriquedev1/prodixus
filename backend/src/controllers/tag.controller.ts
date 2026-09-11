@@ -8,4 +8,13 @@ export const TagController = {
     const result = await TagService.createTag(req.userId, data);
     return res.status(201).json(result);
   },
+  async getTags(req: Request, res: Response) {
+    const result = await TagService.getTags(req.userId);
+    return res.status(200).json(result);
+  },
+  async getTag(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const result = await TagService.getTag(req.userId, id);
+    return res.status(200).json(result);
+  },
 };
