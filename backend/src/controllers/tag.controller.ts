@@ -1,5 +1,8 @@
 import { TagService } from "@/services/tag.service.js";
-import { createTagSchema } from "@/validators/tag.validator.js";
+import {
+  createTagSchema,
+  updateTagSchema,
+} from "@/validators/tag.validator.js";
 import type { Request, Response } from "express";
 
 export const TagController = {
@@ -15,6 +18,12 @@ export const TagController = {
   async getTag(req: Request, res: Response) {
     const id = req.params.id as string;
     const result = await TagService.getTag(req.userId, id);
+    return res.status(200).json(result);
+  },
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const data = updateTagSchema.parse(req.body);
+    const result = await TagService.updateTag(req.userId, id, data);
     return res.status(200).json(result);
   },
 };

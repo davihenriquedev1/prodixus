@@ -30,4 +30,12 @@ export const TagRepository = {
       },
     });
   },
+  async update(data: Prisma.TagUpdateInput, tagId: string) {
+    return prisma.tag.update({
+      data,
+      where: {
+        id: tagId,
+      },
+    });
+  },
 };
