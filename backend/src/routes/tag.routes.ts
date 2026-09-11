@@ -5,5 +5,9 @@ import { Router } from "express";
 const router = Router({ mergeParams: true });
 
 router.post("/", authMiddleware, (req, res) => TagController.create(req, res));
+router.get("/", authMiddleware, (req, res) => TagController.getTags(req, res));
+router.get("/:id", authMiddleware, (req, res) =>
+  TagController.getTag(req, res),
+);
 
 export default router;

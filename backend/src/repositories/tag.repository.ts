@@ -15,4 +15,19 @@ export const TagRepository = {
       },
     });
   },
+  async findManyByUserId(userId: string) {
+    return prisma.tag.findMany({
+      where: {
+        userId,
+      },
+    });
+  },
+  async findFirstByUserId(userId: string, tagId: string) {
+    return prisma.tag.findFirst({
+      where: {
+        userId,
+        id: tagId,
+      },
+    });
+  },
 };
