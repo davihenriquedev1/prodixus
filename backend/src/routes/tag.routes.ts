@@ -9,5 +9,8 @@ router.get("/", authMiddleware, (req, res) => TagController.getTags(req, res));
 router.get("/:id", authMiddleware, (req, res) =>
   TagController.getTag(req, res),
 );
+router.patch("/:id", authMiddleware, (req, res) =>
+  TagController.update(req, res),
+);
 
 export default router;

@@ -1,6 +1,9 @@
 import { AppError } from "@/errors/app.error.js";
 import { z } from "zod";
-import type { createTagSchema } from "@/validators/tag.validator.js";
+import type {
+  createTagSchema,
+  updateTagSchema,
+} from "@/validators/tag.validator.js";
 import { TagRepository } from "@/repositories/tag.repository.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
@@ -65,5 +68,57 @@ export const TagService = {
     }
 
     return tag;
+  },
+  async updateTag(
+    userId: string | undefined,
+    tagId: string | undefined,
+    data: z.infer<typeof updateTagSchema>,
+  ) {
+    if (!userId) {
+      throw new AppError(409, "ID_NOT_RECEIVED", "User id is required");
+    }
+
+    if (!tagId) {
+      throw new AppError(409, "ID_NOT_RECEIVED", "Tag id is required");
+    }
+
+    const tag = await TagRepository.findFirstByUserId(userId, tagId);
+
+    if (!tag) {
+      throw new AppError(
+        404,
+        "TAG_NOT_FOUND",
+        "Tag not found or does not belong to user",
+      );
+    }
+
+    if (data.name === undefined && data.color === undefined) {
+      throw new AppError(
+        409,
+        "NO_DATA_RECEIVED",
+        "Some data is required for update",
+      );
+    }
+
+    if (data.name) {
+      const tagExists = await TagRepository.findByUserIdAndName(
+        userId,
+        data.name,
+      );
+      if (tagExists && tagExists.id !== tagId) {
+        throw new AppError(
+          409,
+          "TAG_ALREADY_EXISTS",
+          "Tag already exists with this name",
+        );
+      }
+    }
+
+    const tagData: Prisma.TagUpdateInput = {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.color !== undefined && { color: data.color }),
+    };
+
+    return TagRepository.update(tagData, tagId);
   },
 };
