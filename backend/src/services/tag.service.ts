@@ -121,4 +121,25 @@ export const TagService = {
 
     return TagRepository.update(tagData, tagId);
   },
+  async deleteTag(userId: string | undefined, tagId: string | undefined) {
+    if (!userId) {
+      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+    }
+
+    if (!tagId) {
+      throw new AppError(409, "TAG_ID_REQUIRED", "Tag id not received");
+    }
+
+    const tag = await TagRepository.findFirstByUserId(userId, tagId);
+
+    if (!tag) {
+      throw new AppError(
+        404,
+        "TAG_NOT_FOUND",
+        "Tag not found or does not belong to user",
+      );
+    }
+
+    return TagRepository.delete(tagId);
+  },
 };

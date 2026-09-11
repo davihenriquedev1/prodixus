@@ -12,5 +12,8 @@ router.get("/:id", authMiddleware, (req, res) =>
 router.patch("/:id", authMiddleware, (req, res) =>
   TagController.update(req, res),
 );
+router.delete("/:id", authMiddleware, (req, res) =>
+  TagController.delete(req, res),
+);
 
 export default router;
