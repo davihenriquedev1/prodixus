@@ -18,4 +18,12 @@ router.delete("/:taskId", authMiddleware, (req, res) =>
   TaskController.delete(req, res),
 );
 
+// Task - Tag
+router.post("/:taskId/tags/:tagId", authMiddleware, (req, res) =>
+  TaskController.associateTag(req, res),
+);
+router.delete("/:taskId/tags/:tagId", authMiddleware, (req, res) =>
+  TaskController.removeTag(req, res),
+);
+
 export default router;

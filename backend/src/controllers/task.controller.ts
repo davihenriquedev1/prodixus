@@ -43,4 +43,23 @@ export const TaskController = {
     await TaskService.deleteTask(req.userId, projectId, taskId);
     return res.sendStatus(204);
   },
+  async associateTag(req: Request, res: Response) {
+    const projectId = req.params.projectId as string;
+    const taskId = req.params.taskId as string;
+    const tagId = req.params.tagId as string;
+    const result = await TaskService.associateTag(
+      req.userId,
+      projectId,
+      taskId,
+      tagId,
+    );
+    return res.status(201).json(result);
+  },
+  async removeTag(req: Request, res: Response) {
+    const projectId = req.params.projectId as string;
+    const taskId = req.params.taskId as string;
+    const tagId = req.params.tagId as string;
+    await TaskService.removeTag(req.userId, projectId, taskId, tagId);
+    return res.sendStatus(204);
+  },
 };

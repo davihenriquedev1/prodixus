@@ -1,79 +1,64 @@
-# Sequence Diagram - Remove Tag from Task
+# Remove Tag from Task
 
 ```mermaid
 sequenceDiagram
 
     actor User
-
     participant Frontend
-
     participant API
-
-    participant TaskTagController
-
-    participant TaskTagService
-
+    participant TaskController
+    participant TaskService
+    participant ProjectRepository
     participant TaskRepository
-
     participant TagRepository
-
     participant TaskTagRepository
-
     participant Prisma
-
     participant PostgreSQL
 
     User->>Frontend: Remove tag from task
 
-    Frontend->>API: DELETE /tasks/:taskId/tags/:tagId
+    Frontend->>API: DELETE /projects/:projectId/tasks/:taskId/tags/:tagId
+    API->>TaskController: removeTag(request)
 
-    API->>TaskTagController: remove(request)
+    TaskController->>TaskService: removeTag(userId, projectId, taskId, tagId)
 
-    TaskTagController->>TaskTagService: removeTag(userId, taskId, tagId)
+    TaskService->>ProjectRepository: findFirstByUserId(userId, projectId)
+    ProjectRepository->>Prisma: project.findFirst()
+    Prisma->>PostgreSQL: SELECT project
+    PostgreSQL-->>Prisma: Project
+    Prisma-->>ProjectRepository: Project
+    ProjectRepository-->>TaskService: Project
 
-    TaskTagService->>TaskRepository: findById(taskId)
-
-    TaskRepository->>Prisma: task.findUnique()
-
+    TaskService->>TaskRepository: findFirstByProjectId(projectId, taskId)
+    TaskRepository->>Prisma: task.findFirst()
     Prisma->>PostgreSQL: SELECT task
-
     PostgreSQL-->>Prisma: Task
-
     Prisma-->>TaskRepository: Task
+    TaskRepository-->>TaskService: Task
 
-    TaskRepository-->>TaskTagService: Task
-
-    TaskTagService->>TagRepository: findById(tagId)
-
-    TagRepository->>Prisma: tag.findUnique()
-
+    TaskService->>TagRepository: findFirstByUserId(userId, tagId)
+    TagRepository->>Prisma: tag.findFirst()
     Prisma->>PostgreSQL: SELECT tag
-
     PostgreSQL-->>Prisma: Tag
-
     Prisma-->>TagRepository: Tag
+    TagRepository-->>TaskService: Tag
 
-    TagRepository-->>TaskTagService: Tag
+    TaskService->>TaskTagRepository: findByTaskIdAndTagId(taskId, tagId)
+    TaskTagRepository->>Prisma: taskTag.findUnique()
+    Prisma->>PostgreSQL: SELECT task_tag
+    PostgreSQL-->>Prisma: TaskTag / null
+    Prisma-->>TaskTagRepository: TaskTag / null
+    TaskTagRepository-->>TaskService: TaskTag / null
 
-    TaskTagService->>TaskTagService: Validate ownership
-
-    TaskTagService->>TaskTagRepository: delete(taskId, tagId)
-
+    TaskService->>TaskTagRepository: delete(taskId, tagId)
     TaskTagRepository->>Prisma: taskTag.delete()
-
     Prisma->>PostgreSQL: DELETE task_tag
-
     PostgreSQL-->>Prisma: TaskTag deleted
+    Prisma-->>TaskTagRepository: TaskTag
+    TaskTagRepository-->>TaskService: Deletion completed
 
-    Prisma-->>TaskTagRepository: Deleted task tag
-
-    TaskTagRepository-->>TaskTagService: Deletion completed
-
-    TaskTagService-->>TaskTagController: Deletion completed
-
-    TaskTagController-->>API: 204 No Content
-
+    TaskService-->>TaskController: Deletion completed
+    TaskController-->>API: 204 No Content
     API-->>Frontend: Remove successful
-
     Frontend-->>User: Remove tag from task
 ```
