@@ -7,6 +7,8 @@ import type {
 import { TaskRepository } from "@/repositories/task.repository.js";
 import { ProjectRepository } from "@/repositories/project.repository.js";
 import type { Prisma } from "../../generated/prisma/client.js";
+import { TagRepository } from "@/repositories/tag.repository.js";
+import { TaskTagRepository } from "@/repositories/task-tag.repository.js";
 
 export const TaskService = {
   async createTask(
@@ -282,5 +284,160 @@ export const TaskService = {
     }
 
     await TaskRepository.delete(taskId);
+  },
+  async associateTag(
+    userId: string | undefined,
+    projectId: string | undefined,
+    taskId: string | undefined,
+    tagId: string | undefined,
+  ) {
+    if (!userId) {
+      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+    }
+
+    if (!projectId) {
+      throw new AppError(
+        409,
+        "PROJECT_ID_NOT_RECEIVED",
+        "Project id is required",
+      );
+    }
+
+    if (!taskId) {
+      throw new AppError(409, "TASK_ID_NOT_RECEIVED", "Task id is required");
+    }
+
+    if (!tagId) {
+      throw new AppError(409, "TAG_ID_NOT_RECEIVED", "Tag id is required");
+    }
+
+    const project = await ProjectRepository.findFirstByUserId(
+      userId,
+      projectId,
+    );
+
+    if (!project) {
+      throw new AppError(
+        404,
+        "PROJECT_NOT_FOUND",
+        "Project not found or does not belong to user",
+      );
+    }
+
+    const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
+
+    if (!task) {
+      throw new AppError(
+        404,
+        "TASK_NOT_FOUND",
+        "Task not found or does not belong to user",
+      );
+    }
+
+    const tag = await TagRepository.findFirstByUserId(userId, tagId);
+
+    if (!tag) {
+      throw new AppError(
+        404,
+        "TAG_NOT_FOUND",
+        "Tag not found or does not belong to user",
+      );
+    }
+
+    const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
+
+    if (taskTag) {
+      throw new AppError(
+        409,
+        "TASK_TAG_ASSOCIATION_ALREADY_EXISTS",
+        "Task tag association already exists",
+      );
+    }
+
+    const data: Prisma.TaskTagCreateInput = {
+      tag: {
+        connect: {
+          id: tagId,
+        },
+      },
+      task: {
+        connect: {
+          id: taskId,
+        },
+      },
+    };
+
+    return TaskTagRepository.create(data);
+  },
+  async removeTag(
+    userId: string | undefined,
+    projectId: string | undefined,
+    taskId: string | undefined,
+    tagId: string | undefined,
+  ) {
+    if (!userId) {
+      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+    }
+
+    if (!projectId) {
+      throw new AppError(
+        409,
+        "PROJECT_ID_NOT_RECEIVED",
+        "Project id is required",
+      );
+    }
+
+    if (!taskId) {
+      throw new AppError(409, "TASK_ID_NOT_RECEIVED", "Task id is required");
+    }
+
+    if (!tagId) {
+      throw new AppError(409, "TAG_ID_NOT_RECEIVED", "Tag id is required");
+    }
+
+    const project = await ProjectRepository.findFirstByUserId(
+      userId,
+      projectId,
+    );
+
+    if (!project) {
+      throw new AppError(
+        404,
+        "PROJECT_NOT_FOUND",
+        "Project not found or does not belong to user",
+      );
+    }
+
+    const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
+
+    if (!task) {
+      throw new AppError(
+        404,
+        "TASK_NOT_FOUND",
+        "Task not found or does not belong to user",
+      );
+    }
+
+    const tag = await TagRepository.findFirstByUserId(userId, tagId);
+
+    if (!tag) {
+      throw new AppError(
+        404,
+        "TAG_NOT_FOUND",
+        "Tag not found or does not belong to user",
+      );
+    }
+
+    const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
+
+    if (!taskTag) {
+      throw new AppError(
+        404,
+        "TASK_TAG_NOT_FOUND",
+        "Task tag association not found",
+      );
+    }
+
+    await TaskTagRepository.delete(taskId, tagId);
   },
 };
