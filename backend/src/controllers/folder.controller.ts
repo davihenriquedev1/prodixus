@@ -8,4 +8,13 @@ export const FolderController = {
     const result = await FolderService.createFolder(req.userId, data);
     return res.status(201).json(result);
   },
+  async getFolder(req: Request, res: Response) {
+    const folderId = req.params.folderId as string;
+    const result = await FolderService.getFolder(req.userId, folderId);
+    return res.status(200).json(result);
+  },
+  async getFolders(req: Request, res: Response) {
+    const result = await FolderService.getFolders(req.userId);
+    return res.status(200).json(result);
+  },
 };

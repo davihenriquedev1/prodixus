@@ -7,10 +7,17 @@ export const FolderRepository = {
       data,
     });
   },
-  async findById(id: string, userId: string) {
+  async findFirstByUserId(id: string, userId: string) {
     return prisma.folder.findFirst({
       where: {
         id,
+        userId,
+      },
+    });
+  },
+  async findManyByUserId(userId: string) {
+    return prisma.folder.findMany({
+      where: {
         userId,
       },
     });

@@ -25,7 +25,10 @@ export const ProjectService = {
     }
 
     if (data.folderId !== undefined) {
-      const folder = await FolderRepository.findById(data.folderId, userId);
+      const folder = await FolderRepository.findFirstByUserId(
+        data.folderId,
+        userId,
+      );
       if (!folder) {
         throw new AppError(
           404,
@@ -113,7 +116,10 @@ export const ProjectService = {
     }
 
     if (data.folderId !== undefined) {
-      const folder = await FolderRepository.findById(data.folderId, userId);
+      const folder = await FolderRepository.findFirstByUserId(
+        data.folderId,
+        userId,
+      );
       if (!folder) {
         throw new AppError(
           404,
