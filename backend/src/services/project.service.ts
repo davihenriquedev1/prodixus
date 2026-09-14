@@ -25,17 +25,12 @@ export const ProjectService = {
     }
 
     if (data.folderId !== undefined) {
-      const folder = await FolderRepository.findById(data.folderId);
-
+      const folder = await FolderRepository.findById(data.folderId, userId);
       if (!folder) {
-        throw new AppError(404, "FOLDER_NOT_FOUND", "Folder not found");
-      }
-
-      if (folder.userId !== userId) {
         throw new AppError(
-          403,
-          "FORBIDDEN",
-          "Folder does not belong to the user",
+          404,
+          "FOLDER_NOT_FOUND",
+          "Folder not found or does not belong to the user",
         );
       }
     }
@@ -118,17 +113,12 @@ export const ProjectService = {
     }
 
     if (data.folderId !== undefined) {
-      const folder = await FolderRepository.findById(data.folderId);
-
+      const folder = await FolderRepository.findById(data.folderId, userId);
       if (!folder) {
-        throw new AppError(404, "FOLDER_NOT_FOUND", "Folder not found");
-      }
-
-      if (folder.userId !== userId) {
         throw new AppError(
-          403,
-          "FORBIDDEN",
-          "Folder does not belong to the user",
+          404,
+          "FOLDER_NOT_FOUND",
+          "Folder not found or does not belong to the user",
         );
       }
     }
