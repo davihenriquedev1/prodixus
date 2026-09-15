@@ -26,4 +26,9 @@ export const FolderController = {
     const result = await FolderService.updateFolder(req.userId, folderId, data);
     return res.status(200).json(result);
   },
+  async delete(req: Request, res: Response) {
+    const folderId = req.params.folderId as string;
+    await FolderService.deleteFolder(req.userId, folderId);
+    return res.sendStatus(204);
+  },
 };

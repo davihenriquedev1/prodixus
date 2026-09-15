@@ -30,4 +30,11 @@ export const FolderRepository = {
       },
     });
   },
+  async delete(folderId: string) {
+    return prisma.folder.delete({
+      where: {
+        id: folderId,
+      },
+    });
+  },
 };
