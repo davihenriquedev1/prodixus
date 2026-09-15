@@ -1,4 +1,4 @@
-# Sequence Diagram - User/UserSettings - Update Settings
+# User/UserSettings - Update Settings
 
 ```mermaid
 sequenceDiagram

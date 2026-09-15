@@ -4,9 +4,9 @@ This document describes the architecture of the backend application, its main te
 
 ## Overview
 
-The backend is a server-side application responsible for implementing the application's business logic and exposing the HTTP API.
+The backend is a server-side application responsible for exposing the REST API and implementing the application's authentication, authorization, validation, business logic, and data access.
 
-It is maintained as an independent application within the monorepo, with clear boundaries between HTTP handling, application logic, data access, and cross-cutting concerns.
+It is maintained as a separate application within the monorepo, with clear boundaries between HTTP handling, application logic, validation, and database access.
 
 ## Technology Stack
 
@@ -28,33 +28,70 @@ TypeScript is used throughout the backend to provide static typing and improve r
 
 Prisma is used as the database access layer.
 
-It provides a typed interface for database operations and manages the interaction between the application and the relational database.
+It provides a typed interface for database operations and connects the application to PostgreSQL.
+
+### PostgreSQL
+
+PostgreSQL is the relational database used for persistent application data.
+
+### Zod
+
+Zod is used for request validation.
+
+Validation schemas define the expected structure and constraints of incoming data before it is processed by the application logic.
+
+### JWT
+
+JSON Web Tokens are used for authentication.
+
+The application uses RS256-signed access and refresh tokens to authenticate users and maintain authenticated sessions.
+
+### bcrypt
+
+bcrypt is used for password hashing and password verification.
+
+Plain-text passwords are never stored in the database.
 
 ## Architectural Organization
 
-The backend is organized by responsibility to maintain separation of concerns and keep application logic independent from infrastructure and transport concerns.
+The backend is organized by responsibility and application resource.
 
-The architecture is structured around the following responsibilities:
+The main backend components include:
 
-- **Routes** Define the API endpoints and map incoming requests to the appropriate application logic.
-- **Controllers** Handle HTTP-specific concerns and coordinate the execution of application operations.
-- **Services** Contain application and business logic.
-- **Data Access** Encapsulates interaction with persistent data through Prisma.
-- **Middleware** Provides cross-cutting request processing such as authentication, authorization, and other request-level concerns.
-- **Validation** Defines and enforces the expected structure of incoming data.
-- **Types and Schemas** Provide shared type definitions and validation schemas within the backend.
-- **Utilities** Provide reusable functionality that does not belong to a specific application domain.
+- **Routes** — Define API endpoints and connect incoming requests to controllers.
+- **Controllers** — Handle HTTP-specific concerns and coordinate application operations.
+- **Services** — Contain application and business logic.
+- **Repositories** — Encapsulate database operations performed through Prisma.
+- **Validators** — Define and validate the expected structure of incoming data.
+- **Middleware** — Handles cross-cutting request concerns such as authentication.
+- **Configuration** — Provides application configuration and infrastructure setup.
+- **Utilities** — Provide reusable functionality that does not belong to a specific application resource.
 
-The exact directory structure may evolve as the implementation grows, while preserving these architectural responsibilities.
+The backend functionality is organized around application resources such as:
+
+- Authentication
+- Users
+- Projects
+- Tasks
+- Tags
+- Folders
+
+This organization keeps related functionality together while maintaining clear responsibilities between layers.
 
 ## Architectural Layers
 
-The backend follows a layered organization in which each layer has a defined responsibility:
+The backend follows a layered organization:
 
 ```text
 ┌─────────────────────────────┐
-│        HTTP / API           │
-│     Routes + Controllers    │
+│         HTTP / API          │
+│    Routes + Controllers     │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│      Validation / Auth      │
+│       Zod + Middleware      │
 └──────────────┬──────────────┘
                │
                ▼
@@ -66,6 +103,7 @@ The backend follows a layered organization in which each layer has a defined res
                ▼
 ┌─────────────────────────────┐
 │       Data Access Layer     │
+│        Repositories         │
 │           Prisma            │
 └──────────────┬──────────────┘
                │
@@ -76,56 +114,119 @@ The backend follows a layered organization in which each layer has a defined res
 └─────────────────────────────┘
 ```
 
-The HTTP layer is responsible for communication concerns, the application layer contains business behavior, and the data access layer isolates persistence-related operations.
+Each layer has a specific responsibility:
 
-This separation allows changes in one layer to have minimal impact on the others.
+- The HTTP layer handles API communication.
+- Middleware handles request-level concerns such as authentication.
+- Validators validate incoming data.
+- Services implement application and business rules.
+- Repositories perform database operations.
+- Prisma provides typed database access.
+- PostgreSQL provides persistent data storage.
 
-## Domain Organization
+## Controllers
 
-As the application grows, backend functionality should be organized around application domains rather than concentrating unrelated functionality in shared modules.
+Controllers are responsible for HTTP-specific behavior.
 
-Each domain may contain the components required to implement its functionality, such as:
+They receive requests from routes, obtain the required request data, call the appropriate service, and return the corresponding HTTP response.
 
-- Routes.
-- Controllers.
-- Services.
-- Validation schemas.
-- Domain-specific types.
-- Data access logic.
+Controllers should not contain the application's main business rules or perform database operations directly.
 
-This approach keeps related functionality close together while preserving the separation of responsibilities between architectural layers.
+## Services
+
+Services contain the application's business logic.
+
+They are responsible for operations such as:
+
+- Applying business rules.
+- Checking resource ownership.
+- Coordinating related operations.
+- Preparing data for persistence.
+- Handling application-specific errors.
+
+Services receive the authenticated user identity from the request context rather than trusting a client-provided user identifier.
+
+This is an important part of the application's data-isolation model.
+
+## Repositories
+
+Repositories encapsulate database operations.
+
+They use Prisma to interact with PostgreSQL and keep database-specific operations separate from application and HTTP logic.
+
+Repositories are intentionally kept simple and focused on data access.
+
+Business rules and ownership checks remain in the service layer.
+
+## Authentication and Authorization
+
+Authentication is implemented through JWT access and refresh tokens.
+
+Authentication middleware validates access tokens and provides the authenticated user's identity to the request context.
+
+Authorization is enforced by the backend through resource ownership checks.
+
+For user-owned resources, services verify that the requested resource belongs to the authenticated user before allowing access or modification.
+
+The client cannot establish ownership simply by providing another user's identifier.
+
+## Validation
+
+Incoming request data is validated using Zod schemas.
+
+Validation is performed before application logic processes the corresponding data.
+
+This provides a consistent boundary between external input and internal application logic.
+
+Validation is applied to operations such as:
+
+- User registration and authentication.
+- Project creation and updates.
+- Task creation and updates.
+- Tag creation and updates.
+- Folder creation and updates.
+- Password changes.
+
+## Error Handling
+
+Application errors are represented using the backend's error-handling mechanism and returned through consistent HTTP responses.
+
+Errors contain an application-specific error code and a message appropriate for the client.
+
+The backend avoids exposing internal implementation details or sensitive information in API responses.
 
 ## Cross-Cutting Concerns
 
-Certain concerns apply across multiple parts of the backend rather than belonging to a single domain.
-
-These include:
+The backend contains concerns that apply across multiple resources, including:
 
 - Authentication.
 - Authorization.
 - Validation.
 - Error handling.
-- Logging.
 - Configuration.
+- Logging.
 
-These concerns should be implemented in dedicated mechanisms or modules where appropriate, avoiding unnecessary duplication across domains.
+These concerns are handled through dedicated middleware, modules, or utilities where appropriate to avoid unnecessary duplication.
 
 ## Architectural Boundaries
 
-The backend maintains the following architectural boundaries:
+The backend maintains the following boundaries:
 
-- HTTP-specific concerns remain isolated from business logic.
-- Business logic does not depend directly on HTTP implementation details.
-- Database access is isolated behind the data access layer.
-- Domain functionality remains organized around clear application responsibilities.
-- Cross-cutting concerns are handled through dedicated mechanisms rather than being duplicated throughout the application.
+- HTTP-specific concerns remain in routes and controllers.
+- Business logic remains in services.
+- Database operations remain in repositories.
+- Prisma is accessed by the backend rather than the frontend.
+- Request validation is handled through dedicated schemas.
+- Authentication is handled through middleware and JWTs.
+- Resource ownership is enforced by the backend.
+- Sensitive application data is not exposed through unnecessary logs or error responses.
 
-These boundaries are intended to keep the backend maintainable, testable, and adaptable as the system evolves.
+These boundaries keep the backend organized and provide a clear separation between transport, application logic, validation, and persistence.
 
 ## Related Documentation
 
-- [System Overview](./system-overview.md): High-level system architecture.
-- [Communication](./communication.md): Communication patterns between system components.
-- [API Documentation](../api/README.md): API structure, conventions, and endpoints.
-- [Database Documentation](../database/): Database structure and persistence.
-- [Security Documentation](../security/): Authentication, authorization, and security practices.
+- [System Overview](./system-overview.md) — High-level system architecture.
+- [Communication](./communication.md) — Communication patterns between system components.
+- [API Documentation](../api/README.md) — API structure, conventions, and endpoints.
+- [Database Documentation](../database/) — Database structure and persistence.
+- [Security Documentation](../security/) — Authentication, authorization, and security practices.

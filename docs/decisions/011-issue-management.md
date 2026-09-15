@@ -1,8 +1,7 @@
 # ADR-011: Issue Management
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 
@@ -60,7 +59,7 @@ Titles should use a consistent format appropriate to the type of work.
 
 Examples:
 
-```text id="ehv9l0"
+```text
 feat(auth): add refresh token model
 docs: add system diagrams
 refactor(api): reorganize service layer
@@ -93,7 +92,7 @@ An issue should be connected to its implementation through GitHub's development 
 
 The normal relationship is:
 
-```text id="6tqk4p"
+```text
 Issue
   ↓
 Branch
@@ -105,7 +104,7 @@ Merge
 
 When a pull request completes an issue, the pull request should reference the issue using GitHub's closing syntax:
 
-```text id="lnx9lm"
+```text
 Closes #<issue-number>
 ```
 
@@ -117,7 +116,7 @@ This allows GitHub to maintain the relationship between planned work and its imp
 
 The expected lifecycle is:
 
-```text id="f8b8dc"
+```text
 Backlog
    ↓
 Planned

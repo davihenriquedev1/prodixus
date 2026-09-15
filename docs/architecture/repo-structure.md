@@ -4,10 +4,11 @@ This document describes the organization of the repository and the responsibilit
 
 ## Overview
 
-The project uses a monorepo structure to maintain the frontend, backend, documentation, and development configuration within a single repository.
+The project uses a monorepo structure to maintain the frontend, backend, documentation, and repository configuration within a single Git repository.
 
 ```text
 project-root/
+
 ├── frontend/
 ├── backend/
 ├── docs/
@@ -17,7 +18,7 @@ project-root/
 └── ...
 ```
 
-![System Architecture](./images/repo-structure.png)
+![Repository Structure](./images/repo-structure.png)
 
 The frontend and backend are maintained as separate applications while sharing the same repository and version control history.
 
@@ -29,61 +30,69 @@ Contains the frontend application.
 
 The frontend is responsible for the user interface, client-side behavior, navigation, form handling, and communication with the backend API.
 
-The frontend is developed independently from the backend and has its own dependencies, configuration, and application code.
+The frontend has its own dependencies, configuration, and application source code.
 
 ### `backend/`
 
 Contains the backend application.
 
-The backend is responsible for the API, business logic, authentication, validation, and access to persistent data.
+The backend is responsible for the REST API, authentication, authorization, validation, business logic, and access to persistent data.
 
-The backend is developed independently from the frontend and has its own dependencies, configuration, and application code.
+The backend has its own dependencies, configuration, application source code, and Prisma database configuration.
+
+The main backend database-related files and directories include:
+
+```text
+backend/
+
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+├── src/
+└── ...
+```
 
 ### `docs/`
 
 Contains the project's technical documentation.
 
-Documentation is organized by domain:
+Documentation is organized by technical domain:
 
 ```text
 docs/
+
 ├── api/
 ├── architecture/
 ├── database/
 ├── decisions/
 ├── development/
-├── security/
-├── der/
-├── sequence-diagrams/
-└── uml/
+├── diagrams/
+└── security/
 ```
 
-Each directory contains documentation related to a specific technical area of the system.
+Each directory contains documentation related to a specific area of the system.
 
 ### `.github/`
 
-Contains repository-level GitHub configuration.
+Contains repository-level GitHub configuration and automation.
 
-This directory may include:
+The directory currently contains the project's GitHub Actions CI workflow and may also contain other GitHub-specific configuration such as issue or pull request templates.
 
-- GitHub Actions workflows.
-- Issue templates.
-- Pull request templates.
-- Other GitHub-specific configuration.
+## Application Separation
 
-## Application Independence
-
-The frontend and backend are logically independent applications within the same repository.
+The frontend and backend are logically separate applications within the same repository.
 
 Each application:
 
 - Has its own source code.
 - Manages its own dependencies.
-- Has its own configuration.
-- Can be developed and tested independently.
-- Has a clearly defined responsibility within the system.
+- Has its own application-specific configuration.
+- Has a clearly defined responsibility.
+- Can be developed independently at the implementation level.
 
-The monorepo provides a shared version control boundary without coupling the internal implementation of the applications.
+The applications communicate through the backend API rather than directly accessing each other's internal implementation.
+
+The monorepo provides a shared version control boundary while preserving clear application boundaries.
 
 ## Shared Configuration
 
@@ -95,11 +104,11 @@ This distinction prevents application-specific settings from being unnecessarily
 
 ## Documentation and Development Resources
 
-Project-wide documentation is maintained under `docs/`.
+Project-wide technical documentation is maintained under `docs/`.
 
-Repository-level development and automation configuration is maintained under `.github/`.
+Repository-level automation and GitHub configuration are maintained under `.github/`.
 
-Application-specific configuration and source code remain within their respective application directories.
+Application-specific source code and configuration remain within their respective application directories.
 
 ## Repository-Level Files
 
@@ -109,12 +118,12 @@ Examples include:
 
 - `package.json`
 - `.gitignore`
-- Repository configuration files
+- Repository-level configuration files
 
-These files should only contain configuration that applies to the repository as a whole.
+Root-level configuration should only contain settings that apply to the repository as a whole.
 
 ## Related Documentation
 
-- [System Overview](./system-overview.md): High-level system architecture and component relationships.
-- [Frontend](./frontend.md): Frontend architecture and responsibilities.
-- [Backend](./backend.md): Backend architecture and responsibilities.
+- [System Overview](./system-overview.md) — High-level system architecture and component relationships.
+- [Frontend](./frontend.md) — Frontend architecture and responsibilities.
+- [Backend](./backend.md) — Backend architecture and responsibilities.

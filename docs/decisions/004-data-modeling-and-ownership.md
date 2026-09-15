@@ -1,8 +1,7 @@
 # ADR-004: Data Modeling and Ownership Rules
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

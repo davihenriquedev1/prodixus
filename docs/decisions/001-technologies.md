@@ -1,8 +1,7 @@
 # ADR-001: Technologies Chosen
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

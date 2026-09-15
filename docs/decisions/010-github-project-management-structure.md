@@ -1,8 +1,7 @@
 # ADR-010: GitHub Project Management Structure
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

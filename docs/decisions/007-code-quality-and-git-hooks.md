@@ -1,8 +1,7 @@
 # ADR-007: Code Quality and Git Hooks
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

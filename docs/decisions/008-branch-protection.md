@@ -1,8 +1,7 @@
 # ADR-008: Branch Protection
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 
@@ -45,7 +44,7 @@ The following requirements apply:
 
 The protection rules enforce the following general workflow:
 
-```text id="1s1s5g"
+```text
 Feature / Fix / Refactor / Docs
               │
               ▼

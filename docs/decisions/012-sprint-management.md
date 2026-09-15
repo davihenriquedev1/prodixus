@@ -1,8 +1,7 @@
 # ADR-012: Sprint Management
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

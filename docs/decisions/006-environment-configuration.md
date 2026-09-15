@@ -1,8 +1,7 @@
 # ADR-006: Environment Configuration
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

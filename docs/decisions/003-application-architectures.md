@@ -1,8 +1,7 @@
 # ADR-003: Application Architectures
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

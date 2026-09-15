@@ -1,404 +1,357 @@
-Agora o `authorization.md`. Aqui vale ser rigoroso: **o `authMiddleware` autentica o usuário, mas não faz autorização de recursos**. A checagem de ownership deve acontecer na camada de serviço/repositório quando começarmos os CRUDs de recursos.
+# Authentication
 
-# Authorization
+This document describes the authentication mechanisms currently implemented in the application.
 
-This document describes the authorization model of the application.
+Authentication is responsible for verifying the identity of a user. Authorization is handled separately and determines which resources an authenticated user is allowed to access or modify.
 
-Authentication determines the identity of a user. Authorization determines whether that authenticated user is allowed to perform a specific operation on a specific resource.
+## Authentication Model
 
-## Authorization Principle
+The system uses token-based authentication with:
 
-The fundamental authorization rule is:
+- Password hashing using bcrypt.
+- JWT access tokens.
+- JWT refresh tokens.
+- RS256 asymmetric signing.
+- Short-lived access tokens.
+- Long-lived refresh tokens.
+- Refresh token rotation.
+- Refresh token revocation.
+- SHA-256 hashing of refresh tokens before database storage.
 
-> An authenticated user must only be able to access, modify, or delete resources that they are authorized to access.
+The backend is responsible for issuing, validating, rotating, and revoking authentication tokens.
 
-For user-owned resources, authorization must be based on the ownership relationship between the resource and the authenticated user.
+## Registration
 
-A resource ID supplied by the client must never be treated as proof of ownership.
+User registration is handled by the authentication service.
 
-For example, if a request contains:
+The registration flow is:
 
-```http
-GET /api/projects/project-b
+```text
+Client
+  │
+  │ name, email, password
+  ▼
+Register Controller
+  │
+  ▼
+Auth Service
+  │
+  ├── Check whether email already exists
+  ├── Hash password with bcrypt
+  ├── Create user
+  ├── Generate access token
+  ├── Generate refresh token
+  └── Store hashed refresh token
+  │
+  ▼
+Client
 ```
 
-the existence of `project-b` must not be sufficient to return the project.
+Passwords are never stored in plaintext.
 
-The backend must verify that `project-b` belongs to the authenticated user.
+Before the user is created, the password is hashed using bcrypt with a cost factor of `10`.
 
-## Authentication Context
+The resulting password hash is stored in the user's `passwordHash` field.
 
-The authentication middleware establishes the identity of the current user.
+If the email is already registered, the API returns a conflict error instead of creating another account.
 
-After successfully validating the access token, the middleware assigns the authenticated user's ID to:
+## Login
+
+Login requires the user's email and password.
+
+The authentication flow is:
+
+```text
+Client
+  │
+  │ email + password
+  ▼
+Login Controller
+  │
+  ▼
+Auth Service
+  │
+  ├── Find user by email
+  ├── Compare password with bcrypt
+  ├── Generate access token
+  ├── Generate refresh token
+  └── Store hashed refresh token
+  │
+  ▼
+Client
+```
+
+Invalid credentials result in an authentication error.
+
+The application does not return the user's password hash to the client.
+
+A successful login returns:
+
+- User information considered safe for client exposure.
+- An access token.
+- A refresh token.
+
+## Access Tokens
+
+Access tokens are JWTs signed using RS256.
+
+The current access-token lifetime is:
+
+```text
+30 minutes
+```
+
+Access tokens contain the authenticated user's identifier and token type:
+
+```json
+{
+  "userId": "<user-id>",
+  "type": "access"
+}
+```
+
+Protected routes receive the access token through the HTTP `Authorization` header:
+
+```http
+Authorization: Bearer <access-token>
+```
+
+The authentication middleware validates the token before allowing access to protected routes.
+
+The middleware validates the JWT payload and extracts `userId`.
+
+That value is assigned to:
 
 ```ts
 req.userId;
 ```
 
-This value represents the identity established by the server.
+Application code must use this authenticated identity rather than accepting a user identity from the client.
 
-Application code must use this authentication context when making authorization decisions.
+## Refresh Tokens
 
-The application must not trust a client-provided field such as:
+Refresh tokens are also JWTs signed using RS256.
+
+The current refresh-token lifetime is:
+
+```text
+4 days
+```
+
+Refresh tokens contain the user's identifier and identify themselves as refresh tokens:
 
 ```json
 {
-  "userId": "some-user-id"
+  "userId": "<user-id>",
+  "type": "refresh"
 }
 ```
 
-to determine which user owns a resource.
+Refresh tokens are persisted in the database so that the server can track their lifecycle and revoke them.
 
-## Protected Routes
+The raw refresh token is never stored directly in the database.
 
-Routes that require an authenticated user must execute the authentication middleware before reaching the protected controller.
-
-Current protected routes include:
+Instead, the server calculates a SHA-256 hash:
 
 ```text
-GET   /api/users/me
-PATCH /api/users/me
-PATCH /api/users/me/password
+Refresh Token
+      │
+      ▼
+   SHA-256
+      │
+      ▼
+Token Hash
+      │
+      ▼
+Database
 ```
 
-The route structure currently follows:
+When a refresh request is received, the same hashing process is applied to the supplied token and the resulting hash is looked up in the database.
+
+## Why Refresh Tokens Use SHA-256
+
+Refresh tokens are cryptographically generated JWTs and can exceed bcrypt's effective input length.
+
+bcrypt only considers the first 72 bytes of its input. Using bcrypt directly to compare long JWT refresh tokens can therefore result in different tokens producing the same comparison result when their first 72 bytes are identical.
+
+The application avoids this problem by hashing refresh tokens with SHA-256 before storing them.
+
+The database therefore stores a fixed-length cryptographic digest rather than the raw token.
+
+## Refresh Token Rotation
+
+Refresh tokens are rotated whenever they are successfully used.
+
+The flow is:
 
 ```text
-Request
+Client
+  │
+  │ Refresh Token A
+  ▼
+Refresh Endpoint
+  │
+  ├── Verify JWT
+  ├── Hash supplied token
+  ├── Find stored token
+  ├── Check revocation
+  ├── Check expiration
+  ├── Verify user
+  │
+  ├── Revoke Token A
+  │
+  ├── Generate Access Token B
+  ├── Generate Refresh Token B
+  └── Store Token B hash
   │
   ▼
-Authentication Middleware
-  │
-  ├── Validate access token
-  ├── Extract userId
-  └── Set req.userId
-  │
-  ▼
-Controller
-  │
-  ▼
-Service
-  │
-  ▼
-Repository
+Client
 ```
 
-A request without valid authentication must not reach protected application logic.
+The previously used refresh token is revoked before the new refresh token is persisted.
 
-## Authorization Checks
+A revoked refresh token cannot be reused successfully.
 
-Authentication middleware alone does not establish permission to access a specific resource.
+This provides refresh-token rotation and limits the usefulness of a previously issued refresh token after it has been consumed.
 
-For resource-based operations, authorization must be performed after authentication.
+## Refresh Token Expiration
 
-For example:
+Each stored refresh token has an `expiresAt` value.
+
+During refresh, the server checks whether:
 
 ```text
-Request
-  │
-  ▼
-Authenticate User
-  │
-  ▼
-Identify Resource
-  │
-  ▼
-Check Resource Ownership
-  │
-  ├── Authorized ──► Continue
-  │
-  └── Unauthorized ──► Reject
+expiresAt <= current time
 ```
 
-The ownership check must be performed by the backend.
+If the token has expired, the refresh operation is rejected.
 
-## Resource Ownership
+Expiration therefore exists both at the JWT level and in the server-side refresh-token record.
 
-For resources that belong to users, the authorization decision should be based on the authenticated user's ID.
+## Refresh Token Revocation
 
-Conceptually:
+Refresh tokens contain server-side revocation state.
+
+A token can be revoked by setting its `revokedAt` timestamp.
+
+The refresh flow rejects tokens for which:
 
 ```text
-authenticatedUserId === resource.ownerId
+revokedAt != null
 ```
 
-If the values do not match, the operation must be rejected.
+Revocation is used during logout, refresh-token rotation, and password changes.
 
-The client must not be able to change the ownership boundary by modifying:
+## Logout
 
-- `userId`
-- `ownerId`
-- Resource IDs
-- URL parameters
-- Request body fields
-- Query parameters
-- HTTP methods
+Logout requires the refresh token.
 
-## Read Operations
+The server:
 
-Reading a resource requires authorization.
+1. Verifies the refresh token.
+2. Hashes the supplied token.
+3. Finds the corresponding database record.
+4. Verifies that the token is not already revoked.
+5. Verifies that the token has not expired.
+6. Verifies that the token belongs to the user represented by the token.
+7. Revokes the refresh token.
 
-For example, a request such as:
+Logout therefore invalidates the corresponding refresh-token session on the server.
 
-```http
-GET /api/projects/:projectId
-```
+## Password Changes
 
-must not return the project merely because the project ID exists.
+Changing a password requires:
 
-The backend must verify that the requested project belongs to the authenticated user.
+- An authenticated access token.
+- The current password.
+- A new password satisfying the configured password validation rules.
 
-Conceptually:
+The server first verifies the current password using bcrypt.
+
+The new password is then hashed with bcrypt before being persisted.
+
+After a successful password change, all active refresh tokens belonging to the user are revoked.
 
 ```text
-Authenticated User A
-        │
-        │ requests Project B
-        ▼
-Backend
-        │
-        ├── Project B exists?
-        │
-        └── Project B belongs to User A?
-                │
-                ├── Yes → return resource
-                │
-                └── No → reject request
+Password Change
+      │
+      ├── Verify current password
+      │
+      ├── Hash new password
+      │
+      ├── Update password
+      │
+      └── Revoke all active refresh tokens
 ```
 
-## Create Operations
+Previously issued access tokens are not immediately revoked because access-token revocation is not currently implemented.
 
-Creating a resource must associate it with the authenticated user.
+Their short lifetime limits the remaining validity period.
 
-The ownership relationship must be derived from the authentication context whenever possible.
+## Protected Route Authentication
 
-For example, when creating a project:
+Protected routes use the authentication middleware.
 
-```text
-Authenticated User
-        │
-        ▼
-Create Project
-        │
-        ▼
-ownerId = req.userId
-```
+The middleware:
 
-The server should not rely on a client-provided `ownerId` to establish ownership.
+1. Reads the `Authorization` header.
+2. Requires the `Bearer` authentication scheme.
+3. Verifies the access token.
+4. Validates the token payload.
+5. Extracts the `userId`.
+6. Stores the authenticated identity in `req.userId`.
+7. Passes execution to the protected route.
 
-If the request attempts to provide a different owner ID, the backend must ignore or reject that value according to the endpoint's contract.
+Requests with missing or invalid authentication tokens are rejected with HTTP `401 Unauthorized`.
 
-## Update Operations
+The authentication middleware establishes identity, while resource-level authorization is enforced separately by the backend.
 
-Updating a resource requires authorization before the mutation occurs.
+## Authentication vs Authorization
 
-The backend must:
+Authentication and authorization are separate security controls.
 
-1. Identify the requested resource.
-2. Determine its owner.
-3. Compare the owner with `req.userId`.
-4. Reject the request if the authenticated user is not authorized.
-5. Perform the update only after authorization succeeds.
+**Authentication** answers:
 
-Example:
+> Who is this user?
 
-```text
-PATCH /api/projects/:projectId
-```
+In this system, this is established through a valid access token.
 
-must not allow User A to modify a project owned by User B.
+**Authorization** answers:
 
-## Delete Operations
+> What is this authenticated user allowed to access or modify?
 
-Deletion follows the same authorization rule as updates.
+Authorization is enforced by the backend through resource ownership checks.
 
-Before deleting a resource, the backend must verify that the authenticated user is authorized to delete it.
+A valid JWT alone must not grant unrestricted access to application resources.
 
-The existence of a valid resource ID does not grant deletion permission.
+Resource ownership and tenant isolation are documented in [`authorization.md`](./authorization.md).
 
-Example:
+## Security Requirements
 
-```text
-DELETE /api/projects/:projectId
-```
+The following requirements apply to authentication:
 
-must verify ownership before executing the database deletion.
+- Passwords must never be stored in plaintext.
+- Password hashes must never be returned to clients.
+- JWT signing keys must remain server-side.
+- Refresh tokens must not be stored as plaintext in the database.
+- Revoked refresh tokens must not be accepted.
+- Expired refresh tokens must not be accepted.
+- Refresh tokens must be rotated after successful use.
+- Protected routes must require valid access tokens.
+- The authenticated user's identity must come from validated authentication context.
+- Authentication failures must not expose sensitive credential information.
 
-## Related Resources
+## Current Limitations and Future Hardening
 
-Authorization must also be applied to relationships between resources.
+The current authentication implementation does not provide immediate server-side revocation for already-issued access tokens.
 
-For example, our system may contain relationships such as:
+Additional hardening may be considered separately, including:
 
-```text
-User
- │
- ├── Project
- │     │
- │     └── Task
- │
- └── Tag
-```
+- Rate limiting authentication endpoints.
+- Protection against credential-stuffing and brute-force attacks.
+- Secure client-side refresh-token storage strategy.
+- Security headers.
+- Additional authentication monitoring and alerting.
+- Automated security tests covering token abuse and authentication edge cases.
 
-A user must not gain access to a task merely because they know its ID.
-
-The backend must establish that the task belongs to a project owned by the authenticated user.
-
-Similarly, operations involving tags must ensure that the authenticated user is authorized to use the referenced tag.
-
-For many-to-many relationships such as task/tag associations, both sides of the relationship must respect ownership boundaries.
-
-Conceptually:
-
-```text
-User A
- │
- ├── Project A
- │     └── Task A
- │
- └── Tag A
-
-User B
- │
- ├── Project B
- │     └── Task B
- │
- └── Tag B
-```
-
-User A must not be able to manipulate:
-
-```text
-Task B
-Project B
-Tag B
-```
-
-by manually changing resource identifiers.
-
-## IDOR and BOLA Prevention
-
-The application must protect against insecure direct object reference (IDOR) and broken object-level authorization (BOLA).
-
-These vulnerabilities occur when an application accepts a resource identifier from the client but fails to verify whether the authenticated user is authorized to access that resource.
-
-An unsafe implementation could conceptually behave like:
-
-```ts id="n4rj2v"
-const project = await ProjectRepository.findById(projectId);
-return project;
-```
-
-This is insufficient when projects belong to individual users.
-
-A secure implementation must include the authorization boundary:
-
-```ts id="8zj5mm"
-const project = await ProjectRepository.findById(projectId);
-
-if (!project || project.ownerId !== req.userId) {
-  throw new AppError(404, "RESOURCE_NOT_FOUND", "Resource not found");
-}
-
-return project;
-```
-
-The exact implementation may vary by resource and repository design, but the authorization requirement remains the same.
-
-## Avoiding Ownership Leaks
-
-Authorization checks should ideally be incorporated into database queries where practical.
-
-For example, instead of:
-
-```text
-find project by ID
-        ↓
-check owner in application code
-```
-
-a query can conceptually enforce both conditions:
-
-```text
-find project where:
-    id = projectId
-    AND ownerId = authenticatedUserId
-```
-
-This reduces the possibility of accidentally returning a resource before authorization is checked.
-
-It also makes the ownership boundary explicit in the data-access operation.
-
-## Error Handling
-
-Authorization failures must not expose unnecessary information about resources belonging to other users.
-
-Depending on the endpoint and security requirements, the API may return:
-
-- `403 Forbidden` when the resource is known but the user is authenticated and lacks permission.
-- `404 Not Found` when hiding the existence of another user's resource is preferable.
-
-The selected behavior should be consistent within the API.
-
-Error responses must not expose:
-
-- Private resource contents.
-- Another user's identifiers unnecessarily.
-- Database details.
-- Internal authorization logic.
-- Sensitive application information.
-
-## Current Implementation
-
-The current authentication middleware establishes the authenticated user identity through `req.userId`.
-
-The currently implemented `/users/me` endpoints operate on the authenticated user rather than accepting an arbitrary user ID from the request.
-
-For example:
-
-```text
-GET /api/users/me
-```
-
-uses the user ID established by the authentication middleware.
-
-This prevents a client from selecting another user's ID through the endpoint itself.
-
-## Current Authorization Limitations
-
-The current application is still developing its resource-level authorization model.
-
-The authentication middleware currently verifies the user's access token and establishes the authenticated identity, but it does not itself perform ownership checks for arbitrary resources.
-
-Resource ownership authorization must therefore be implemented as resource CRUD operations are introduced.
-
-The following controls should be considered required for future resource endpoints:
-
-- Ownership checks for resource reads.
-- Ownership checks for resource updates.
-- Ownership checks for resource deletion.
-- Server-side ownership assignment during resource creation.
-- Ownership checks for related resources.
-- Tests attempting cross-user resource access.
-- Tests attempting cross-user resource modification.
-- Tests attempting cross-user resource deletion.
-- Tests manipulating resource IDs directly.
-
-These controls must be implemented before corresponding resources are considered securely isolated between users.
-
-## Authorization Security Goal
-
-The authorization model must guarantee the following:
-
-> Knowing a resource ID must never be enough to access or manipulate that resource.
-
-The backend must independently determine whether the authenticated user is authorized to perform the requested operation.
-
-The client controls the request.
-
-The server controls authorization.
-
-O ponto principal desse documento é deixar **cravado** que `authMiddleware` ≠ autorização. O middleware sabe **quem é o usuário**; o serviço/repositório precisa verificar **se ele pode mexer naquele recurso**.
-
-O próximo é `data-isolation.md`, que vai aprofundar justamente **User → Project → Task → Tag** e os cenários de IDOR/BOLA.
+These controls are not considered implemented until they are actually introduced into the application.

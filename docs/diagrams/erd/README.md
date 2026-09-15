@@ -24,7 +24,7 @@ As the data model evolves, the diagram should be updated to remain consistent wi
 
 ## Relationship with the Database
 
-The ERD represents the intended relational model of the application's PostgreSQL database.
+The ERD represents the relational model of the application's PostgreSQL database.
 
 The actual database schema is managed through Prisma and its migrations. The diagram should therefore remain consistent with the models and relationships defined in the Prisma schema.
 
@@ -42,5 +42,5 @@ The following conventions are used:
 
 ## Related Documentation
 
-- [Database Documentation](../database/README.md)
-- [Architecture Documentation](../architecture/README.md)
+- [Database Documentation](../../database/README.md)
+- [Architecture Documentation](../../architecture/README.md)

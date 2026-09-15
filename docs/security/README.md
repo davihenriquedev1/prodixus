@@ -26,7 +26,7 @@ Authentication and authorization are enforced through the backend API.
 ```text
 Client
   │
-  │ Authorization: Bearer <access token>
+  │ Authorization: Bearer <access-token>
   ▼
 Express API
   │
@@ -46,6 +46,9 @@ Controller
   ▼
 Service
   │
+  ├── Authorization
+  └── Ownership checks
+  │
   ▼
 Repository
   │
@@ -53,7 +56,9 @@ Repository
 PostgreSQL
 ```
 
-The authenticated user's ID is extracted from the access token and assigned to `req.userId`. Protected operations use this identity instead of trusting a user ID supplied by the client.
+The authenticated user's ID is extracted from the validated access token and assigned to `req.userId`.
+
+Protected operations use this identity instead of trusting a user ID supplied by the client.
 
 ## Authentication
 
@@ -63,33 +68,53 @@ The application uses:
 - JWT access tokens.
 - JWT refresh tokens.
 - RS256 signing for JWTs.
-- Refresh token rotation.
-- Refresh token revocation.
+- Access-token expiration.
+- Refresh-token expiration.
+- Refresh-token rotation.
+- Refresh-token revocation.
 - SHA-256 hashing for refresh tokens stored in the database.
 
 Authentication flows are documented in [authentication.md](./authentication.md).
 
 ## Authorization
 
-Authentication establishes **who the user is**. Authorization determines **what that authenticated user is allowed to access or modify**.
+Authentication establishes **who the user is**.
 
-Protected user routes use the authentication middleware before reaching their controllers.
+Authorization determines **what that authenticated user is allowed to access or modify**.
 
-Current protected routes include:
+Protected routes use the authentication middleware before reaching their controllers.
+
+Current protected resources include:
 
 ```text
-GET   /api/users/me
-PATCH /api/users/me
-PATCH /api/users/me/password
+/api/users/*
+/api/projects/*
+/api/tags/*
+/api/folders/*
+/api/projects/:projectId/tasks/*
 ```
 
-Authorization and protected routes are documented in [authorization.md](./authorization.md).
+Authorization is enforced at the service layer through resource ownership checks.
+
+Directly owned resources include:
+
+- Projects.
+- Tags.
+- Folders.
+
+Tasks are authorized through their project ownership.
+
+Operations involving multiple resources also validate the ownership of the related resources.
+
+Authorization requirements are documented in [authorization.md](./authorization.md).
 
 ## Data Isolation
 
 User data must remain isolated from other users.
 
-The backend must not rely on client-provided identifiers to determine resource ownership. Ownership must be derived from the authenticated user and the application's data relationships.
+The backend must not rely on client-provided identifiers to determine resource ownership.
+
+Ownership is derived from the authenticated user and the application's data relationships.
 
 For example:
 
@@ -99,10 +124,14 @@ Authenticated User
        ├── Projects
        │     └── Tasks
        │
-       └── Tags
+       ├── Tags
+       │
+       └── Folders
 ```
 
 A resource ID alone must never be considered sufficient authorization to access, modify, or delete a resource.
+
+Cross-resource relationships must also remain within the authenticated user's ownership boundary.
 
 Data isolation and protection against IDOR/BOLA-style access are documented in [data-isolation.md](./data-isolation.md).
 
@@ -113,9 +142,9 @@ Application secrets and credentials are server-side concerns.
 Examples include:
 
 - Database connection credentials.
-- JWT signing keys.
-- Refresh token signing keys.
+- JWT private keys.
 - Environment-specific secrets.
+- Other server-side credentials.
 
 Secrets must not be exposed through the frontend or committed to source control.
 
@@ -127,12 +156,16 @@ The application uses several security practices, including:
 
 - Input validation with Zod.
 - Password hashing with bcrypt.
-- Cryptographic hashing of stored refresh tokens.
-- JWT validation.
-- Refresh token expiration and revocation.
+- SHA-256 hashing of stored refresh tokens.
+- JWT signature and payload validation.
+- Access-token and refresh-token expiration.
+- Refresh-token rotation.
+- Refresh-token revocation.
 - Protected backend routes.
+- Server-side ownership validation.
 - Separation between controllers, services, and repositories.
 - Safe user responses that do not expose password hashes.
+- Protection against client-controlled ownership information.
 
 Additional security practices and recommendations are documented in [security-practices.md](./security-practices.md).
 
@@ -140,7 +173,9 @@ Additional security practices and recommendations are documented in [security-pr
 
 This documentation describes the security controls currently implemented by the application.
 
-Security controls that are not yet implemented must not be represented as existing protections. They should instead be tracked separately as future security hardening work.
+Security controls that are not yet implemented must not be represented as existing protections.
+
+Additional controls should instead be tracked separately as future security hardening work.
 
 ## Security Goal
 

@@ -1,8 +1,7 @@
 # ADR-005: Git and GitHub Workflow
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 
