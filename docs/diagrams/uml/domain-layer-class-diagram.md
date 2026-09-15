@@ -1,8 +1,7 @@
-# Domain Layer Class Diagram
+# Domain Model Class Diagram
 
-```mermaid
+```mermaid id="8xq3nf"
 classDiagram
-
     class User {
         +String id
         +String name
@@ -18,9 +17,6 @@ classDiagram
         +String theme
         +String language
         +DateTime updatedAt
-
-        +updateTheme(theme)
-        +updateLanguage(language)
     }
 
     class RefreshToken {
@@ -30,10 +26,6 @@ classDiagram
         +DateTime expiresAt
         +DateTime revokedAt
         +DateTime createdAt
-
-        +isExpired()
-        +isRevoked()
-        +revoke()
     }
 
     class Project {
@@ -51,11 +43,6 @@ classDiagram
         +String folderId
         +DateTime createdAt
         +DateTime updatedAt
-
-        +complete()
-        +reopen()
-        +archive()
-        +restore()
     }
 
     class Task {
@@ -72,12 +59,6 @@ classDiagram
         +String parentId
         +DateTime createdAt
         +DateTime updatedAt
-
-        +complete()
-        +reopen()
-        +archive()
-        +restore()
-        +setPriority(priority)
     }
 
     class Tag {
@@ -87,9 +68,6 @@ classDiagram
         +String userId
         +DateTime createdAt
         +DateTime updatedAt
-
-        +rename(name)
-        +changeColor(color)
     }
 
     class TaskTag {
@@ -104,11 +82,7 @@ classDiagram
         +String parentId
         +DateTime createdAt
         +DateTime updatedAt
-
-        +rename(name)
-        +move(parentId)
     }
-
 
     User "1" --> "0..1" UserSettings : has
     User "1" --> "0..*" RefreshToken : owns

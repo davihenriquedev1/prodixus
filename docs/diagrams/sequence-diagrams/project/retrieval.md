@@ -1,4 +1,4 @@
-# Project - Get
+# Project - Retrieval
 
 ## Get Projects
 
@@ -15,16 +15,15 @@ sequenceDiagram
     participant PostgreSQL
 
     User->>Frontend: Open projects
-    Frontend->>API: GET /projects
+    Frontend->>API: GET /api/projects
     API->>AuthMiddleware: Authenticate request
     AuthMiddleware->>AuthMiddleware: Validate access token
     AuthMiddleware-->>API: userId
-
     API->>ProjectController: getProjects(req, res)
     ProjectController->>ProjectService: getProjects(userId)
     ProjectService->>ProjectRepository: findManyByUserId(userId)
     ProjectRepository->>Prisma: project.findMany()
-    Prisma->>PostgreSQL: SELECT projects WHERE userId = userId
+    Prisma->>PostgreSQL: SELECT projects by userId
     PostgreSQL-->>Prisma: Projects
     Prisma-->>ProjectRepository: Projects
     ProjectRepository-->>ProjectService: Projects
@@ -49,21 +48,27 @@ sequenceDiagram
     participant PostgreSQL
 
     User->>Frontend: Open project
-    Frontend->>API: GET /projects/:id
+    Frontend->>API: GET /api/projects/:projectId
     API->>AuthMiddleware: Authenticate request
     AuthMiddleware->>AuthMiddleware: Validate access token
     AuthMiddleware-->>API: userId
-
     API->>ProjectController: getProject(req, res)
     ProjectController->>ProjectService: getProject(userId, projectId)
-    ProjectService->>ProjectRepository: findFirstByUserId(userId, projectId)
+    ProjectService->>ProjectRepository: findFirstByUserId(projectId, userId)
     ProjectRepository->>Prisma: project.findFirst()
-    Prisma->>PostgreSQL: SELECT project WHERE id = projectId AND userId = userId
+    Prisma->>PostgreSQL: SELECT project by id and userId
     PostgreSQL-->>Prisma: Project
     Prisma-->>ProjectRepository: Project
     ProjectRepository-->>ProjectService: Project
-    ProjectService-->>ProjectController: Project
-    ProjectController-->>API: 200 OK
-    API-->>Frontend: Project JSON
-    Frontend-->>User: Display project
+
+    alt Project found
+        ProjectService-->>ProjectController: Project
+        ProjectController-->>API: 200 OK
+        API-->>Frontend: Project JSON
+        Frontend-->>User: Display project
+    else Project not found or not owned
+        ProjectService-->>ProjectController: PROJECT_NOT_FOUND
+        ProjectController-->>API: 404 Not Found
+        API-->>Frontend: Error
+    end
 ```

@@ -22,28 +22,25 @@ Authentication and session management flows.
 Folder management and project organization.
 
 - [Create Folder](./folder/create.md)
-- [Get Folder](./folder/get.md)
+- [Get Folder](./folder/retrieval.md)
 - [Update Folder](./folder/update.md)
 - [Delete Folder](./folder/delete.md)
-- [Move Project to Folder](./folder/move.md)
 
 ### Project
 
 Project management and project-specific actions.
 
 - [Create Project](./project/create.md)
-- [Get Project](./project/get.md)
+- [Get Project](./project/retrieval.md)
 - [Update Project](./project/update.md)
 - [Delete Project](./project/delete.md)
-- [Complete Project](./project/complete-project.md)
-- [Archive Project](./project/archive-project.md)
 
 ### Tag
 
 Tag management.
 
 - [Create Tag](./tag/create.md)
-- [Get Tag](./tag/get.md)
+- [Get Tag](./tag/retrieval.md)
 - [Update Tag](./tag/update.md)
 - [Delete Tag](./tag/delete.md)
 
@@ -52,12 +49,9 @@ Tag management.
 Task management and task-specific actions.
 
 - [Create Task](./task/create.md)
-- [Get Task](./task/get.md)
+- [Get Task](./task/retrieval.md)
 - [Update Task](./task/update.md)
 - [Delete Task](./task/delete.md)
-- [Complete Task](./task/complete-task.md)
-- [Archive Task](./task/archive-task.md)
-- [Create Subtask](./task/create-subtask.md)
 
 ### Task Tags
 
@@ -70,9 +64,11 @@ Relationships between tasks and tags.
 
 User profile and settings management.
 
-- [Get Profile](./user/get.md)
-- [Update Profile](./user/update.md)
+- [Change Password](./user/change-password.md)
+- [Delete Account](./user/delete-account.md)
+- [Get Profile](./user/get-profile.md)
 - [Get Settings](./user/get-settings.md)
+- [Update Profile](./user/update-profile.md)
 - [Update Settings](./user/update-settings.md)
 
 ## Diagram Structure
@@ -90,16 +86,13 @@ Files use concise names that identify the operation being represented.
 Examples:
 
 - `create.md` — Create a resource.
-- `get.md` — Retrieve one or multiple resources.
+- `retrieval.md` — Retrieve one or multiple resources.
 - `update.md` — Update a resource.
 - `delete.md` — Delete a resource.
-- `complete-task.md` — Complete a task.
-- `archive-task.md` — Archive a task.
-- `create-subtask.md` — Create a subtask.
 - `assign.md` — Create a task-tag association.
 - `remove.md` — Remove a task-tag association.
 
-The `get.md` diagrams cover both single-resource and collection retrieval flows when the underlying interaction pattern is sufficiently similar.
+The `retrieval.md` diagrams cover both single-resource and collection retrieval flows when the underlying interaction pattern is sufficiently similar.
 
 ## Conventions
 

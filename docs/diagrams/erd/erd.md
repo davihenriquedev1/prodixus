@@ -1,6 +1,7 @@
+# Entity Relationship Diagram
+
 ```mermaid
 erDiagram
-
     users {
         TEXT id PK
         TEXT name
@@ -20,7 +21,7 @@ erDiagram
 
     refresh_tokens {
         TEXT id PK
-        TEXT token_hash
+        TEXT token_hash UK
         TEXT user_id FK
         TIMESTAMP expires_at
         TIMESTAMP revoked_at
@@ -88,14 +89,10 @@ erDiagram
     users ||--o{ projects : "owns"
     users ||--o{ tags : "owns"
     users ||--o{ folders : "owns"
-
     folders ||--o{ projects : "contains"
     folders ||--o{ folders : "contains"
-
     projects ||--o{ tasks : "contains"
-
     tasks ||--o{ tasks : "has subtasks"
-
     tasks ||--o{ task_tags : "has"
     tags ||--o{ task_tags : "has"
 ```

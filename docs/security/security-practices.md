@@ -1,6 +1,6 @@
 # Security Practices
 
-This document describes the security practices used by Taskify and identifies additional hardening measures required as the application evolves.
+This document describes the security practices currently used by the application and identifies additional hardening measures that may be required as the system evolves.
 
 Security is treated as a defense-in-depth problem. No single security mechanism should be considered sufficient by itself.
 
@@ -8,14 +8,11 @@ Security is treated as a defense-in-depth problem. No single security mechanism 
 
 The application's security model is based on multiple layers:
 
-```text id="7v2m4k"
+```text
 Client
   │
   ▼
 HTTPS / Transport Security
-  │
-  ▼
-HTTP Security Controls
   │
   ▼
 Authentication
@@ -40,22 +37,22 @@ Each layer addresses different classes of security risks.
 
 ## Input Validation
 
-All data received from clients should be considered untrusted.
+All data received from clients is considered untrusted.
 
-The backend must validate request data before using it in application logic or database operations.
+The backend validates request data before using it in application logic or database operations.
 
-Taskify uses Zod for request validation.
+The application uses Zod for request validation.
 
-For example, password changes validate the new password before it reaches the service layer.
+Validation is applied to implemented API endpoints, including authentication, user, project, task, tag, and folder operations.
 
-The current password schema requires the new password to:
+For example, password creation and password changes require the password to:
 
 - Contain at least 8 characters.
 - Contain at least one uppercase letter.
 - Contain at least one lowercase letter.
 - Contain at least one number.
 
-Validation should be applied consistently to all API inputs as new endpoints are implemented.
+Input validation improves data integrity but does not replace authorization.
 
 ## Authentication Validation
 
@@ -71,19 +68,29 @@ The authentication middleware:
 
 Malformed or invalid authentication tokens are rejected.
 
-Authentication must always be performed by the backend.
+Authentication is performed by the backend and is not delegated to the frontend.
 
 ## Authorization
 
 Authentication alone is not authorization.
 
-A valid access token establishes the user's identity but does not automatically grant access to every resource in the system.
+A valid access token establishes the user's identity but does not automatically grant access to every resource.
 
-Resource-level operations must verify that the authenticated user is authorized to access the requested resource.
+The backend performs resource-level ownership checks before protected operations.
 
-For user-owned resources, ownership must be checked using the authenticated user's identity.
+Current ownership checks include:
 
-This is particularly important for preventing IDOR and BOLA vulnerabilities.
+- Projects directly owned by users.
+- Tags directly owned by users.
+- Folders directly owned by users.
+- Tasks through their project ownership.
+- Task parent relationships.
+- Task/tag relationships.
+- Project/folder relationships.
+
+For multi-resource operations, the backend validates the ownership of all relevant resources.
+
+These controls help prevent IDOR and BOLA vulnerabilities.
 
 Detailed requirements are documented in:
 
@@ -94,9 +101,9 @@ Detailed requirements are documented in:
 
 Passwords are sensitive credentials and must never be stored in plaintext.
 
-Taskify uses bcrypt for password hashing.
+The application uses bcrypt for password hashing.
 
-During authentication, the supplied password is compared against the stored hash rather than against a plaintext password.
+During authentication, the supplied password is compared against the stored hash.
 
 The application must never:
 
@@ -106,23 +113,27 @@ The application must never:
 - Include passwords in error messages.
 - Store passwords in source code.
 
+Password hashes are also excluded from safe user responses.
+
 ## Refresh Token Security
 
 Refresh tokens are long-lived authentication credentials and require additional protection.
 
-Taskify:
+The application:
 
 - Gives refresh tokens a limited lifetime.
-- Stores refresh-token hashes rather than raw tokens.
+- Stores SHA-256 hashes rather than raw refresh tokens.
 - Tracks expiration.
 - Tracks revocation.
 - Rotates refresh tokens after successful use.
 - Revokes refresh tokens during logout.
-- Revokes active refresh tokens after password changes.
+- Revokes all active refresh tokens after password changes.
 
 Refresh-token hashing uses SHA-256.
 
-This is important because bcrypt is not appropriate for directly comparing the long JWT refresh tokens used by this application due to bcrypt's 72-byte input limitation.
+This is used because refresh tokens are long JWT values and bcrypt has a 72-byte input limitation.
+
+The database therefore stores the SHA-256 digest of the refresh token rather than the raw credential.
 
 ## JWT Security
 
@@ -130,27 +141,27 @@ JWTs are signed using RS256.
 
 Access tokens and refresh tokens have different purposes and lifetimes.
 
-The token payload identifies the token type:
+The access token payload contains:
 
-```json id="r9x3p1"
+```json
 {
   "userId": "<user-id>",
   "type": "access"
 }
 ```
 
-or:
+The refresh token payload contains:
 
-```json id="m4v8q2"
+```json
 {
   "userId": "<user-id>",
   "type": "refresh"
 }
 ```
 
-The backend must verify both the token signature and the expected token purpose before accepting a token.
+The backend verifies the token signature and expected token type before accepting a token for its intended operation.
 
-JWT signing keys must remain server-side.
+JWT signing keys are managed by the backend and must remain server-side.
 
 ## Token Transport
 
@@ -166,23 +177,23 @@ Tokens should not be included in URLs because URLs may be exposed through:
 - Analytics systems.
 - Referrer information.
 
-Access tokens are currently expected through the HTTP authorization header:
+Protected API requests use the HTTP authorization header:
 
-```http id="u6c2y8"
+```http
 Authorization: Bearer <access-token>
 ```
 
 ## CORS
 
-Cross-Origin Resource Sharing (CORS) controls which browser origins may interact with the API.
+Cross-Origin Resource Sharing controls which browser origins may interact with the API.
 
-CORS configuration should be explicitly reviewed before production deployment.
+CORS configuration must be reviewed before production deployment.
 
 The production API should allow only the origins required by the application.
 
-A permissive development configuration should not automatically be considered appropriate for production.
+A permissive development configuration must not automatically be considered appropriate for production.
 
-Current CORS behavior should therefore be reviewed as part of production security hardening.
+Production CORS restrictions remain part of the application's security hardening.
 
 ## HTTPS
 
@@ -190,7 +201,7 @@ Production authentication and application traffic must use HTTPS.
 
 HTTPS protects data while it travels between:
 
-```text id="p7n2c5"
+```text
 Client
   │
   │ encrypted connection
@@ -212,11 +223,11 @@ HTTP should not be used for production authentication traffic.
 
 The database may contain potentially private application data.
 
-Database access must therefore be restricted to authorized application components.
+Database access is restricted to the backend application.
 
 The application accesses PostgreSQL through Prisma.
 
-Prisma provides parameterized database operations when used through its normal query APIs, reducing the risk of SQL injection caused by directly concatenating untrusted values into SQL statements.
+Prisma's normal query APIs provide parameterized database operations, reducing the risk of SQL injection caused by directly concatenating untrusted values into SQL statements.
 
 Raw SQL operations, when necessary, must be handled carefully and must never construct SQL statements through unsafe string concatenation.
 
@@ -224,7 +235,7 @@ Raw SQL operations, when necessary, must be handled carefully and must never con
 
 Database constraints provide an additional layer of protection for data integrity.
 
-Relevant constraints may include:
+Relevant constraints include:
 
 - Primary keys.
 - Foreign keys.
@@ -236,7 +247,7 @@ These constraints do not replace authorization.
 
 For example:
 
-```text id="k3r8w5"
+```text
 Database constraint
        │
        └── Protects data integrity
@@ -260,7 +271,7 @@ For example, an operation that:
 
 should not leave the database in a partially modified state if one of the steps fails.
 
-Transactions are especially important for security-sensitive multi-resource operations because partial mutations can create inconsistent ownership or relationship data.
+Transactions should be used where the correctness of an operation depends on multiple database mutations succeeding together.
 
 ## XSS Prevention
 
@@ -270,7 +281,7 @@ The frontend should render user-controlled content safely and avoid inserting un
 
 Dangerous patterns such as:
 
-```tsx id="c8m2v7"
+```tsx
 dangerouslySetInnerHTML;
 ```
 
@@ -284,7 +295,7 @@ API responses should expose only the data required by the client.
 
 Sensitive internal fields must not be returned unnecessarily.
 
-For example, user profile responses currently construct a safe representation containing:
+For example, user profile responses currently expose:
 
 - `id`
 - `name`
@@ -314,6 +325,8 @@ The application must not log:
 
 Logs should contain enough context to diagnose problems without exposing secrets or private information.
 
+Sensitive task content should not be intentionally included in application logs.
+
 ## Error Handling
 
 Errors returned to clients should contain useful information without exposing internal implementation details.
@@ -328,6 +341,8 @@ Responses must not expose:
 - Password hashes.
 - Authentication credentials.
 
+The API uses structured error responses containing an error code and message.
+
 Internal errors may be logged server-side when necessary, but sensitive values must still be excluded.
 
 ## Rate Limiting
@@ -339,16 +354,16 @@ Authentication endpoints are potential targets for:
 - Automated account creation.
 - Token abuse.
 
-Rate limiting should be applied to sensitive endpoints, particularly:
+Rate limiting should be considered for sensitive endpoints, particularly:
 
-```text id="n5x8q3"
+```text
 POST /api/auth/register
 POST /api/auth/login
 POST /api/auth/refresh
 POST /api/auth/logout
 ```
 
-Rate limiting is a security hardening measure and should be implemented and configured explicitly before production if required by the application's threat model.
+Rate limiting is not currently part of the implemented security controls and should be considered before production deployment.
 
 ## Dependency Security
 
@@ -356,9 +371,9 @@ Application dependencies are part of the application's attack surface.
 
 Dependencies should be kept reasonably up to date and security vulnerabilities should be monitored.
 
-The project should periodically run dependency auditing tools such as:
+The project can periodically run dependency auditing tools such as:
 
-```bash id="g2w9m4"
+```bash
 npm audit
 ```
 
@@ -415,7 +430,7 @@ Potential controls include:
 - Frame protection.
 - Strict Transport Security.
 
-These controls should be implemented according to the application's deployment architecture rather than merely documented as enabled.
+These controls should only be considered implemented after they have been configured and verified in the deployment environment.
 
 ## Backups
 
@@ -443,18 +458,17 @@ Potential events include:
 - Unusual authentication activity.
 - Repeated invalid refresh-token attempts.
 - Unexpected authorization failures.
-- Administrative security changes.
 - Credential or secret rotation.
 
 Monitoring requirements should be based on the application's production threat model.
 
 ## Security Testing
 
-Security tests should explicitly verify authorization boundaries.
-
-At minimum, tests should cover:
+Security tests should explicitly verify authentication and authorization boundaries.
 
 ### Authentication
+
+Tests should cover:
 
 - Missing access token.
 - Invalid access token.
@@ -465,6 +479,8 @@ At minimum, tests should cover:
 
 ### Refresh Tokens
 
+Tests should cover:
+
 - Invalid refresh token.
 - Expired refresh token.
 - Revoked refresh token.
@@ -474,12 +490,17 @@ At minimum, tests should cover:
 
 ### Authorization
 
+Tests should cover:
+
 - User A accessing User B's resource.
 - User A modifying User B's resource.
 - User A deleting User B's resource.
 - Manipulation of resource IDs.
 - Manipulation of ownership fields.
 - Access to related resources belonging to another user.
+- Cross-user task/tag relationships.
+- Cross-user project/folder relationships.
+- Cross-user parent/subtask relationships.
 
 ## Current Security Controls
 
@@ -497,19 +518,21 @@ The following controls are currently implemented:
 - Revocation of active refresh tokens after password changes.
 - Authentication middleware for protected routes.
 - Server-side authentication identity through `req.userId`.
+- Resource-level ownership checks.
+- Cross-resource ownership validation.
 - Safe user responses that do not expose password hashes.
 - Prisma-based database access.
+- Protection against client-controlled ownership identity.
 
 ## Future Hardening
 
 The following areas should be implemented or reviewed as the application moves toward production:
 
-- Resource-level ownership checks for all user-owned CRUD resources.
 - Automated IDOR/BOLA tests.
 - Rate limiting.
 - Production CORS restrictions.
 - Security headers.
-- HTTPS enforcement.
+- HTTPS enforcement and deployment verification.
 - Dependency vulnerability scanning.
 - Secret scanning.
 - Production database least-privilege configuration.
@@ -522,7 +545,7 @@ These items must not be represented as implemented controls until they have been
 
 ## Security Principle
 
-Taskify should follow a defense-in-depth approach:
+The application should follow a defense-in-depth approach:
 
 > Never rely on a single security control to protect sensitive data.
 

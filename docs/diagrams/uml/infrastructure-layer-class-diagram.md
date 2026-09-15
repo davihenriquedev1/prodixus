@@ -2,7 +2,6 @@
 
 ```mermaid
 classDiagram
-
     class PrismaClient {
         +user
         +userSettings
@@ -12,32 +11,24 @@ classDiagram
         +tag
         +taskTag
         +folder
-
-        +connect()
-        +disconnect()
     }
 
-    class UserRepositoryImpl {
-        -PrismaClient prisma
-
+    class UserRepository {
         +create(data)
         +findById(id)
         +findByEmail(email)
         +update(id, data)
+        +delete(id)
     }
 
-    class RefreshTokenRepositoryImpl {
-        -PrismaClient prisma
-
+    class RefreshTokenRepository {
         +create(data)
         +findByTokenHash(tokenHash)
         +revoke(id)
-        +deleteExpired()
+        +revokeAllByUserId(userId)
     }
 
-    class ProjectRepositoryImpl {
-        -PrismaClient prisma
-
+    class ProjectRepository {
         +create(data)
         +findAllByUserId(userId)
         +findById(id)
@@ -45,9 +36,7 @@ classDiagram
         +delete(id)
     }
 
-    class TaskRepositoryImpl {
-        -PrismaClient prisma
-
+    class TaskRepository {
         +create(data)
         +findAllByProjectId(projectId)
         +findById(id)
@@ -55,9 +44,7 @@ classDiagram
         +delete(id)
     }
 
-    class TagRepositoryImpl {
-        -PrismaClient prisma
-
+    class TagRepository {
         +create(data)
         +findAllByUserId(userId)
         +findById(id)
@@ -65,9 +52,7 @@ classDiagram
         +delete(id)
     }
 
-    class FolderRepositoryImpl {
-        -PrismaClient prisma
-
+    class FolderRepository {
         +create(data)
         +findAllByUserId(userId)
         +findById(id)
@@ -75,17 +60,10 @@ classDiagram
         +delete(id)
     }
 
-    class DatabaseConfig {
-        +String databaseUrl
-        +configure()
-    }
-
-    UserRepositoryImpl --> PrismaClient : uses
-    RefreshTokenRepositoryImpl --> PrismaClient : uses
-    ProjectRepositoryImpl --> PrismaClient : uses
-    TaskRepositoryImpl --> PrismaClient : uses
-    TagRepositoryImpl --> PrismaClient : uses
-    FolderRepositoryImpl --> PrismaClient : uses
-
-    DatabaseConfig --> PrismaClient : configures
+    UserRepository --> PrismaClient : uses
+    RefreshTokenRepository --> PrismaClient : uses
+    ProjectRepository --> PrismaClient : uses
+    TaskRepository --> PrismaClient : uses
+    TagRepository --> PrismaClient : uses
+    FolderRepository --> PrismaClient : uses
 ```

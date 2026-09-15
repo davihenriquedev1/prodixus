@@ -1,4 +1,4 @@
-# Tag - Get
+# Tag - Retrieval
 
 ## Get Tags
 

@@ -2,7 +2,6 @@
 
 ```mermaid
 classDiagram
-
     class AuthController {
         +register(request)
         +login(request)
@@ -13,6 +12,8 @@ classDiagram
     class UserController {
         +getProfile(request)
         +updateProfile(request)
+        +changePassword(request)
+        +deleteAccount(request)
     }
 
     class ProjectController {
@@ -29,11 +30,14 @@ classDiagram
         +findById(request)
         +update(request)
         +delete(request)
+        +addTag(request)
+        +removeTag(request)
     }
 
     class TagController {
         +create(request)
         +findAll(request)
+        +findById(request)
         +update(request)
         +delete(request)
     }
@@ -41,10 +45,10 @@ classDiagram
     class FolderController {
         +create(request)
         +findAll(request)
+        +findById(request)
         +update(request)
         +delete(request)
     }
-
 
     class AuthService {
         +registerUser(data)
@@ -56,6 +60,8 @@ classDiagram
     class UserService {
         +getProfile(userId)
         +updateProfile(userId, data)
+        +changePassword(userId, data)
+        +deleteAccount(userId)
     }
 
     class ProjectService {
@@ -67,16 +73,19 @@ classDiagram
     }
 
     class TaskService {
-        +createTask(userId, data)
+        +createTask(userId, projectId, data)
         +getTasks(userId, projectId)
-        +getTaskById(userId, taskId)
-        +updateTask(userId, taskId, data)
-        +deleteTask(userId, taskId)
+        +getTaskById(userId, projectId, taskId)
+        +updateTask(userId, projectId, taskId, data)
+        +deleteTask(userId, projectId, taskId)
+        +addTag(userId, projectId, taskId, tagId)
+        +removeTag(userId, projectId, taskId, tagId)
     }
 
     class TagService {
         +createTag(userId, data)
         +getTags(userId)
+        +getTagById(userId, tagId)
         +updateTag(userId, tagId, data)
         +deleteTag(userId, tagId)
     }
@@ -84,23 +93,24 @@ classDiagram
     class FolderService {
         +createFolder(userId, data)
         +getFolders(userId)
+        +getFolderById(userId, folderId)
         +updateFolder(userId, folderId, data)
         +deleteFolder(userId, folderId)
     }
-
 
     class UserRepository {
         +create(data)
         +findById(id)
         +findByEmail(email)
         +update(id, data)
+        +delete(id)
     }
 
     class RefreshTokenRepository {
         +create(data)
         +findByTokenHash(tokenHash)
         +revoke(id)
-        +deleteExpired()
+        +revokeAllByUserId(userId)
     }
 
     class ProjectRepository {
@@ -135,7 +145,6 @@ classDiagram
         +delete(id)
     }
 
-
     AuthController --> AuthService
     UserController --> UserService
     ProjectController --> ProjectService
@@ -145,9 +154,8 @@ classDiagram
 
     AuthService --> UserRepository
     AuthService --> RefreshTokenRepository
-
     UserService --> UserRepository
-
+    UserService --> RefreshTokenRepository
     ProjectService --> ProjectRepository
     TaskService --> TaskRepository
     TagService --> TagRepository

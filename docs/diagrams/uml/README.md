@@ -1,34 +1,30 @@
 # UML Diagrams
 
-This section contains the UML diagrams used to represent the system's structure and behavior.
+This section contains the UML diagrams used to represent the system's structure and interactions.
 
-UML diagrams provide visual representations of application elements, their relationships, and interactions.
+UML diagrams provide visual representations of application components, their relationships, and system functionality.
 
 ## Class Diagram
 
-The Class Diagram represents the main domain classes and their relationships within the system.
+The Class Diagram represents the main domain entities and their relationships within the system.
 
-It documents the structural organization of the application's domain model.
+It provides a structural view of the entities represented by the application's data model.
 
-[See the UML Class Diagram](./domain-layer-class-diagram.md)
+[See the Domain Model Class Diagram](./domain-layer-class-diagram.md)
 
 ## Application Layer Class Diagram
 
-The Application Layer Class Diagram represents the proposed logical architecture of the application.
+The Application Layer Class Diagram represents the main application components and their dependencies.
 
-It illustrates the separation between the Presentation, Application, Domain, and Infrastructure layers, as well as the dependencies between controllers, services, repositories, and the Prisma client.
-
-This diagram serves as a reference for the intended application architecture and should remain consistent with the architectural decisions defined for the project.
+It illustrates the relationships between controllers, services, and repositories used by the backend.
 
 [See the Application Layer Class Diagram](./application-layer-class-diagram.md)
 
 ## Infrastructure Layer Class Diagram
 
-The Infrastructure Layer Class Diagram represents the infrastructure components responsible for persistence and external technical concerns.
+The Infrastructure Layer Class Diagram represents the components responsible for data persistence.
 
-It illustrates the concrete repository implementations, Prisma Client, and database configuration, as well as their dependencies.
-
-This diagram serves as a reference for how the application interacts with the persistence layer and external infrastructure.
+It illustrates the repositories and their dependency on the Prisma Client used to access the PostgreSQL database.
 
 [See the Infrastructure Layer Class Diagram](./infrastructure-layer-class-diagram.md)
 
@@ -43,17 +39,11 @@ It provides a high-level view of the functionality available to users.
 ## Conventions
 
 - Diagrams should use standard UML notation where applicable.
-
 - Diagram names should clearly identify the represented concept or architectural concern.
-
 - Diagrams should remain consistent with the current system design.
-
-- The Domain Class Diagram focuses on domain entities and their relationships.
-
-- The Application Layer Class Diagram focuses on application structure and layer dependencies.
-
-- The Infrastructure Layer Class Diagram focuses on persistence infrastructure and external technical dependencies.
-
+- The Domain Model Class Diagram focuses on domain entities and their relationships.
+- The Application Layer Class Diagram focuses on controllers, services, repositories, and their dependencies.
+- The Infrastructure Layer Class Diagram focuses on persistence components and their dependencies.
 - Detailed implementation decisions should be documented separately.
 
 Additional UML diagrams may be added as the system evolves when they provide meaningful architectural or behavioral information.

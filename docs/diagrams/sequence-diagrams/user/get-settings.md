@@ -1,4 +1,4 @@
-# Sequence Diagram - User/UserSettings - Get Settings
+# User/UserSettings - Get Settings
 
 ```mermaid
 sequenceDiagram

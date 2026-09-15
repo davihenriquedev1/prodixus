@@ -1,8 +1,7 @@
 # ADR-009: Continuous Integration with GitHub Actions
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

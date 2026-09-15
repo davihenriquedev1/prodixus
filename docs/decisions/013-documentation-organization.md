@@ -1,8 +1,7 @@
 # ADR-013: Documentation Organization
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

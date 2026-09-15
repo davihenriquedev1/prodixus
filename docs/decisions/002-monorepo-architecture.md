@@ -1,8 +1,7 @@
 # ADR-002: Monorepo Architecture
 
-## Status
-
-Accepted
+- **Status:** Accepted
+- **Date:** 2026-08-22
 
 ## Context
 

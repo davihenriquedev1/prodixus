@@ -1,6 +1,6 @@
 # Data Isolation
 
-This document defines the data-isolation requirements for the Taskify application.
+This document defines the data-isolation model of the application.
 
 Application data must be treated as potentially private. A user's resources must not become accessible to another user merely because the other user knows or manipulates a resource identifier.
 
@@ -8,7 +8,7 @@ Application data must be treated as potentially private. A user's resources must
 
 The fundamental data-isolation rule is:
 
-> A user must only be able to access, modify, or delete resources that belong to them or that they are explicitly authorized to access.
+> A user must only be able to access or manipulate resources within their own ownership boundary.
 
 Resource identifiers are references, not authorization credentials.
 
@@ -23,9 +23,11 @@ Knowing a valid:
 
 must never be sufficient to access or manipulate the corresponding resource.
 
+The backend is responsible for enforcing the ownership boundary.
+
 ## User Data Boundary
 
-The application's data model establishes relationships between users and their resources.
+The application's data model establishes ownership relationships between users and their resources.
 
 The ownership model is:
 
@@ -36,10 +38,9 @@ User
  │
  ├── Projects
  │     │
- │     ├── Tasks
- │     │     └── Subtasks
- │     │
- │     └── Folder (optional)
+ │     └── Tasks
+ │           │
+ │           └── Subtasks
  │
  ├── Tags
  │
@@ -48,90 +49,200 @@ User
        └── Subfolders
 ```
 
-Ownership must propagate through related resources.
+Directly user-owned resources contain a `userId` relationship.
+
+Indirectly owned resources inherit their ownership through their parent resource.
 
 For example:
+
+```text
+User
+ │
+ └── Project
+       │
+       └── Task
+```
+
+A task is therefore within the user's data boundary when its project belongs to that user.
+
+## Server-Side Ownership
+
+Ownership is determined by the backend.
+
+The authenticated user's identity is established by the access token and stored in:
+
+```ts
+req.userId;
+```
+
+Client-provided ownership information must not override this identity.
+
+The backend must not use arbitrary values supplied through:
+
+- Request bodies.
+- URL parameters.
+- Query parameters.
+- Form fields.
+- Client-controlled ownership fields.
+
+For user-owned resources, ownership is established from the authenticated user whenever the resource is created.
+
+Conceptually:
+
+```text
+Verified JWT
+    │
+    ▼
+req.userId
+    │
+    ▼
+Resource.userId
+```
+
+## Direct Ownership
+
+The following resources are directly associated with a user:
+
+```text
+User
+ ├── Project
+ ├── Tag
+ └── Folder
+```
+
+Their ownership boundary is based on the corresponding `userId`.
+
+Conceptually:
+
+```text
+resource.userId === authenticatedUserId
+```
+
+A resource belonging to another user must not be returned or modified.
+
+## Indirect Ownership
+
+Some resources do not contain a direct `userId`.
+
+Tasks are owned indirectly through their project:
+
+```text
+Task
+ │
+ └── Project
+       │
+       └── User
+```
+
+Therefore, access to a task must remain inside the ownership boundary of its project.
+
+The same principle applies to relationships involving nested resources.
+
+## Task and Subtask Isolation
+
+Tasks belong to projects, and projects belong to users.
+
+Therefore:
 
 ```text
 User A
  │
- ├── Project A
- │     ├── Task A1
- │     └── Task A2
+ └── Project A
+       ├── Task A1
+       └── Task A2
+
+User B
  │
- ├── Tag A
+ └── Project B
+       └── Task B1
+```
+
+User A must not be able to access or manipulate Task B1.
+
+The same ownership boundary applies to parent/subtask relationships.
+
+A user must not be able to:
+
+- Use another user's task as a parent.
+- Move a task into another user's project.
+- Associate tasks across different ownership boundaries.
+
+## Folder Isolation
+
+Folders are directly owned by users and may contain subfolders.
+
+```text
+User A
  │
  └── Folder A
        └── Subfolder A1
+
+User B
+ │
+ └── Folder B
 ```
 
-User A is authorized to operate on these resources according to the application's permissions.
+User A must not be able to use User B's folder as:
 
-Another user must not gain access to them simply by obtaining their IDs.
+- A parent folder.
+- A project folder.
+- A referenced resource in another operation.
 
-## Ownership Must Be Server-Side
+Folder hierarchy operations must remain within the authenticated user's ownership boundary.
 
-Ownership must be determined by the backend.
+## Project and Folder Isolation
 
-The backend must not trust ownership information supplied by the client.
+Projects may optionally belong to folders.
 
-An unsafe request could attempt to create or modify ownership using:
-
-```json
-{
-  "userId": "another-user-id"
-}
-```
-
-or:
-
-```json
-{
-  "ownerId": "another-user-id"
-}
-```
-
-The server must not allow such fields to override the authenticated user's identity.
-
-For user-owned resources, ownership should normally be derived from:
+Both resources must belong to the authenticated user when creating or changing this relationship.
 
 ```text
-req.userId
+Authenticated User
+        │
+        ├── Project
+        │
+        └── Folder
+              │
+              ▼
+        Valid relationship
 ```
 
-which is established by the authentication middleware.
-
-Client-controlled ownership information must never take precedence over the authenticated identity.
-
-## Resource Reads
-
-Every read operation involving a user-owned resource must respect the ownership boundary.
-
-For example:
-
-```http
-GET /api/projects/:projectId
-```
-
-must not simply retrieve a project by ID.
-
-The authorization boundary must conceptually be:
+The backend must reject cross-user relationships such as:
 
 ```text
-project.id = requestedProjectId
+User A
+ └── Project A
 
-AND
+User B
+ └── Folder B
 
-project.userId = authenticatedUserId
+Project A → Folder B
 ```
 
-If the project belongs to another user, its data must not be returned.
+## Task and Tag Isolation
 
-This applies to individual resources as well as collections.
+Tasks and tags have a many-to-many relationship through `TaskTag`.
 
-## Collection Queries
+Both sides of the relationship must belong to the authenticated user.
 
-Collection endpoints must also be isolated by user.
+```text
+Authenticated User
+        │
+        ├── owns Task
+        │
+        └── owns Tag
+               │
+               ▼
+          TaskTag association
+```
+
+It is therefore insufficient to authorize only the task or only the tag.
+
+An association must not be created or removed when either resource belongs to another user.
+
+## Collection Isolation
+
+Collection endpoints must return only resources within the authenticated user's ownership boundary.
 
 For example:
 
@@ -139,356 +250,106 @@ For example:
 GET /api/projects
 ```
 
-must return only projects that the authenticated user is authorized to see.
-
-It must not return every project in the database and rely on the frontend to filter the results.
-
-The filtering must occur on the backend.
-
-Conceptually:
-
-```text
-Authenticated User
-
-        │
-
-        ▼
-
-GET /projects
-
-        │
-
-        ▼
-
-Database query
-
-        │
-
-        └── userId = authenticatedUserId
-```
-
-The same principle applies to tasks, tags, folders, and other user-owned collections.
-
-For resources with indirect ownership, the query must enforce the complete ownership relationship.
-
-For example, tasks belong to users through their project:
-
-```text
-Task
- │
- └── Project
-       │
-       └── User
-```
-
-Therefore, a task query must ensure that the task's project belongs to the authenticated user.
-
-## Resource Creation
-
-When a user creates a resource, the server must establish ownership using the authenticated identity.
-
-For example:
-
-```text
-POST /api/projects
-
-        │
-
-        ▼
-
-Authenticated User ID
-
-        │
-
-        ▼
-
-Project.userId
-```
-
-The client should not be responsible for choosing the owner of a user-owned resource.
+must return the authenticated user's projects rather than all projects in the database.
 
 The same principle applies to:
 
-- Projects
-- Tags
-- Folders
-- User-specific settings
-
-For resources with indirect ownership, the server must verify that referenced resources also belong to the authenticated user.
-
-For example, when creating a project inside a folder:
-
 ```text
-Authenticated User
-       │
-       ├── owns Project
-       │
-       └── owns Folder
-              │
-              ▼
-       Create relationship
+/api/projects
+/api/projects/:projectId/tasks
+/api/tags
+/api/folders
 ```
 
-A project must not be created using a folder belonging to another user.
+The frontend must never be responsible for filtering another user's data.
 
-## Resource Updates
+Isolation is enforced by the backend.
 
-Updates must verify ownership before modifying the resource.
+## Resource Identifier Protection
+
+UUIDs are used as resource identifiers, but their unpredictability is not considered an authorization mechanism.
+
+Therefore:
+
+```text
+Unpredictable ID
+       ≠
+Authorization
+```
+
+Even if a user obtains another user's resource ID, the backend must still reject unauthorized access.
+
+This protects the application against IDOR and BOLA vulnerabilities.
+
+## Cross-Resource Isolation
+
+Operations involving multiple resources must verify the ownership boundary of all relevant resources.
+
+Examples include:
+
+```text
+Task → Project
+Task → Parent Task
+Task → Tag
+Project → Folder
+Folder → Parent Folder
+```
+
+A valid relationship requires all referenced resources to be within the authenticated user's ownership boundary.
 
 For example:
 
-```http
-PATCH /api/projects/:projectId
-```
-
-must verify that the project belongs to the authenticated user before performing the update.
-
-A secure authorization flow is:
-
 ```text
-Receive projectId
-
-       │
-
-       ▼
-
-Identify authenticated user
-
-       │
-
-       ▼
-
-Find resource within user's ownership boundary
-
-       │
-
-       ├── Found → perform update
-       │
-       └── Not found/unauthorized → reject
-```
-
-The update must not modify the resource before the ownership check succeeds.
-
-The same principle applies when an update changes relationships.
-
-For example, moving a project to a different folder requires verification that the target folder belongs to the same authenticated user.
-
-## Resource Deletion
-
-Deletion must use the same ownership boundary as reads and updates.
-
-For example:
-
-```http
-DELETE /api/projects/:projectId
-```
-
-must not delete a project solely because the supplied ID exists.
-
-The backend must verify that the authenticated user is authorized to delete the project.
-
-The authorization condition must be enforced before the destructive database operation.
-
-Cascading database deletes do not replace authorization.
-
-For example, deleting a project may also delete its tasks because of the database relationship, but the initial project deletion must first be authorized.
-
-## Related Resource Isolation
-
-Related resources require additional care because ownership may be direct or indirect.
-
-### Tasks
-
-A task does not directly contain a user ID.
-
-Its ownership is established through its project:
-
-```text
-Task
+User A
  │
- └── Project
-       │
-       └── User
+ ├── Task A
+ └── Tag A
+
+User B
+ └── Tag B
 ```
 
-Therefore, access to a task must verify that the task belongs to a project owned by the authenticated user.
-
-A user must not be able to access another user's task by supplying the task ID directly.
-
-### Subtasks
-
-Tasks can also have parent-child relationships:
+The backend must reject:
 
 ```text
-Task A
- │
- ├── Task B
- │
- └── Task C
+Task A → Tag B
 ```
 
-When creating, updating, moving, or deleting subtasks, the backend must ensure that the relevant tasks belong to the same user's ownership boundary.
+## Database Integrity
 
-A user must not be able to associate their task with another user's task as its parent.
+Database constraints support the application's data-isolation model but do not replace authorization.
 
-### Folders
-
-Folders belong directly to a user:
+The schema establishes ownership and referential relationships through foreign keys such as:
 
 ```text
-User
- │
- └── Folder
-       │
-       └── Subfolder
+Project.userId → User.id
+
+Tag.userId → User.id
+
+Folder.userId → User.id
+
+Task.projectId → Project.id
 ```
 
-When creating or modifying a folder hierarchy, the backend must verify that the parent folder belongs to the authenticated user.
+The database also enforces relationships through:
 
-A user must not be able to use another user's folder as a parent.
+- Primary keys.
+- Foreign keys.
+- Unique constraints.
+- Non-null constraints.
+- Referential integrity.
+- Cascade behavior.
+- `SetNull` behavior for optional relationships.
 
-### Projects and Folders
+These constraints protect data integrity.
 
-Projects may optionally belong to folders:
-
-```text
-User
- │
- ├── Project
- │
- └── Folder
-       │
-       └── Project
-```
-
-When assigning a project to a folder, the backend must verify ownership of both the project and the folder.
-
-The application must never allow a project belonging to User A to be associated with a folder belonging to User B.
-
-## Cross-Resource Authorization
-
-Operations involving multiple resources must verify the ownership of all relevant resources.
-
-For example, if an endpoint associates a task with a tag:
-
-```text
-Task A
-
-   +
-
-Tag B
-
-   │
-
-   ▼
-
-Association
-```
-
-the backend must verify that the authenticated user is authorized to operate on both resources.
-
-It is not sufficient to verify only the task.
-
-Otherwise, a malicious user could potentially combine resources belonging to different users.
-
-Conceptually:
-
-```text
-Authenticated User
-
-       │
-
-       ├── owns Task?
-       │
-       └── owns Tag?
-              │
-              ▼
-        Create relationship
-```
-
-If either authorization check fails, the operation must be rejected.
-
-The same principle applies to any operation involving multiple user-owned resources.
-
-## IDOR
-
-Insecure Direct Object Reference (IDOR) occurs when an application exposes an object identifier and fails to verify whether the requesting user is authorized to access that object.
-
-For example, suppose User A owns:
-
-```text
-Project ID: <project-A-id>
-```
-
-User B discovers the identifier and sends:
-
-```http
-GET /api/projects/<project-A-id>
-```
-
-The application must not return User A's project simply because the project exists.
-
-The server must evaluate the relationship between:
-
-```text
-authenticatedUserId
-
-        +
-
-projectId
-
-        +
-
-project.userId
-```
-
-before returning the resource.
-
-## BOLA
-
-Broken Object Level Authorization (BOLA) is the broader API security problem where an authenticated user can interact with an object they are not authorized to access.
-
-The system must consider BOLA for every endpoint that accepts a resource identifier.
-
-Potentially vulnerable patterns include:
-
-```http
-GET    /api/projects/:id
-PATCH  /api/projects/:id
-DELETE /api/projects/:id
-
-GET    /api/tasks/:id
-PATCH  /api/tasks/:id
-DELETE /api/tasks/:id
-
-GET    /api/tags/:id
-PATCH  /api/tags/:id
-DELETE /api/tags/:id
-
-GET    /api/folders/:id
-PATCH  /api/folders/:id
-DELETE /api/folders/:id
-```
-
-The exact endpoints may evolve as the API is implemented, but the authorization requirement remains the same.
+Authorization remains responsible for determining whether the authenticated user is allowed to perform an operation.
 
 ## Query-Level Isolation
 
-Where possible, ownership restrictions should be included directly in database queries.
+Ownership restrictions should be enforced as close to the data-access operation as practical.
 
-Instead of:
-
-```text
-Find resource by ID
-
-       │
-
-       ▼
-
-Check ownership later
-```
-
-prefer the conceptual query:
+Conceptually, a resource lookup should consider both the requested identifier and the ownership boundary:
 
 ```text
 Find resource where:
@@ -497,327 +358,135 @@ Find resource where:
 
     AND
 
-    ownership relationship = authenticatedUserId
+    ownership = authenticatedUserId
 ```
 
-For directly owned resources such as projects:
+For directly owned resources:
 
 ```text
 Project:
 
     id = requestedProjectId
-
     AND
-
     userId = authenticatedUserId
 ```
 
-For indirectly owned resources such as tasks:
+For indirectly owned resources:
 
 ```text
 Task:
 
     id = requestedTaskId
-
     AND
-
     project.userId = authenticatedUserId
 ```
 
-For tags:
+The exact Prisma query depends on the resource and repository implementation.
 
-```text
-Tag:
+The important requirement is that authorization must be enforced before protected data is returned or modified.
 
-    id = requestedTagId
+## Error Handling
 
-    AND
+When a user attempts to access another user's resource, the API must not expose private resource information.
 
-    userId = authenticatedUserId
-```
-
-For folders:
-
-```text
-Folder:
-
-    id = requestedFolderId
-
-    AND
-
-    userId = authenticatedUserId
-```
-
-The exact Prisma query depends on the repository implementation, but the authorization condition must remain enforced at the database access boundary.
-
-## Database Constraints
-
-Application-level authorization should be supported by appropriate database constraints.
-
-Depending on the resource, these may include:
-
-- Primary keys.
-- Foreign keys.
-- Unique constraints.
-- Non-null constraints.
-- Referential integrity.
-- Appropriate cascade behavior.
-- Appropriate `SetNull` behavior for optional relationships.
-
-For example, the schema establishes ownership relationships through foreign keys such as:
-
-```text
-Project.userId → User.id
-
-Tag.userId → User.id
-
-Folder.userId → User.id
-```
-
-Tasks are connected to users through their projects:
-
-```text
-Task.projectId → Project.id
-Project.userId → User.id
-```
-
-Database constraints do not replace authorization.
-
-They protect data integrity, while authorization determines whether a particular user is allowed to perform an operation.
-
-Both layers are required.
-
-## Preventing User ID Manipulation
-
-The application must not use arbitrary user IDs from:
-
-- URL parameters.
-- Query parameters.
-- Request bodies.
-- Headers supplied by the client.
-- Form fields.
-
-For authenticated operations, the authenticated identity must come from the validated access token.
-
-For example:
-
-```text
-Bad:
-
-req.body.userId
-
-      │
-
-      ▼
-
-Database ownership
-```
-
-versus:
-
-```text
-Good:
-
-req.userId
-
-      │
-
-      ▼
-
-Database ownership
-```
-
-Client-provided ownership fields should be rejected or ignored according to the endpoint contract.
-
-## Preventing Cross-User Relationships
-
-Ownership must also be preserved when one resource references another resource.
-
-For example:
-
-```text
-User A
- │
- ├── Project A
- └── Folder A
-
-User B
- │
- └── Folder B
-```
-
-The backend must reject an operation attempting to create:
-
-```text
-Project A → Folder B
-```
-
-because the two resources belong to different users.
-
-The same rule applies to:
-
-- Task → Project
-- Task → Parent Task
-- Task → Tag
-- Project → Folder
-- Folder → Parent Folder
-
-Cross-resource references must remain inside the authenticated user's ownership boundary.
-
-## Preventing Enumeration
-
-Resource identifiers should not be treated as secret values.
-
-Even though the application uses UUIDs, authorization checks remain mandatory.
-
-Random or difficult-to-guess identifiers can reduce accidental discovery, but they do not replace authorization.
-
-An attacker must still be unable to access a resource after obtaining its identifier.
-
-Therefore:
-
-```text
-Unpredictable ID
-
-       ≠
-
-Authorization
-```
-
-## Error Responses
-
-When a user requests another user's resource, the API must not expose the resource's private information.
-
-Depending on the endpoint, the application may return:
+The current API commonly uses:
 
 ```text
 404 Not Found
 ```
 
-to avoid revealing whether the resource exists.
+for resources that do not exist or are not accessible to the authenticated user.
 
-Alternatively, it may return:
+This prevents the API from unnecessarily revealing whether another user's resource exists.
 
-```text
-403 Forbidden
-```
+Error responses must not expose:
 
-when the API explicitly distinguishes between existence and authorization.
+- Private resource contents.
+- Unnecessary information about another user's resources.
+- Database details.
+- Internal authorization logic.
+- Sensitive application information.
 
-The chosen behavior should be consistent across the API.
+## Current Implementation
 
-The important requirement is that neither response should expose the protected resource or sensitive information about it.
+The current authentication system establishes the authenticated user's identity through `req.userId`.
 
-## Security Testing Requirements
+The backend currently enforces ownership boundaries for the implemented resources, including:
 
-Data isolation must be tested explicitly.
+- Projects.
+- Tasks.
+- Tags.
+- Folders.
+- Task/tag associations.
+- Task parent relationships.
+- Project/folder relationships.
 
-At minimum, authorization tests should model multiple users.
+Ownership is checked before protected resource operations.
 
-Example:
+Resource creation derives ownership from the authenticated user rather than trusting a client-provided user ID.
+
+Related resources are also validated before relationships are created or modified.
+
+For example, task/tag operations verify the ownership of both the task and the tag.
+
+## Security Testing
+
+Data isolation should be validated with multiple users and cross-user resource identifiers.
+
+A representative test setup is:
 
 ```text
 User A
-
  ├── Project A
  ├── Task A
  ├── Tag A
  └── Folder A
 
 User B
-
  ├── Project B
  ├── Task B
  ├── Tag B
  └── Folder B
 ```
 
-Tests should verify that User A cannot:
+The backend must prevent User A from using User B's resources through manipulated identifiers.
 
-```text
-Read Project B
-Modify Project B
-Delete Project B
+Tests should cover:
 
-Read Task B
-Modify Task B
-Delete Task B
-
-Read Tag B
-Modify Tag B
-Delete Tag B
-
-Read Folder B
-Modify Folder B
-Delete Folder B
-```
-
-Cross-resource operations must also be tested.
-
-Examples include attempting to:
-
-```text
-Assign User B's Tag to User A's Task
-
-Move User A's Project into User B's Folder
-
-Use User B's Task as User A's parent task
-
-Use User B's Folder as User A's parent folder
-```
-
-Tests should also attempt direct identifier manipulation:
-
-```text
-Authenticated as User A
-
-GET    /projects/{project-B-id}
-PATCH  /projects/{project-B-id}
-DELETE /projects/{project-B-id}
-```
-
-All unauthorized operations must be rejected.
-
-## Current Implementation Status
-
-The current authentication system establishes the authenticated user identity through `req.userId`.
-
-The current `/users/me` endpoints are scoped to that authenticated identity and do not expose an arbitrary user ID parameter.
-
-However, resource-level ownership enforcement for projects, tasks, tags, folders, and their relationships must be implemented together with their respective CRUD endpoints.
-
-The database schema establishes ownership relationships and referential integrity, but these database relationships do not by themselves provide application-level authorization.
-
-Therefore, the requirements in this document represent the required security boundary for those resources and must not be interpreted as already implemented functionality.
+- Reading another user's resource.
+- Updating another user's resource.
+- Deleting another user's resource.
+- Creating relationships with another user's resources.
+- Using another user's task as a parent.
+- Using another user's folder as a parent.
+- Assigning another user's tag to a task.
+- Manipulating resource IDs directly.
 
 ## Data Isolation Goal
 
 The security boundary can be summarized as:
 
 ```text
-Client-controlled ID
-
-       │
-
-       ▼
-
-Backend
-
-       │
-
-       ├── Authenticate user
-       │
-       ├── Identify resource
-       │
-       ├── Resolve ownership relationships
-       │
-       ├── Verify authorization
-       │
-       └── Perform operation only if authorized
+Client-controlled request
+        │
+        ▼
+Authentication
+        │
+        ▼
+Authenticated user
+        │
+        ▼
+Resource ownership validation
+        │
+        ├── Authorized ──► Perform operation
+        │
+        └── Unauthorized ──► Reject
 ```
 
-The desired security property is:
+The required security property is:
 
 > Manipulating resource IDs, URLs, request bodies, or HTTP requests must never allow a user to cross another user's data boundary.
 
-Database data should always be treated as potentially private, and every backend operation must preserve that boundary.
+The client controls the request.
+
+The server controls the ownership boundary.
