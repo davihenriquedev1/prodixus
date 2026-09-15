@@ -181,4 +181,29 @@ export const FolderService = {
 
     return FolderRepository.update(folderId, folderData);
   },
+  async deleteFolder(userId: string | undefined, folderId: string | undefined) {
+    if (!userId) {
+      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+    }
+
+    if (!folderId) {
+      throw new AppError(
+        409,
+        "FOLDER_ID_NOT_RECEIVED",
+        "Folder id is required",
+      );
+    }
+
+    const folder = await FolderRepository.findFirstByUserId(folderId, userId);
+
+    if (!folder) {
+      throw new AppError(
+        404,
+        "FOLDER_NOT_FOUND",
+        "Folder not found or does not belong to the user",
+      );
+    }
+
+    await FolderRepository.delete(folderId);
+  },
 };

@@ -16,5 +16,8 @@ router.get("/:folderId", authMiddleware, (req, res) =>
 router.patch("/:folderId", authMiddleware, (req, res) =>
   FolderController.update(req, res),
 );
+router.delete("/:folderId", authMiddleware, (req, res) =>
+  FolderController.delete(req, res),
+);
 
 export default router;
