@@ -1,5 +1,8 @@
 import { FolderService } from "@/services/folder.service.js";
-import { createFolderSchema } from "@/validators/folder.validator.js";
+import {
+  createFolderSchema,
+  updateFolderSchema,
+} from "@/validators/folder.validator.js";
 import type { Request, Response } from "express";
 
 export const FolderController = {
@@ -15,6 +18,12 @@ export const FolderController = {
   },
   async getFolders(req: Request, res: Response) {
     const result = await FolderService.getFolders(req.userId);
+    return res.status(200).json(result);
+  },
+  async update(req: Request, res: Response) {
+    const data = updateFolderSchema.parse(req.body);
+    const folderId = req.params.folderId as string;
+    const result = await FolderService.updateFolder(req.userId, folderId, data);
     return res.status(200).json(result);
   },
 };

@@ -22,4 +22,12 @@ export const FolderRepository = {
       },
     });
   },
+  async update(folderId: string, data: Prisma.FolderUpdateInput) {
+    return prisma.folder.update({
+      data,
+      where: {
+        id: folderId,
+      },
+    });
+  },
 };

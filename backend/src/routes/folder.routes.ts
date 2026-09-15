@@ -13,5 +13,8 @@ router.get("/", authMiddleware, (req, res) =>
 router.get("/:folderId", authMiddleware, (req, res) =>
   FolderController.getFolder(req, res),
 );
+router.patch("/:folderId", authMiddleware, (req, res) =>
+  FolderController.update(req, res),
+);
 
 export default router;
