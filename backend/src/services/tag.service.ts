@@ -13,7 +13,7 @@ export const TagService = {
     data: z.infer<typeof createTagSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const tagExists = await TagRepository.findByUserIdAndName(
@@ -22,11 +22,7 @@ export const TagService = {
     );
 
     if (tagExists) {
-      throw new AppError(
-        409,
-        "TAG_ALREADY_EXISTS",
-        "Tag already exists with this name",
-      );
+      throw new AppError("TAG_ALREADY_EXISTS");
     }
 
     const tagData: Prisma.TagCreateInput = {
@@ -43,28 +39,24 @@ export const TagService = {
   },
   async getTags(userId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     return TagRepository.findManyByUserId(userId);
   },
   async getTag(userId: string | undefined, tagId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!tagId) {
-      throw new AppError(409, "TAG_ID_REQUIRED", "Tag id not received");
+      throw new AppError("TAG_ID_NOT_RECEIVED");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
 
     if (!tag) {
-      throw new AppError(
-        404,
-        "TAG_NOT_FOUND",
-        "Tag not found or does not belong to user",
-      );
+      throw new AppError("TAG_NOT_FOUND");
     }
 
     return tag;
@@ -75,29 +67,21 @@ export const TagService = {
     data: z.infer<typeof updateTagSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!tagId) {
-      throw new AppError(409, "ID_NOT_RECEIVED", "Tag id is required");
+      throw new AppError("TAG_ID_NOT_RECEIVED");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
 
     if (!tag) {
-      throw new AppError(
-        404,
-        "TAG_NOT_FOUND",
-        "Tag not found or does not belong to user",
-      );
+      throw new AppError("TAG_NOT_FOUND");
     }
 
     if (data.name === undefined && data.color === undefined) {
-      throw new AppError(
-        409,
-        "NO_DATA_RECEIVED",
-        "Some data is required for update",
-      );
+      throw new AppError("UPDATE_DATA_NOT_RECEIVED");
     }
 
     if (data.name) {
@@ -106,11 +90,7 @@ export const TagService = {
         data.name,
       );
       if (tagExists && tagExists.id !== tagId) {
-        throw new AppError(
-          409,
-          "TAG_ALREADY_EXISTS",
-          "Tag already exists with this name",
-        );
+        throw new AppError("TAG_ALREADY_EXISTS");
       }
     }
 
@@ -123,21 +103,17 @@ export const TagService = {
   },
   async deleteTag(userId: string | undefined, tagId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!tagId) {
-      throw new AppError(409, "TAG_ID_REQUIRED", "Tag id not received");
+      throw new AppError("TAG_ID_NOT_RECEIVED");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
 
     if (!tag) {
-      throw new AppError(
-        404,
-        "TAG_NOT_FOUND",
-        "Tag not found or does not belong to user",
-      );
+      throw new AppError("TAG_NOT_FOUND");
     }
 
     return TagRepository.delete(tagId);

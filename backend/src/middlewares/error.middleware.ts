@@ -1,5 +1,8 @@
+import { errorTypes } from "@/errors/error.types.js";
 import { AppError } from "@/errors/app.error.js";
+
 import type { NextFunction, Request, Response } from "express";
+
 import z from "zod";
 
 const errorHandler = (
@@ -10,21 +13,26 @@ const errorHandler = (
   _next: NextFunction,
 ) => {
   if (err instanceof z.ZodError) {
-    return res.status(400).json({
+    const error = errorTypes.VALIDATION_ERROR;
+
+    return res.status(error.statusCode).json({
       code: "VALIDATION_ERROR",
-      error: "Invalid request data",
+      message: error.message,
     });
   }
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       code: err.code,
-      error: err.message,
+      message: err.message,
     });
   }
 
-  return res.status(500).json({
-    error: "Internal server error",
+  const error = errorTypes.INTERNAL_SERVER_ERROR;
+
+  return res.status(error.statusCode).json({
+    code: "INTERNAL_SERVER_ERROR",
+    message: error.message,
   });
 };
 

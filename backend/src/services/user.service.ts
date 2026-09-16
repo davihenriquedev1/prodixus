@@ -13,13 +13,13 @@ import { RefreshTokenRepository } from "@/repositories/refresh-token.repository.
 export const UserService = {
   async me(userId?: string) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const userDB = await UserRepository.findById(userId);
 
     if (!userDB) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     const safeUser: z.infer<typeof userProfileSchema> = {
@@ -39,17 +39,17 @@ export const UserService = {
     data: z.infer<typeof updateProfileSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const userDB = await UserRepository.findById(userId);
 
     if (!userDB) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     if (!data.name && !data.email) {
-      throw new AppError(409, "DATA_REQUIRED", "Data required for update");
+      throw new AppError("UPDATE_DATA_NOT_RECEIVED");
     }
 
     const userData: Prisma.UserUpdateInput = {};
@@ -81,17 +81,17 @@ export const UserService = {
     data: z.infer<typeof changePasswordSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const userDB = await UserRepository.findById(userId);
 
     if (!userDB) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     if (!(await bcrypt.compare(data.curPassword, userDB.passwordHash))) {
-      throw new AppError(401, "UNAUTHORIZED", "Incorrect password");
+      throw new AppError("INVALID_CURRENT_PASSWORD");
     }
 
     const newHash = await bcrypt.hash(data.newPassword, 10);
@@ -102,13 +102,13 @@ export const UserService = {
   },
   async deleteAccount(userId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const userDB = await UserRepository.findById(userId);
 
     if (!userDB) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     await UserRepository.delete(userId);

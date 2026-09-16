@@ -15,13 +15,13 @@ export const ProjectService = {
     data: z.infer<typeof createProjectSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const user = await UserRepository.findById(userId);
 
     if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     if (data.folderId !== undefined) {
@@ -30,11 +30,7 @@ export const ProjectService = {
         userId,
       );
       if (!folder) {
-        throw new AppError(
-          404,
-          "FOLDER_NOT_FOUND",
-          "Folder not found or does not belong to the user",
-        );
+        throw new AppError("FOLDER_NOT_FOUND");
       }
     }
 
@@ -77,18 +73,18 @@ export const ProjectService = {
   },
   async getProjects(userId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     return ProjectRepository.findManyByUserId(userId);
   },
   async getProject(userId: string | undefined, projectId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -97,7 +93,7 @@ export const ProjectService = {
     );
 
     if (!project) {
-      throw new AppError(404, "PROJECT_NOT_FOUND", "Project not found");
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     return project;
@@ -108,11 +104,11 @@ export const ProjectService = {
     data: z.infer<typeof updateProjectSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (data.folderId !== undefined) {
@@ -121,11 +117,7 @@ export const ProjectService = {
         userId,
       );
       if (!folder) {
-        throw new AppError(
-          404,
-          "FOLDER_NOT_FOUND",
-          "Folder not found or does not belong to the user",
-        );
+        throw new AppError("FOLDER_NOT_FOUND");
       }
     }
 
@@ -165,7 +157,7 @@ export const ProjectService = {
     );
 
     if (project == null) {
-      throw new AppError(404, "PROJECT_NOT_FOUND", "Project not found");
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     return project;
@@ -175,16 +167,16 @@ export const ProjectService = {
     projectId: string | undefined,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.delete(userId, projectId);
 
     if (project == null) {
-      throw new AppError(404, "PROJECT_NOT_FOUND", "Project not found");
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     return project;

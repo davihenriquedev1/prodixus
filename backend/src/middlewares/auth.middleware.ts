@@ -1,26 +1,24 @@
+import { AppError } from "@/errors/app.error.js";
+
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { verifyAccessToken } from "@/utils/jwt.js";
 
 export const authMiddleware: RequestHandler = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({
-      message: "Authentication token is required",
-    });
+    throw new AppError("AUTHENTICATION_TOKEN_REQUIRED");
   }
 
   const token = authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({
-      message: "Invalid authentication token",
-    });
+    throw new AppError("INVALID_AUTHENTICATION_TOKEN");
   }
 
   try {
@@ -32,22 +30,21 @@ export const authMiddleware: RequestHandler = (
       !("userId" in decoded) ||
       typeof decoded.userId !== "string"
     ) {
-      return res.status(401).json({
-        message: "Invalid authentication token",
-      });
+      throw new AppError("INVALID_AUTHENTICATION_TOKEN");
     }
 
     req.userId = decoded.userId;
 
     return next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({
-        message: "Invalid authentication token",
-      });
+    if (error instanceof AppError) {
+      throw error;
     }
-    return res.status(401).json({
-      message: "Authentication failed",
-    });
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new AppError("INVALID_AUTHENTICATION_TOKEN");
+    }
+
+    throw new AppError("AUTHENTICATION_FAILED");
   }
 };

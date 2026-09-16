@@ -1,11 +1,15 @@
+import { errorTypes, type ErrorCode } from "./error.types.js";
+
 export class AppError extends Error {
-  statusCode: number;
-  code: string;
+  constructor(public readonly code: ErrorCode) {
+    const error = errorTypes[code];
 
-  constructor(statusCode: number, code: string, message: string) {
-    super(message);
+    super(error.message);
 
-    this.statusCode = statusCode;
-    this.code = code;
+    this.name = "AppError";
+  }
+
+  get statusCode() {
+    return errorTypes[this.code].statusCode;
   }
 }

@@ -14,13 +14,13 @@ export const FolderService = {
     data: z.infer<typeof createFolderSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const user = await UserRepository.findById(userId);
 
     if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     if (data.parentId !== undefined) {
@@ -30,11 +30,7 @@ export const FolderService = {
       );
 
       if (!folder) {
-        throw new AppError(
-          404,
-          "FOLDER_NOT_FOUND",
-          "Folder not found or does not belong to the user",
-        );
+        throw new AppError("FOLDER_NOT_FOUND");
       }
     }
 
@@ -60,32 +56,24 @@ export const FolderService = {
   },
   async getFolders(userId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     return FolderRepository.findManyByUserId(userId);
   },
   async getFolder(userId: string | undefined, folderId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!folderId) {
-      throw new AppError(
-        409,
-        "FOLDER_ID_NOT_RECEIVED",
-        "Folder id is required",
-      );
+      throw new AppError("FOLDER_ID_NOT_RECEIVED");
     }
 
     const folder = await FolderRepository.findFirstByUserId(folderId, userId);
 
     if (!folder) {
-      throw new AppError(
-        404,
-        "FOLDER_NOT_FOUND",
-        "Folder not found or does not belong to the user",
-      );
+      throw new AppError("FOLDER_NOT_FOUND");
     }
 
     return folder;
@@ -96,40 +84,28 @@ export const FolderService = {
     data: z.infer<typeof updateFolderSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     const user = await UserRepository.findById(userId);
 
     if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User not found");
+      throw new AppError("USER_NOT_FOUND");
     }
 
     if (!folderId) {
-      throw new AppError(
-        409,
-        "FOLDER_ID_NOT_RECEIVED",
-        "Folder id is required",
-      );
+      throw new AppError("FOLDER_ID_NOT_RECEIVED");
     }
 
     const folder = await FolderRepository.findFirstByUserId(folderId, userId);
 
     if (!folder) {
-      throw new AppError(
-        404,
-        "FOLDER_NOT_FOUND",
-        "Folder not found or does not belong to the user",
-      );
+      throw new AppError("FOLDER_NOT_FOUND");
     }
 
     if (data.parentId !== undefined) {
       if (data.parentId === folderId) {
-        throw new AppError(
-          409,
-          "FOLDER_CYCLE",
-          "Folder cannot be its own parent",
-        );
+        throw new AppError("FOLDER_CYCLE");
       }
 
       const parentFolder = await FolderRepository.findFirstByUserId(
@@ -138,22 +114,14 @@ export const FolderService = {
       );
 
       if (!parentFolder) {
-        throw new AppError(
-          404,
-          "FOLDER_NOT_FOUND",
-          "Folder not found or does not belong to the user",
-        );
+        throw new AppError("FOLDER_NOT_FOUND");
       }
 
       let currentParent: Folder | null = parentFolder;
 
       while (currentParent) {
         if (currentParent.id === folderId) {
-          throw new AppError(
-            409,
-            "FOLDER_CYCLE",
-            "Folder cannot be moved into one of its subfolders",
-          );
+          throw new AppError("FOLDER_CYCLE");
         }
 
         if (!currentParent.parentId) {
@@ -183,25 +151,17 @@ export const FolderService = {
   },
   async deleteFolder(userId: string | undefined, folderId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!folderId) {
-      throw new AppError(
-        409,
-        "FOLDER_ID_NOT_RECEIVED",
-        "Folder id is required",
-      );
+      throw new AppError("FOLDER_ID_NOT_RECEIVED");
     }
 
     const folder = await FolderRepository.findFirstByUserId(folderId, userId);
 
     if (!folder) {
-      throw new AppError(
-        404,
-        "FOLDER_NOT_FOUND",
-        "Folder not found or does not belong to the user",
-      );
+      throw new AppError("FOLDER_NOT_FOUND");
     }
 
     await FolderRepository.delete(folderId);
