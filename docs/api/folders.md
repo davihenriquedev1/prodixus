@@ -24,6 +24,7 @@ Create a folder for the authenticated user.
 
 ```http
 POST /api/folders
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -57,6 +58,9 @@ When `parentId` is provided:
 
 ### Errors
 
+- `400 Bad Request` — `VALIDATION_ERROR`
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `USER_NOT_FOUND`
 - `404 Not Found` — `FOLDER_NOT_FOUND`
 
@@ -70,6 +74,7 @@ Retrieve all folders belonging to the authenticated user.
 
 ```http
 GET /api/folders
+
 Authorization: Bearer <access_token>
 ```
 
@@ -78,6 +83,11 @@ Authorization: Bearer <access_token>
 **200 OK**
 
 Returns the user's folders.
+
+### Errors
+
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 
 ---
 
@@ -89,6 +99,7 @@ Retrieve a specific folder.
 
 ```http
 GET /api/folders/:folderId
+
 Authorization: Bearer <access_token>
 ```
 
@@ -100,6 +111,8 @@ Returns the requested folder.
 
 ### Errors
 
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `FOLDER_NOT_FOUND`
 
 A folder belonging to another user is treated as not found.
@@ -114,6 +127,7 @@ Update an existing folder.
 
 ```http
 PATCH /api/folders/:folderId
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -147,6 +161,9 @@ These checks prevent circular folder hierarchies.
 
 ### Errors
 
+- `400 Bad Request` — `VALIDATION_ERROR`
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `FOLDER_NOT_FOUND`
 - `409 Conflict` — `FOLDER_CYCLE`
 
@@ -160,6 +177,7 @@ Delete a folder belonging to the authenticated user.
 
 ```http
 DELETE /api/folders/:folderId
+
 Authorization: Bearer <access_token>
 ```
 
@@ -171,7 +189,24 @@ No response body is returned.
 
 ### Errors
 
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `FOLDER_NOT_FOUND`
+
+---
+
+## Standard Error Response
+
+API errors use a consistent response structure:
+
+```json
+{
+  "code": "FOLDER_NOT_FOUND",
+  "message": "Folder not found"
+}
+```
+
+The `code` identifies the specific error, while `message` provides a human-readable description.
 
 ---
 

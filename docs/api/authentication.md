@@ -21,6 +21,7 @@ Create a new user account and return authentication tokens.
 
 ```http
 POST /api/auth/register
+
 Content-Type: application/json
 ```
 
@@ -58,7 +59,16 @@ Content-Type: application/json
 
 ### Errors
 
-- `409 Conflict` — `USER_ALREADY_EXISTS`
+**400 Bad Request — `VALIDATION_ERROR`**
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**409 Conflict — `USER_ALREADY_EXISTS`**
 
 ```json
 {
@@ -77,6 +87,7 @@ Authenticate an existing user and return authentication tokens.
 
 ```http
 POST /api/auth/login
+
 Content-Type: application/json
 ```
 
@@ -112,7 +123,16 @@ Content-Type: application/json
 
 ### Errors
 
-- `401 Unauthorized` — `INVALID_CREDENTIALS`
+**400 Bad Request — `VALIDATION_ERROR`**
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `INVALID_CREDENTIALS`**
 
 ```json
 {
@@ -135,6 +155,7 @@ The current refresh token is revoked when a new token pair is successfully gener
 
 ```http
 POST /api/auth/refresh
+
 Content-Type: application/json
 ```
 
@@ -163,9 +184,16 @@ Content-Type: application/json
 
 ### Errors
 
-#### Invalid refresh token
+**400 Bad Request — `VALIDATION_ERROR`**
 
-**401 Unauthorized**
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `INVALID_REFRESH_TOKEN`**
 
 ```json
 {
@@ -174,9 +202,7 @@ Content-Type: application/json
 }
 ```
 
-#### Revoked refresh token
-
-**401 Unauthorized**
+**401 Unauthorized — `REFRESH_TOKEN_REVOKED`**
 
 ```json
 {
@@ -185,9 +211,7 @@ Content-Type: application/json
 }
 ```
 
-#### Expired refresh token
-
-**401 Unauthorized**
+**401 Unauthorized — `REFRESH_TOKEN_EXPIRED`**
 
 ```json
 {
@@ -206,6 +230,7 @@ Invalidate the provided refresh token.
 
 ```http
 POST /api/auth/logout
+
 Content-Type: application/json
 ```
 
@@ -229,9 +254,16 @@ No response body is returned.
 
 ### Errors
 
-#### Invalid refresh token
+**400 Bad Request — `VALIDATION_ERROR`**
 
-**401 Unauthorized**
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `INVALID_REFRESH_TOKEN`**
 
 ```json
 {
@@ -240,9 +272,7 @@ No response body is returned.
 }
 ```
 
-#### Revoked refresh token
-
-**401 Unauthorized**
+**401 Unauthorized — `REFRESH_TOKEN_REVOKED`**
 
 ```json
 {
@@ -251,9 +281,7 @@ No response body is returned.
 }
 ```
 
-#### Expired refresh token
-
-**401 Unauthorized**
+**401 Unauthorized — `REFRESH_TOKEN_EXPIRED`**
 
 ```json
 {
@@ -275,3 +303,16 @@ Authorization: Bearer <access_token>
 Access tokens expire after 30 minutes.
 
 Refresh tokens expire after 4 days and are rotated when used successfully.
+
+## Error Responses
+
+Authentication errors use the standard API error response format:
+
+```json
+{
+  "code": "ERROR_CODE",
+  "message": "Human-readable error message"
+}
+```
+
+The error code identifies the specific error, while the message provides a human-readable description.

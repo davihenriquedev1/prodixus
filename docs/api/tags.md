@@ -26,6 +26,7 @@ Create a tag for the authenticated user.
 
 ```http
 POST /api/tags
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -52,6 +53,9 @@ Returns the created tag.
 
 ### Errors
 
+- `400 Bad Request` — `VALIDATION_ERROR`
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `409 Conflict` — `TAG_ALREADY_EXISTS`
 
 A user cannot create two tags with the same name.
@@ -66,6 +70,7 @@ Retrieve all tags belonging to the authenticated user.
 
 ```http
 GET /api/tags
+
 Authorization: Bearer <access_token>
 ```
 
@@ -74,6 +79,11 @@ Authorization: Bearer <access_token>
 **200 OK**
 
 Returns the user's tags.
+
+### Errors
+
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 
 ---
 
@@ -85,6 +95,7 @@ Retrieve a specific tag.
 
 ```http
 GET /api/tags/:id
+
 Authorization: Bearer <access_token>
 ```
 
@@ -96,6 +107,8 @@ Returns the requested tag.
 
 ### Errors
 
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `TAG_NOT_FOUND`
 
 A tag belonging to another user is treated as not found.
@@ -110,6 +123,7 @@ Update an existing tag.
 
 ```http
 PATCH /api/tags/:id
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -135,8 +149,14 @@ Returns the updated tag.
 
 ### Errors
 
+- `400 Bad Request` — `VALIDATION_ERROR`
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `TAG_NOT_FOUND`
-- `409 Conflict` — `NO_DATA_RECEIVED`
+- `409 Conflict` — `UPDATE_DATA_NOT_RECEIVED`
+- `409 Conflict` — `TAG_ALREADY_EXISTS`
+
+A user cannot update a tag to a name already used by another tag belonging to the same user.
 
 ---
 
@@ -148,6 +168,7 @@ Delete a tag belonging to the authenticated user.
 
 ```http
 DELETE /api/tags/:id
+
 Authorization: Bearer <access_token>
 ```
 
@@ -159,7 +180,24 @@ No response body is returned.
 
 ### Errors
 
+- `401 Unauthorized` — `AUTHENTICATION_TOKEN_REQUIRED`
+- `401 Unauthorized` — `INVALID_AUTHENTICATION_TOKEN`
 - `404 Not Found` — `TAG_NOT_FOUND`
+
+---
+
+## Standard Error Response
+
+API errors use a consistent response structure:
+
+```json
+{
+  "code": "TAG_NOT_FOUND",
+  "message": "Tag not found"
+}
+```
+
+The `code` identifies the specific error, while `message` provides a human-readable description.
 
 ---
 
