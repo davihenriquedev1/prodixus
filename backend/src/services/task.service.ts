@@ -17,11 +17,11 @@ export const TaskService = {
     data: z.infer<typeof createTaskSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "PROJECT_ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -30,11 +30,7 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     if (data.parentId !== undefined) {
@@ -44,15 +40,11 @@ export const TaskService = {
       );
 
       if (!parentTask) {
-        throw new AppError(
-          404,
-          "PARENT_NOT_FOUND",
-          "Parent task not found or does not belong to user",
-        );
+        throw new AppError("PARENT_TASK_NOT_FOUND");
       }
 
       if (parentTask.parentId) {
-        throw new AppError(409, "TASK_IS_SUBTASK", "Task already is a subtask");
+        throw new AppError("TASK_IS_SUBTASK");
       }
     }
 
@@ -88,11 +80,11 @@ export const TaskService = {
   },
   async getTasks(userId: string | undefined, projectId: string | undefined) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -101,11 +93,7 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     return TaskRepository.findManyByProjectId(projectId);
@@ -116,15 +104,15 @@ export const TaskService = {
     taskId: string | undefined,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (!taskId) {
-      throw new AppError(409, "ID_REQUIRED", "Task id not received");
+      throw new AppError("TASK_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -133,21 +121,13 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
 
     if (!task) {
-      throw new AppError(
-        404,
-        "TASK_NOT_FOUND",
-        "Task not found or does not belong to user",
-      );
+      throw new AppError("TASK_NOT_FOUND");
     }
 
     return task;
@@ -159,15 +139,15 @@ export const TaskService = {
     data: z.infer<typeof updateTaskSchema>,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (!taskId) {
-      throw new AppError(409, "ID_REQUIRED", "Task id not received");
+      throw new AppError("TASK_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -176,30 +156,18 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
 
     if (!task) {
-      throw new AppError(
-        404,
-        "TASK_NOT_FOUND",
-        "Task not found or does not belong to user",
-      );
+      throw new AppError("TASK_NOT_FOUND");
     }
 
     if (data.parentId !== undefined && data.parentId !== null) {
       if (data.parentId === taskId) {
-        throw new AppError(
-          409,
-          "TASK_CANNOT_BE_OWN_PARENT",
-          "Task cannot be its own parent",
-        );
+        throw new AppError("TASK_CANNOT_BE_OWN_PARENT");
       }
 
       const parentTask = await TaskRepository.findFirstByProjectId(
@@ -208,15 +176,11 @@ export const TaskService = {
       );
 
       if (!parentTask) {
-        throw new AppError(
-          404,
-          "PARENT_NOT_FOUND",
-          "Parent task not found or does not belong to user",
-        );
+        throw new AppError("PARENT_TASK_NOT_FOUND");
       }
 
       if (parentTask.parentId) {
-        throw new AppError(409, "TASK_IS_SUBTASK", "Task already is a subtask");
+        throw new AppError("TASK_IS_SUBTASK");
       }
     }
 
@@ -249,15 +213,15 @@ export const TaskService = {
     taskId: string | undefined,
   ) {
     if (!userId) {
-      throw new AppError(409, "ID_REQUIRED", "User id not received");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(409, "ID_REQUIRED", "Project id not received");
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (!taskId) {
-      throw new AppError(409, "ID_REQUIRED", "Task id not received");
+      throw new AppError("TASK_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -266,21 +230,13 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
 
     if (!task) {
-      throw new AppError(
-        404,
-        "TASK_NOT_FOUND",
-        "Task not found or does not belong to user",
-      );
+      throw new AppError("TASK_NOT_FOUND");
     }
 
     await TaskRepository.delete(taskId);
@@ -292,23 +248,19 @@ export const TaskService = {
     tagId: string | undefined,
   ) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(
-        409,
-        "PROJECT_ID_NOT_RECEIVED",
-        "Project id is required",
-      );
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (!taskId) {
-      throw new AppError(409, "TASK_ID_NOT_RECEIVED", "Task id is required");
+      throw new AppError("TASK_ID_NOT_RECEIVED");
     }
 
     if (!tagId) {
-      throw new AppError(409, "TAG_ID_NOT_RECEIVED", "Tag id is required");
+      throw new AppError("TAG_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -317,41 +269,25 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
 
     if (!task) {
-      throw new AppError(
-        404,
-        "TASK_NOT_FOUND",
-        "Task not found or does not belong to user",
-      );
+      throw new AppError("TASK_NOT_FOUND");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
 
     if (!tag) {
-      throw new AppError(
-        404,
-        "TAG_NOT_FOUND",
-        "Tag not found or does not belong to user",
-      );
+      throw new AppError("TAG_NOT_FOUND");
     }
 
     const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
 
     if (taskTag) {
-      throw new AppError(
-        409,
-        "TASK_TAG_ASSOCIATION_ALREADY_EXISTS",
-        "Task tag association already exists",
-      );
+      throw new AppError("TASK_TAG_ASSOCIATION_ALREADY_EXISTS");
     }
 
     const data: Prisma.TaskTagCreateInput = {
@@ -376,23 +312,19 @@ export const TaskService = {
     tagId: string | undefined,
   ) {
     if (!userId) {
-      throw new AppError(409, "USER_ID_NOT_RECEIVED", "User id is required");
+      throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
     if (!projectId) {
-      throw new AppError(
-        409,
-        "PROJECT_ID_NOT_RECEIVED",
-        "Project id is required",
-      );
+      throw new AppError("PROJECT_ID_NOT_RECEIVED");
     }
 
     if (!taskId) {
-      throw new AppError(409, "TASK_ID_NOT_RECEIVED", "Task id is required");
+      throw new AppError("TASK_ID_NOT_RECEIVED");
     }
 
     if (!tagId) {
-      throw new AppError(409, "TAG_ID_NOT_RECEIVED", "Tag id is required");
+      throw new AppError("TAG_ID_NOT_RECEIVED");
     }
 
     const project = await ProjectRepository.findFirstByUserId(
@@ -401,41 +333,25 @@ export const TaskService = {
     );
 
     if (!project) {
-      throw new AppError(
-        404,
-        "PROJECT_NOT_FOUND",
-        "Project not found or does not belong to user",
-      );
+      throw new AppError("PROJECT_NOT_FOUND");
     }
 
     const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
 
     if (!task) {
-      throw new AppError(
-        404,
-        "TASK_NOT_FOUND",
-        "Task not found or does not belong to user",
-      );
+      throw new AppError("TASK_NOT_FOUND");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
 
     if (!tag) {
-      throw new AppError(
-        404,
-        "TAG_NOT_FOUND",
-        "Tag not found or does not belong to user",
-      );
+      throw new AppError("TAG_NOT_FOUND");
     }
 
     const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
 
     if (!taskTag) {
-      throw new AppError(
-        404,
-        "TASK_TAG_NOT_FOUND",
-        "Task tag association not found",
-      );
+      throw new AppError("TASK_TAG_NOT_FOUND");
     }
 
     await TaskTagRepository.delete(taskId, tagId);

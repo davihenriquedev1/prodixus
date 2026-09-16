@@ -28,7 +28,7 @@ export const verifyAccessToken = (token: string) => {
     decoded === null ||
     decoded.type !== "access"
   ) {
-    throw new Error("Invalid access token");
+    throw new AppError("INVALID_AUTHENTICATION_TOKEN");
   }
 
   return decoded;
@@ -45,7 +45,7 @@ export const verifyRefreshToken = (token: string) => {
       decoded === null ||
       decoded.type !== "refresh"
     ) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     return decoded;
@@ -54,6 +54,6 @@ export const verifyRefreshToken = (token: string) => {
       throw error;
     }
 
-    throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+    throw new AppError("INVALID_REFRESH_TOKEN");
   }
 };

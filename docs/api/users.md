@@ -23,6 +23,7 @@ Retrieve the profile of the authenticated user.
 
 ```http
 GET /api/users/me
+
 Authorization: Bearer <access_token>
 ```
 
@@ -44,7 +45,25 @@ Authorization: Bearer <access_token>
 
 ### Errors
 
-- `404 Not Found` — `USER_NOT_FOUND`
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `USER_NOT_FOUND`**
 
 ```json
 {
@@ -63,6 +82,7 @@ Update the authenticated user's name and/or e-mail.
 
 ```http
 PATCH /api/users/me
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -101,7 +121,34 @@ Both fields are optional, but at least one must be provided.
 
 ### Errors
 
-- `404 Not Found` — `USER_NOT_FOUND`
+**400 Bad Request — `VALIDATION_ERROR`**
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `USER_NOT_FOUND`**
 
 ```json
 {
@@ -110,12 +157,12 @@ Both fields are optional, but at least one must be provided.
 }
 ```
 
-- `409 Conflict` — `DATA_REQUIRED`
+**409 Conflict — `UPDATE_DATA_NOT_RECEIVED`**
 
 ```json
 {
-  "code": "DATA_REQUIRED",
-  "message": "Data required for update"
+  "code": "UPDATE_DATA_NOT_RECEIVED",
+  "message": "Some data is required for update"
 }
 ```
 
@@ -131,6 +178,7 @@ All refresh tokens belonging to the user are revoked after the password is succe
 
 ```http
 PATCH /api/users/me/password
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -157,16 +205,43 @@ No response body is returned.
 
 ### Errors
 
-- `401 Unauthorized` — `UNAUTHORIZED`
+**400 Bad Request — `VALIDATION_ERROR`**
 
 ```json
 {
-  "code": "UNAUTHORIZED",
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**401 Unauthorized — `INVALID_CURRENT_PASSWORD`**
+
+```json
+{
+  "code": "INVALID_CURRENT_PASSWORD",
   "message": "Incorrect password"
 }
 ```
 
-- `404 Not Found` — `USER_NOT_FOUND`
+**404 Not Found — `USER_NOT_FOUND`**
 
 ```json
 {
@@ -185,6 +260,7 @@ Delete the authenticated user's account.
 
 ```http
 DELETE /api/users/me
+
 Authorization: Bearer <access_token>
 ```
 
@@ -196,7 +272,25 @@ No response body is returned.
 
 ### Errors
 
-- `404 Not Found` — `USER_NOT_FOUND`
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `USER_NOT_FOUND`**
 
 ```json
 {
@@ -214,3 +308,16 @@ No response body is returned.
 - Clients cannot specify another user's ID to access or modify an account.
 - Passwords are never returned in API responses.
 - Refresh tokens are revoked after a successful password change.
+
+## Error Responses
+
+User endpoints use the standard API error response format:
+
+```json
+{
+  "code": "ERROR_CODE",
+  "message": "Human-readable error message"
+}
+```
+
+The error code identifies the specific error, while the message provides a human-readable description.

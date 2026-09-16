@@ -64,6 +64,7 @@ Example:
 
 ```http
 POST /api/projects
+
 Content-Type: application/json
 
 {
@@ -85,7 +86,7 @@ Related resources are also validated for ownership where required. For example, 
 
 Request data is validated before being processed by the application.
 
-Invalid data is rejected and the corresponding endpoint returns an appropriate client error response.
+Invalid data is rejected and returns a standardized validation error response.
 
 Validation rules and accepted fields are documented for each resource.
 
@@ -93,25 +94,22 @@ Validation rules and accepted fields are documented for each resource.
 
 The API uses standard HTTP status codes to indicate the result of a request.
 
-| Status             | Meaning                                                |
-| ------------------ | ------------------------------------------------------ |
-| `200 OK`           | Request completed successfully                         |
-| `201 Created`      | Resource created successfully                          |
-| `204 No Content`   | Request completed successfully without a response body |
-| `400 Bad Request`  | Request contains invalid data                          |
-| `401 Unauthorized` | Authentication is missing or invalid                   |
-| `404 Not Found`    | Resource was not found or is not accessible            |
-| `409 Conflict`     | Request conflicts with existing data                   |
+| Status                      | Meaning                                                |
+| --------------------------- | ------------------------------------------------------ |
+| `200 OK`                    | Request completed successfully                         |
+| `201 Created`               | Resource created successfully                          |
+| `204 No Content`            | Request completed successfully without a response body |
+| `400 Bad Request`           | Request contains invalid data                          |
+| `401 Unauthorized`          | Authentication is missing or invalid                   |
+| `404 Not Found`             | Resource was not found or is not accessible            |
+| `409 Conflict`              | Request conflicts with existing data                   |
+| `500 Internal Server Error` | Unexpected server-side error                           |
 
-The exact status codes and response bodies are documented with each endpoint.
+The exact status code and error code depend on the endpoint and the type of error.
 
 ## Error Responses
 
-Errors are returned as JSON responses.
-
-The response structure and error codes are documented according to the current API implementation.
-
-Example:
+Errors are returned as JSON responses using a consistent structure:
 
 ```json
 {
@@ -120,7 +118,40 @@ Example:
 }
 ```
 
-The exact error code and message depend on the endpoint and the error that occurred.
+The `code` identifies the specific error and provides a stable value for clients to handle.
+
+The `message` provides a human-readable description of the error.
+
+Error codes, HTTP status codes, and messages are centrally defined by the backend and reused wherever the same error occurs.
+
+### Common Error Codes
+
+| Code                                  | Status | Description                           |
+| ------------------------------------- | ------ | ------------------------------------- |
+| `VALIDATION_ERROR`                    | `400`  | Request data is invalid               |
+| `AUTHENTICATION_TOKEN_REQUIRED`       | `401`  | Authentication token is missing       |
+| `INVALID_AUTHENTICATION_TOKEN`        | `401`  | Authentication token is invalid       |
+| `AUTHENTICATION_FAILED`               | `401`  | Authentication failed                 |
+| `INVALID_CREDENTIALS`                 | `401`  | E-mail or password is invalid         |
+| `INVALID_REFRESH_TOKEN`               | `401`  | Refresh token is invalid              |
+| `REFRESH_TOKEN_REVOKED`               | `401`  | Refresh token has been revoked        |
+| `REFRESH_TOKEN_EXPIRED`               | `401`  | Refresh token has expired             |
+| `USER_NOT_FOUND`                      | `404`  | User was not found                    |
+| `PROJECT_NOT_FOUND`                   | `404`  | Project was not found                 |
+| `TASK_NOT_FOUND`                      | `404`  | Task was not found                    |
+| `TAG_NOT_FOUND`                       | `404`  | Tag was not found                     |
+| `FOLDER_NOT_FOUND`                    | `404`  | Folder was not found                  |
+| `ROUTE_NOT_FOUND`                     | `404`  | Requested route was not found         |
+| `USER_ALREADY_EXISTS`                 | `409`  | User with the e-mail already exists   |
+| `TAG_ALREADY_EXISTS`                  | `409`  | Tag with the same name already exists |
+| `UPDATE_DATA_NOT_RECEIVED`            | `409`  | Update data was not provided          |
+| `TASK_IS_SUBTASK`                     | `409`  | Task is already a subtask             |
+| `TASK_CANNOT_BE_OWN_PARENT`           | `409`  | Task cannot be its own parent         |
+| `FOLDER_CYCLE`                        | `409`  | Folder cannot be its own parent       |
+| `TASK_TAG_ASSOCIATION_ALREADY_EXISTS` | `409`  | Task-tag association already exists   |
+| `INTERNAL_SERVER_ERROR`               | `500`  | Unexpected server-side error          |
+
+Resource-specific errors are documented in the corresponding API resource documentation.
 
 ## Related Documentation
 

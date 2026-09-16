@@ -22,15 +22,16 @@ Create a project for the authenticated user.
 
 ### Request
 
-```http
+```http id="h5tq5s"
 POST /api/projects
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
 ### Body
 
-```json
+```json id="7a0t8q"
 {
   "name": "My Project",
   "notes": "Project notes",
@@ -66,8 +67,50 @@ Returns the created project.
 
 ### Errors
 
-- `404 Not Found` — `USER_NOT_FOUND`
-- `404 Not Found` — `FOLDER_NOT_FOUND`
+**400 Bad Request — `VALIDATION_ERROR`**
+
+```json id="s8x2s3"
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json id="j8h3dj"
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json id="o4qj6f"
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `USER_NOT_FOUND`**
+
+```json id="x1qj7s"
+{
+  "code": "USER_NOT_FOUND",
+  "message": "User not found"
+}
+```
+
+**404 Not Found — `FOLDER_NOT_FOUND`**
+
+```json id="y5v2mb"
+{
+  "code": "FOLDER_NOT_FOUND",
+  "message": "Folder not found"
+}
+```
 
 If `folderId` is provided, the folder must belong to the authenticated user.
 
@@ -79,8 +122,9 @@ Retrieve all projects belonging to the authenticated user.
 
 ### Request
 
-```http
+```http id="m2z0e8"
 GET /api/projects
+
 Authorization: Bearer <access_token>
 ```
 
@@ -92,6 +136,26 @@ Returns the user's projects.
 
 Only projects belonging to the authenticated user are returned.
 
+### Errors
+
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json id="d8y1qv"
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json id="h3r5qz"
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
 ---
 
 ## Get Project
@@ -100,8 +164,9 @@ Retrieve a specific project.
 
 ### Request
 
-```http
+```http id="z8q4a1"
 GET /api/projects/:id
+
 Authorization: Bearer <access_token>
 ```
 
@@ -113,9 +178,27 @@ Returns the requested project.
 
 ### Errors
 
-- `404 Not Found` — `PROJECT_NOT_FOUND`
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
 
-```json
+```json id="6n4q7w"
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json id="m5p8kc"
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `PROJECT_NOT_FOUND`**
+
+```json id="q2z6ne"
 {
   "code": "PROJECT_NOT_FOUND",
   "message": "Project not found"
@@ -132,8 +215,9 @@ Update an existing project.
 
 ### Request
 
-```http
+```http id="y6q3kw"
 PATCH /api/projects/:id
+
 Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
@@ -142,7 +226,7 @@ Content-Type: application/json
 
 All project fields are optional.
 
-```json
+```json id="v1s7xf"
 {
   "name": "Updated Project",
   "notes": "Updated notes",
@@ -167,8 +251,50 @@ Returns the updated project.
 
 ### Errors
 
-- `404 Not Found` — `PROJECT_NOT_FOUND`
-- `404 Not Found` — `FOLDER_NOT_FOUND`
+**400 Bad Request — `VALIDATION_ERROR`**
+
+```json id="c6v1xn"
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Invalid request data"
+}
+```
+
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
+
+```json id="7p3x8b"
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json id="n4s9qa"
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `PROJECT_NOT_FOUND`**
+
+```json id="j2v6tm"
+{
+  "code": "PROJECT_NOT_FOUND",
+  "message": "Project not found"
+}
+```
+
+**404 Not Found — `FOLDER_NOT_FOUND`**
+
+```json id="p7w3kc"
+{
+  "code": "FOLDER_NOT_FOUND",
+  "message": "Folder not found"
+}
+```
 
 ---
 
@@ -178,8 +304,9 @@ Delete a project belonging to the authenticated user.
 
 ### Request
 
-```http
+```http id="r5m8xz"
 DELETE /api/projects/:id
+
 Authorization: Bearer <access_token>
 ```
 
@@ -191,9 +318,27 @@ No response body is returned.
 
 ### Errors
 
-- `404 Not Found` — `PROJECT_NOT_FOUND`
+**401 Unauthorized — `AUTHENTICATION_TOKEN_REQUIRED`**
 
-```json
+```json id="q8d2wm"
+{
+  "code": "AUTHENTICATION_TOKEN_REQUIRED",
+  "message": "Authentication token is required"
+}
+```
+
+**401 Unauthorized — `INVALID_AUTHENTICATION_TOKEN`**
+
+```json id="c3k7py"
+{
+  "code": "INVALID_AUTHENTICATION_TOKEN",
+  "message": "Invalid authentication token"
+}
+```
+
+**404 Not Found — `PROJECT_NOT_FOUND`**
+
+```json id="a9v4ns"
 {
   "code": "PROJECT_NOT_FOUND",
   "message": "Project not found"
@@ -209,3 +354,16 @@ No response body is returned.
 - A user cannot access or modify another user's projects.
 - When assigning a project to a folder, the folder must belong to the authenticated user.
 - Ownership checks are performed by the backend and must not rely on client-provided user IDs.
+
+## Error Responses
+
+Project endpoints use the standard API error response format:
+
+```json id="e6q1tz"
+{
+  "code": "ERROR_CODE",
+  "message": "Human-readable error message"
+}
+```
+
+The error code identifies the specific error, while the message provides a human-readable description.

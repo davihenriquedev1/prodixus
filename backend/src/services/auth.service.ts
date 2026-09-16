@@ -21,11 +21,7 @@ export const AuthService = {
     const userDB = await UserRepository.findByEmail(data.email);
 
     if (userDB) {
-      throw new AppError(
-        409,
-        "USER_ALREADY_EXISTS",
-        "User with this email already exists",
-      );
+      throw new AppError("USER_ALREADY_EXISTS");
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
@@ -77,11 +73,7 @@ export const AuthService = {
     const userDB = await UserRepository.findByEmail(data.email);
 
     if (!userDB) {
-      throw new AppError(
-        401,
-        "INVALID_CREDENTIALS",
-        "Invalid e-mail or password",
-      );
+      throw new AppError("INVALID_CREDENTIALS");
     }
 
     const passwordIsValid = await bcrypt.compare(
@@ -89,11 +81,7 @@ export const AuthService = {
       userDB.passwordHash,
     );
     if (!passwordIsValid) {
-      throw new AppError(
-        401,
-        "INVALID_CREDENTIALS",
-        "Invalid e-mail or password",
-      );
+      throw new AppError("INVALID_CREDENTIALS");
     }
 
     const accessToken = signAccessToken(
@@ -140,7 +128,7 @@ export const AuthService = {
       !("userId" in decoded) ||
       typeof decoded.userId !== "string"
     ) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid Refresh Token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     const tokenHash = hashRefreshToken(data.refreshToken);
@@ -148,29 +136,21 @@ export const AuthService = {
     const storedToken = await RefreshTokenRepository.findByTokenHash(tokenHash);
 
     if (!storedToken) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     if (storedToken.revokedAt) {
-      throw new AppError(
-        401,
-        "REFRESH_TOKEN_REVOKED",
-        "Refresh token has been revoked",
-      );
+      throw new AppError("REFRESH_TOKEN_REVOKED");
     }
 
     if (storedToken.expiresAt <= new Date()) {
-      throw new AppError(
-        401,
-        "REFRESH_TOKEN_EXPIRED",
-        "Refresh token has expired",
-      );
+      throw new AppError("REFRESH_TOKEN_EXPIRED");
     }
 
     const user = await UserRepository.findById(decoded.userId);
 
     if (!user || storedToken.userId !== user.id) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     const accessToken = signAccessToken(
@@ -212,7 +192,7 @@ export const AuthService = {
       !("userId" in decoded) ||
       typeof decoded.userId !== "string"
     ) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid Refresh Token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     const tokenHash = hashRefreshToken(data.refreshToken);
@@ -220,29 +200,21 @@ export const AuthService = {
     const storedToken = await RefreshTokenRepository.findByTokenHash(tokenHash);
 
     if (!storedToken) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     if (storedToken.revokedAt) {
-      throw new AppError(
-        401,
-        "REFRESH_TOKEN_REVOKED",
-        "Refresh token has been revoked",
-      );
+      throw new AppError("REFRESH_TOKEN_REVOKED");
     }
 
     if (storedToken.expiresAt <= new Date()) {
-      throw new AppError(
-        401,
-        "REFRESH_TOKEN_EXPIRED",
-        "Refresh token has expired",
-      );
+      throw new AppError("REFRESH_TOKEN_EXPIRED");
     }
 
     const user = await UserRepository.findById(decoded.userId);
 
     if (!user || storedToken.userId !== user.id) {
-      throw new AppError(401, "INVALID_REFRESH_TOKEN", "Invalid refresh token");
+      throw new AppError("INVALID_REFRESH_TOKEN");
     }
 
     await RefreshTokenRepository.revoke(storedToken.id);
