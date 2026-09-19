@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 
 import type { z } from "zod";
 
-import { registerSchema } from "../../../validators/auth.validator";
+import { registerSchema } from "@/validators/auth.validator";
+import { toast } from "sonner";
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -32,8 +33,8 @@ export function RegisterForm() {
       await register(data.name, data.email, data.password);
 
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Registration failed:", error);
+    } catch {
+      toast.error("Unable to create account.");
     }
   }
   return (

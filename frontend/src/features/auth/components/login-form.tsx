@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import type { z } from "zod";
+import { toast } from "sonner";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -31,8 +32,8 @@ export function LoginForm() {
       await login(data.email, data.password);
       sessionStorage.setItem("show_welcome_message", "true");
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch {
+      toast.error("Invalid email or password.");
     }
   }
 

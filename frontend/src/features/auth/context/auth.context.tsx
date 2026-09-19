@@ -12,6 +12,7 @@ import {
   logout as logoutUser,
 } from "@/services/auth.service";
 import { AuthUser } from "@/types/auth";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   ReactNode,
@@ -34,6 +35,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const storedUser = getAuthUser();
@@ -69,6 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       clearSession();
       setUser(null);
+      router.push("/login");
     }
   }
 
