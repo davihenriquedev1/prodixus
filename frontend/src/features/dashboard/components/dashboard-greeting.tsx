@@ -1,13 +1,29 @@
-export function DashboardGreeting() {
-  return (
-    <div className="space-y-1">
-      <h1 className="text-2xl font-bold text-white tracking-tight">
-        Hi, Joe <span className="text-lg">🌊</span>
-      </h1>
+"use client";
 
-      <p className="text-xs text-slate-400">
-        Here&apos;s what&apos;s happening with your work.
-      </p>
-    </div>
-  );
+import { useAuth } from "@/features/auth/context/auth.context";
+import { useEffect } from "react";
+import { toast } from "sonner";
+
+export function DashboardGreeting() {
+  const { user } = useAuth();
+
+  const name = user?.name
+    ? user.name.split(" ")[0]?.replace(/^./, (char) => char.toUpperCase())
+    : "";
+
+  useEffect(() => {
+    const shouldShow = sessionStorage.getItem("show_welcome_message");
+
+    if (!shouldShow) {
+      return;
+    }
+
+    sessionStorage.removeItem("show_welcome_message");
+
+    toast.success(
+      `${name ? `Bem vindo de volta, ${name}!` : "Bem vindo de volta!"}`,
+    );
+  }, [name]);
+
+  return null;
 }
