@@ -3,88 +3,35 @@
 import { Home, MoreHorizontal, Plus, Settings } from "lucide-react";
 import { FolderTree } from "@/components/sidebar/projects/folder-tree";
 import { TagItem } from "@/components/sidebar/tags/tag-item";
+import { useEffect, useState } from "react";
+import { getFolders } from "@/services/folder.service";
+import { getProjects } from "@/services/project.service";
 import type { Folder } from "@/types/folder";
 import type { Project } from "@/types/project";
 
-const folders: Folder[] = [
-  {
-    id: "folder-1",
-    name: "Pasta 1",
-    parentId: null,
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-  },
-  {
-    id: "folder-2",
-    name: "Pasta 2",
-    parentId: "folder-1",
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-  },
-  {
-    id: "folder-3",
-    name: "Sub Pasta 1",
-    parentId: "folder-1",
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-  },
-];
-
-const projects: Project[] = [
-  {
-    id: "project-1",
-    name: "Projeto Q",
-    notes: null,
-    completed: false,
-    archived: false,
-    estimatedDuration: null,
-    dueAt: null,
-    primaryColor: null,
-    accentColor: null,
-    errorColor: null,
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-    folderId: "folder-2",
-  },
-  {
-    id: "project-2",
-    name: "Projeto 1",
-    notes: null,
-    completed: false,
-    archived: false,
-    estimatedDuration: null,
-    dueAt: null,
-    primaryColor: null,
-    accentColor: null,
-    errorColor: null,
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-    folderId: "folder-3",
-  },
-  {
-    id: "project-3",
-    name: "Projeto 2",
-    notes: null,
-    completed: false,
-    archived: false,
-    estimatedDuration: null,
-    dueAt: null,
-    primaryColor: null,
-    accentColor: null,
-    errorColor: null,
-    userId: "user-1",
-    createdAt: "",
-    updatedAt: "",
-    folderId: "folder-3",
-  },
-];
-
 export function Sidebar() {
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    async function loadSidebarData() {
+      try {
+        const [foldersData, projectsData] = await Promise.all([
+          getFolders(),
+          getProjects(),
+        ]);
+
+        setFolders(foldersData);
+        setProjects(projectsData);
+      } catch {
+        setError(true);
+      }
+    }
+
+    loadSidebarData();
+  }, []);
+
   return (
     <aside className="w-64 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
       <div className="p-4 space-y-6 overflow-y-auto">
@@ -123,7 +70,13 @@ export function Sidebar() {
           </div>
 
           <div className="text-xs">
-            <FolderTree folders={folders} projects={projects} />
+            {error ? (
+              <div className="px-2 text-xs text-slate-500">
+                Unable to load projects.
+              </div>
+            ) : (
+              <FolderTree folders={folders} projects={projects} />
+            )}
           </div>
         </section>
 
