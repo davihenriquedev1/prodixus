@@ -5,13 +5,26 @@ import { useState } from "react";
 import type { Folder as FolderType } from "@/types/folder";
 import type { Project } from "@/types/project";
 import { ProjectItem } from "./project-item";
+import { FolderActions } from "./folder-actions";
+import { ProjectCreateMenu } from "./project-create-menu";
 
 interface FolderTreeProps {
   folders: FolderType[];
   projects: Project[];
+  onCreateFolder: (parentId: string | null) => void;
+  onCreateProject: (folderId: string | null) => void;
+  onUpdateFolder: (folder: FolderType) => void;
+  onDeleteFolder: (folder: FolderType) => void;
 }
 
-export function FolderTree({ folders, projects }: FolderTreeProps) {
+export function FolderTree({
+  folders,
+  projects,
+  onCreateFolder,
+  onCreateProject,
+  onUpdateFolder,
+  onDeleteFolder,
+}: FolderTreeProps) {
   return (
     <div className="space-y-1">
       {folders
@@ -22,6 +35,10 @@ export function FolderTree({ folders, projects }: FolderTreeProps) {
             folder={folder}
             folders={folders}
             projects={projects}
+            onCreateFolder={onCreateFolder}
+            onCreateProject={onCreateProject}
+            onUpdateFolder={onUpdateFolder}
+            onDeleteFolder={onDeleteFolder}
           />
         ))}
 
@@ -38,9 +55,21 @@ interface FolderNodeProps {
   folder: FolderType;
   folders: FolderType[];
   projects: Project[];
+  onCreateFolder: (parentId: string | null) => void;
+  onCreateProject: (folderId: string | null) => void;
+  onUpdateFolder: (folder: FolderType) => void;
+  onDeleteFolder: (folder: FolderType) => void;
 }
 
-function FolderNode({ folder, folders, projects }: FolderNodeProps) {
+function FolderNode({
+  folder,
+  folders,
+  projects,
+  onCreateFolder,
+  onCreateProject,
+  onUpdateFolder,
+  onDeleteFolder,
+}: FolderNodeProps) {
   const [open, setOpen] = useState(true);
 
   const childFolders = folders.filter((child) => child.parentId === folder.id);
@@ -53,33 +82,50 @@ function FolderNode({ folder, folders, projects }: FolderNodeProps) {
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-800/40 text-slate-400 hover:text-slate-200"
-      >
-        {hasChildren &&
-          (open ? (
-            <ChevronDown className="w-3 h-3" />
-          ) : (
-            <ChevronRight className="w-3 h-3" />
-          ))}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="min-w-0 flex-1 flex items-center gap-2 px-1 py-1.5 rounded hover:bg-slate-800/40 text-slate-300 hover:text-slate-100"
+        >
+          {hasChildren &&
+            (open ? (
+              <ChevronDown className="w-2 h-2 shrink-0" />
+            ) : (
+              <ChevronRight className="w-2 h-2 shrink-0" />
+            ))}
 
-        {!hasChildren && <span className="w-3" />}
+          {!hasChildren && <span className="w-2 shrink-0" />}
 
-        <Folder className="w-3.5 h-3.5" />
+          <Folder className="w-3.5 h-3.5 shrink-0" />
 
-        <span className="truncate">{folder.name}</span>
-      </button>
+          <span className="truncate min-w-0">{folder.name}</span>
+        </button>
+
+        <div className="flex items-center gap-1">
+          <FolderActions
+            onEdit={() => onUpdateFolder(folder)}
+            onDelete={() => onDeleteFolder(folder)}
+          />
+          <ProjectCreateMenu
+            onCreateFolder={() => onCreateFolder(folder.id)}
+            onCreateProject={() => onCreateProject(folder.id)}
+          />
+        </div>
+      </div>
 
       {open && hasChildren && (
-        <div className="ml-4 pl-2 border-l border-slate-800 space-y-1">
+        <div className="ml-4 border-l border-slate-800 space-y-1">
           {childFolders.map((childFolder) => (
             <FolderNode
               key={childFolder.id}
               folder={childFolder}
               folders={folders}
               projects={projects}
+              onCreateFolder={onCreateFolder}
+              onCreateProject={onCreateProject}
+              onUpdateFolder={onUpdateFolder}
+              onDeleteFolder={onDeleteFolder}
             />
           ))}
 
