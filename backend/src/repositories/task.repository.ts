@@ -1,6 +1,8 @@
 import { prisma } from "@/config/prisma.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
+type PrismaTransaction = Prisma.TransactionClient;
+
 export const TaskRepository = {
   async create(data: Prisma.TaskCreateInput) {
     return prisma.task.create({ data });
@@ -31,6 +33,18 @@ export const TaskRepository = {
       where: {
         id: taskId,
       },
+    });
+  },
+  async updateMany(
+    projectId: string,
+    data: Prisma.TaskUpdateManyMutationInput,
+    tx: PrismaTransaction = prisma,
+  ) {
+    return tx.task.updateMany({
+      where: {
+        projectId,
+      },
+      data,
     });
   },
 };

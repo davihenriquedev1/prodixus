@@ -1,6 +1,8 @@
 import { prisma } from "@/config/prisma.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
+type PrismaTransaction = Prisma.TransactionClient;
+
 export const ProjectRepository = {
   async create(data: Prisma.ProjectCreateInput) {
     return prisma.project.create({ data });
@@ -24,14 +26,15 @@ export const ProjectRepository = {
     userId: string,
     projectId: string,
     data: Prisma.ProjectUpdateInput,
+    tx: PrismaTransaction = prisma,
   ) {
-    const project = await prisma.project.findFirst({
+    const project = await tx.project.findFirst({
       where: { id: projectId, userId },
     });
 
     if (!project) return null;
 
-    return prisma.project.update({
+    return tx.project.update({
       where: {
         id: projectId,
       },
