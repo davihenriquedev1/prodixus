@@ -1,9 +1,9 @@
 "use client";
 
-import { Home, MoreHorizontal, Settings } from "lucide-react";
-import { ProjectCreateMenu } from "./projects/project-create-menu";
-import { FolderTree } from "@/components/sidebar/projects/folder-tree";
-import { TagItem } from "@/components/sidebar/tags/tag-item";
+import { Home, Settings } from "lucide-react";
+import { ProjectsSectionActions } from "./projects-section/projects-section-actions";
+import { ProjectsSectionTree } from "@/components/sidebar/projects-section/projects-section-tree";
+import { TagItem } from "@/components/sidebar/tags-section/tag-item";
 import { useEffect, useState } from "react";
 import {
   createFolder,
@@ -11,24 +11,48 @@ import {
   getFolders,
   updateFolder,
 } from "@/services/folder.service";
-import { getProjects } from "@/services/project.service";
+import {
+  createProject,
+  deleteProject,
+  getProjects,
+  updateProject,
+} from "@/services/project.service";
+import type {
+  CreateProjectData,
+  UpdateProjectData,
+} from "@/services/project.service";
 import type { Folder } from "@/types/folder";
 import type { Project } from "@/types/project";
-import { FolderDialog } from "./projects/folder-dialog";
-import { FolderDeleteDialog } from "./projects/folder-delete-dialog";
+import { FolderDialog } from "./projects-section/folder/folder-dialog";
+import { ActionConfirm } from "../ui/action-confirm";
+import { ProjectDialog } from "./projects-section/project/project-dialog";
 
 export function Sidebar() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mutationError, setMutationError] = useState(false);
+
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [creatingFolderParentId, setCreatingFolderParentId] = useState<
     string | null
   >(null);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
   const [deletingFolder, setDeletingFolder] = useState<Folder | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mutationError, setMutationError] = useState(false);
+
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [creatingProjectFolderId, setCreatingProjectFolderId] = useState<
+    string | null
+  >(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [completingProject, setCompletingProject] = useState<Project | null>(
+    null,
+  );
+  const [archivingProject, setArchivingProject] = useState<Project | null>(
+    null,
+  );
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
 
   useEffect(() => {
     async function loadSidebarData() {
@@ -93,10 +117,75 @@ export function Sidebar() {
     }
   }
 
+  async function handleCreateProject(data: CreateProjectData) {
+    try {
+      setMutationError(false);
+
+      const project = await createProject(data);
+
+      setProjects((current) => [...current, project]);
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to create project");
+    }
+  }
+
+  async function handleUpdateProject(
+    projectId: string,
+    data: UpdateProjectData,
+  ) {
+    try {
+      setMutationError(false);
+
+      const project = await updateProject(projectId, data);
+
+      setProjects((current) =>
+        current.map((item) => (item.id === project.id ? project : item)),
+      );
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to update project");
+    }
+  }
+
+  async function handleCompleteProject(projectId: string) {
+    const project = await updateProject(projectId, {
+      completed: true,
+    });
+
+    setProjects((current) =>
+      current.map((item) => (item.id === project.id ? project : item)),
+    );
+  }
+
+  async function handleArchiveProject(projectId: string) {
+    const project = await updateProject(projectId, {
+      archived: true,
+    });
+
+    setProjects((current) =>
+      current.map((item) => (item.id === project.id ? project : item)),
+    );
+  }
+  async function handleDeleteProject(projectId: string) {
+    try {
+      setMutationError(false);
+
+      await deleteProject(projectId);
+
+      setProjects((current) =>
+        current.filter((project) => project.id !== projectId),
+      );
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to delete project");
+    }
+  }
+
   return (
-    <aside className="w-64 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
-      <div className="p-4 space-y-6 overflow-y-auto">
-        <div className="flex items-center gap-2.5 px-2 py-1">
+    <aside className="w-72 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
+      <div className="p-3 space-y-6 overflow-y-auto">
+        <div className="flex items-center gap-2.5 py-1">
           <div className="w-6 h-6 rounded-lg bg-slate-700 flex items-center justify-center">
             <div className="w-2 h-2 bg-slate-200 rounded-sm" />
           </div>
@@ -113,51 +202,66 @@ export function Sidebar() {
           </button>
         </nav>
 
-        <section className="space-y-2 ">
-          <div className="flex items-center justify-between pl-2">
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
               Projetos
             </span>
 
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <button className="hover:text-slate-300 p-0.5 rounded">
-                <MoreHorizontal className="w-3.5 h-3.5" />
-              </button>
-              <ProjectCreateMenu
+            <div className="flex items-center text-slate-500">
+              <ProjectsSectionActions
                 onCreateFolder={() => {
                   setCreatingFolderParentId(null);
                   setIsCreatingFolder(true);
                 }}
-                onCreateProject={() => {}}
+                onCreateProject={() => {
+                  setCreatingProjectFolderId(null);
+                  setIsCreatingProject(true);
+                }}
               />
             </div>
           </div>
           {mutationError && (
-            <div className="px-2 py-1 text-xs text-red-400">
+            <div className="py-1 text-xs text-red-400">
               Não foi possível concluir a operação.
             </div>
           )}
           {isLoading ? (
-            <div className="px-2 text-xs text-slate-500">Carregando...</div>
+            <div className="py-1 text-xs text-slate-500">Carregando...</div>
           ) : error ? (
-            <div className="px-2 text-xs text-red-400">
+            <div className="py-1 text-xs text-red-400">
               Não foi possível carregar os projetos.
             </div>
           ) : (
-            <div className="px-2 text-xs">
-              <FolderTree
+            <div className="text-xs">
+              <ProjectsSectionTree
                 folders={folders}
                 projects={projects}
                 onCreateFolder={(parentId) => {
                   setCreatingFolderParentId(parentId);
                   setIsCreatingFolder(true);
                 }}
-                onCreateProject={() => {}}
                 onUpdateFolder={(folder) => {
                   setEditingFolder(folder);
                 }}
                 onDeleteFolder={(folder) => {
                   setDeletingFolder(folder);
+                }}
+                onCreateProject={(folderId) => {
+                  setCreatingProjectFolderId(folderId);
+                  setIsCreatingProject(true);
+                }}
+                onUpdateProject={(project) => {
+                  setEditingProject(project);
+                }}
+                onCompleteProject={(project) => {
+                  setCompletingProject(project);
+                }}
+                onArchiveProject={(project) => {
+                  setArchivingProject(project);
+                }}
+                onDeleteProject={(project) => {
+                  setDeletingProject(project);
                 }}
               />
             </div>
@@ -165,7 +269,7 @@ export function Sidebar() {
         </section>
 
         <section className="space-y-2">
-          <div className="px-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
             Tags
           </div>
 
@@ -207,19 +311,61 @@ export function Sidebar() {
           return handleUpdateFolder(editingFolder.id, name);
         }}
       />
-      <FolderDeleteDialog
+      <ActionConfirm
         open={deletingFolder !== null}
-        folderName={deletingFolder?.name ?? ""}
-        onClose={() => {
-          setDeletingFolder(null);
-        }}
-        onConfirm={async () => {
-          if (!deletingFolder) {
-            return;
-          }
-
-          await handleDeleteFolder(deletingFolder.id);
-        }}
+        title="Excluir pasta"
+        message="Tem certeza que deseja excluir"
+        itemName={deletingFolder?.name ?? ""}
+        confirmLabel="Excluir"
+        onClose={() => setDeletingFolder(null)}
+        onConfirm={() => handleDeleteFolder(deletingFolder!.id)}
+      />
+      <ProjectDialog
+        open={isCreatingProject}
+        title="Novo projeto"
+        onClose={() => setIsCreatingProject(false)}
+        onSubmit={(data) =>
+          handleCreateProject({
+            ...data,
+            ...(creatingProjectFolderId && {
+              folderId: creatingProjectFolderId,
+            }),
+          })
+        }
+      />
+      <ProjectDialog
+        open={editingProject !== null}
+        title="Editar projeto"
+        initialProject={editingProject}
+        onClose={() => setEditingProject(null)}
+        onSubmit={(data) => handleUpdateProject(editingProject!.id, data)}
+      />
+      <ActionConfirm
+        open={deletingProject !== null}
+        title="Excluir projeto"
+        message="Tem certeza que deseja excluir"
+        itemName={deletingProject?.name ?? ""}
+        confirmLabel="Excluir"
+        onClose={() => setDeletingProject(null)}
+        onConfirm={() => handleDeleteProject(deletingProject!.id)}
+      />
+      <ActionConfirm
+        open={completingProject !== null}
+        title="Concluir projeto"
+        message="Tem certeza que deseja concluir"
+        itemName={completingProject?.name ?? ""}
+        confirmLabel="Concluir"
+        onClose={() => setCompletingProject(null)}
+        onConfirm={() => handleCompleteProject(completingProject!.id)}
+      />
+      <ActionConfirm
+        open={archivingProject !== null}
+        title="Arquivar projeto"
+        message="Tem certeza que deseja arquivar"
+        itemName={archivingProject?.name ?? ""}
+        confirmLabel="Arquivar"
+        onClose={() => setArchivingProject(null)}
+        onConfirm={() => handleArchiveProject(archivingProject!.id)}
       />
     </aside>
   );
