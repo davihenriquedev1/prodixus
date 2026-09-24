@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface FolderDialogProps {
   open: boolean;
@@ -17,17 +18,37 @@ export function FolderDialog({
   onClose,
   onSubmit,
 }: FolderDialogProps) {
-  const [name, setName] = useState(initialName);
+  const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setName(initialName);
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setName(initialName);
   }, [open, initialName]);
 
-  if (!open) {
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !isSubmitting) {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, isSubmitting, onClose]);
+
+  if (!open || !mounted) {
     return null;
   }
 
@@ -49,8 +70,17 @@ export function FolderDialog({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+  function handleBackdropClick(event: React.MouseEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget && !isSubmitting) {
+      onClose();
+    }
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4"
+      onMouseDown={handleBackdropClick}
+    >
       <div className="w-full max-w-sm rounded-xl border border-slate-800 bg-[#0D0F14] p-5 shadow-2xl">
         <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
 
@@ -59,7 +89,7 @@ export function FolderDialog({
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Folder name"
+            placeholder="Nome da pasta"
             autoFocus
             disabled={isSubmitting}
             className="w-full rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-slate-600"
@@ -70,21 +100,22 @@ export function FolderDialog({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+              className="rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-800/60 cursor-pointer hover:text-slate-200"
             >
-              Cancel
+              Cancelar
             </button>
 
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-900 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-900 cursor-pointer hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
