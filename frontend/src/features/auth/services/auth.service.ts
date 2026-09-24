@@ -1,5 +1,8 @@
 import { api } from "@/lib/axios";
-import type { AuthResponse, RefreshTokenResponse } from "@/types/auth";
+import type {
+  AuthResponse,
+  RefreshTokenResponse,
+} from "@/features/auth/types/auth";
 
 export async function login(email: string, password: string) {
   const response = await api.post<AuthResponse>("/api/auth/login", {

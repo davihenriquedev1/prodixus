@@ -1,9 +1,9 @@
 "use client";
 
 import { Check, Circle, Layers3 } from "lucide-react";
-import type { Project } from "@/types/project";
+import type { Project } from "@/features/projects/types/project";
 import { ProjectActions } from "./project-actions";
-import type { Project as ProjectType } from "@/types/project";
+import type { Project as ProjectType } from "@/features/projects/types/project";
 import { useRouter } from "next/navigation";
 
 interface ProjectItemProps {

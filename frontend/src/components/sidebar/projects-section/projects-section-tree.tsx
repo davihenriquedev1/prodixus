@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Folder as FolderType } from "@/types/folder";
-import type { Project as ProjectType } from "@/types/project";
-import { FolderNode } from "./folder/folder-node";
-import { ProjectItem } from "./project/project-item";
+import type { Folder as FolderType } from "@/features/folders/types/folder";
+import type { Project as ProjectType } from "@/features/projects/types/project";
+import { FolderNode } from "@/features/folders/components/folder-node";
+import { ProjectItem } from "@/features/projects/components/project-item";
 
 interface ProjectsSectionTreeProps {
   folders: FolderType[];

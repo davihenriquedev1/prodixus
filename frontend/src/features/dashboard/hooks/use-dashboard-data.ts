@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getProjects } from "@/services/project.service";
-import { getProjectTasks } from "@/services/task.service";
-import type { Project } from "@/types/project";
-import type { Task } from "@/types/task";
+import { getProjects } from "@/features/projects/services/project.service";
+import { getProjectTasks } from "@/features/tasks/services/task.service";
+import type { Project } from "@/features/projects/types/project";
+import type { Task } from "@/features/tasks/types/task";
 
 interface DashboardData {
   projects: Project[];

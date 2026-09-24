@@ -1,31 +1,30 @@
 "use client";
 
 import { Home, Settings } from "lucide-react";
-import { ProjectsSectionActions } from "./projects-section/projects-section-actions";
-import { ProjectsSectionTree } from "@/components/sidebar/projects-section/projects-section-tree";
-import { TagItem } from "@/components/sidebar/tags-section/tag-item";
 import { useEffect, useState } from "react";
 import {
   createFolder,
   deleteFolder,
   getFolders,
   updateFolder,
-} from "@/services/folder.service";
+} from "@/features/folders/services/folder.service";
 import {
   createProject,
   deleteProject,
   getProjects,
   updateProject,
-} from "@/services/project.service";
+} from "@/features/projects/services/project.service";
 import type {
   CreateProjectData,
   UpdateProjectData,
-} from "@/services/project.service";
-import type { Folder } from "@/types/folder";
-import type { Project } from "@/types/project";
-import { FolderDialog } from "./projects-section/folder/folder-dialog";
-import { ActionConfirm } from "../ui/action-confirm";
-import { ProjectDialog } from "./projects-section/project/project-dialog";
+} from "@/features/projects/services/project.service";
+import type { Folder } from "@/features/folders/types/folder";
+import type { Project } from "@/features/projects/types/project";
+import { ActionConfirm } from "@/components/ui/action-confirm";
+import { FolderDialog } from "@/features/folders/components/folder-dialog";
+import { ProjectDialog } from "@/features/projects/components/project-dialog";
+import { TagsSection } from "@/components/sidebar/tags-section/tags-section";
+import { ProjectsSection } from "./projects-section/projects-section";
 
 export function Sidebar() {
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -210,83 +209,41 @@ export function Sidebar() {
           </button>
         </nav>
 
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-              Projetos
-            </span>
+        <ProjectsSection
+          folders={folders}
+          projects={projects}
+          isLoading={isLoading}
+          error={error}
+          mutationError={mutationError}
+          onCreateFolder={(parentId) => {
+            setCreatingFolderParentId(parentId);
+            setIsCreatingFolder(true);
+          }}
+          onUpdateFolder={(folder) => {
+            setEditingFolder(folder);
+          }}
+          onDeleteFolder={(folder) => {
+            setDeletingFolder(folder);
+          }}
+          onCreateProject={(folderId) => {
+            setCreatingProjectFolderId(folderId);
+            setIsCreatingProject(true);
+          }}
+          onUpdateProject={(project) => {
+            setEditingProject(project);
+          }}
+          onCompletionToggleProject={(project) => {
+            setCompletionTogglingProject(project);
+          }}
+          onArchiveProject={(project) => {
+            setArchivingProject(project);
+          }}
+          onDeleteProject={(project) => {
+            setDeletingProject(project);
+          }}
+        />
 
-            <div className="flex items-center text-slate-500">
-              <ProjectsSectionActions
-                onCreateFolder={() => {
-                  setCreatingFolderParentId(null);
-                  setIsCreatingFolder(true);
-                }}
-                onCreateProject={() => {
-                  setCreatingProjectFolderId(null);
-                  setIsCreatingProject(true);
-                }}
-              />
-            </div>
-          </div>
-          {mutationError && (
-            <div className="py-1 text-xs text-red-400">
-              Não foi possível concluir a operação.
-            </div>
-          )}
-          {isLoading ? (
-            <div className="py-1 text-xs text-slate-500">Carregando...</div>
-          ) : error ? (
-            <div className="py-1 text-xs text-red-400">
-              Não foi possível carregar os projetos.
-            </div>
-          ) : (
-            <div className="text-xs">
-              <ProjectsSectionTree
-                folders={folders}
-                projects={projects}
-                onCreateFolder={(parentId) => {
-                  setCreatingFolderParentId(parentId);
-                  setIsCreatingFolder(true);
-                }}
-                onUpdateFolder={(folder) => {
-                  setEditingFolder(folder);
-                }}
-                onDeleteFolder={(folder) => {
-                  setDeletingFolder(folder);
-                }}
-                onCreateProject={(folderId) => {
-                  setCreatingProjectFolderId(folderId);
-                  setIsCreatingProject(true);
-                }}
-                onUpdateProject={(project) => {
-                  setEditingProject(project);
-                }}
-                onCompletionToggleProject={(project) => {
-                  setCompletionTogglingProject(project);
-                }}
-                onArchiveProject={(project) => {
-                  setArchivingProject(project);
-                }}
-                onDeleteProject={(project) => {
-                  setDeletingProject(project);
-                }}
-              />
-            </div>
-          )}
-        </section>
-
-        <section className="space-y-2">
-          <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-            Tags
-          </div>
-
-          <div className="space-y-1 text-xs">
-            <TagItem name="Urgent" color="red" />
-            <TagItem name="In Progress" color="yellow" />
-            <TagItem name="Blocked" color="gray" />
-          </div>
-        </section>
+        <TagsSection />
       </div>
 
       <div className="p-3 border-t border-slate-800/60">
