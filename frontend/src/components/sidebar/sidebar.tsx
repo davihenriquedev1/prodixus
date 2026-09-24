@@ -46,9 +46,8 @@ export function Sidebar() {
     string | null
   >(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [completingProject, setCompletingProject] = useState<Project | null>(
-    null,
-  );
+  const [completionTogglingProject, setCompletionTogglingProject] =
+    useState<Project | null>(null);
   const [archivingProject, setArchivingProject] = useState<Project | null>(
     null,
   );
@@ -148,14 +147,23 @@ export function Sidebar() {
     }
   }
 
-  async function handleCompleteProject(projectId: string) {
-    const project = await updateProject(projectId, {
-      completed: true,
-    });
+  async function handleCompletionToggleProject(project: Project) {
+    try {
+      setMutationError(false);
 
-    setProjects((current) =>
-      current.map((item) => (item.id === project.id ? project : item)),
-    );
+      const updatedProject = await updateProject(project.id, {
+        completed: !project.completed,
+      });
+
+      setProjects((current) =>
+        current.map((item) =>
+          item.id === updatedProject.id ? updatedProject : item,
+        ),
+      );
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to toggle project completion");
+    }
   }
 
   async function handleArchiveProject(projectId: string) {
@@ -254,8 +262,8 @@ export function Sidebar() {
                 onUpdateProject={(project) => {
                   setEditingProject(project);
                 }}
-                onCompleteProject={(project) => {
-                  setCompletingProject(project);
+                onCompletionToggleProject={(project) => {
+                  setCompletionTogglingProject(project);
                 }}
                 onArchiveProject={(project) => {
                   setArchivingProject(project);
@@ -350,13 +358,25 @@ export function Sidebar() {
         onConfirm={() => handleDeleteProject(deletingProject!.id)}
       />
       <ActionConfirm
-        open={completingProject !== null}
-        title="Concluir projeto"
-        message="Tem certeza que deseja concluir"
-        itemName={completingProject?.name ?? ""}
-        confirmLabel="Concluir"
-        onClose={() => setCompletingProject(null)}
-        onConfirm={() => handleCompleteProject(completingProject!.id)}
+        open={completionTogglingProject !== null}
+        title={
+          completionTogglingProject?.completed
+            ? "Reabrir projeto"
+            : "Concluir projeto"
+        }
+        message={
+          completionTogglingProject?.completed
+            ? "Tem certeza que deseja reabrir"
+            : "Tem certeza que deseja concluir"
+        }
+        itemName={completionTogglingProject?.name ?? ""}
+        confirmLabel={
+          completionTogglingProject?.completed ? "Reabrir" : "Concluir"
+        }
+        onClose={() => setCompletionTogglingProject(null)}
+        onConfirm={() =>
+          handleCompletionToggleProject(completionTogglingProject!)
+        }
       />
       <ActionConfirm
         open={archivingProject !== null}

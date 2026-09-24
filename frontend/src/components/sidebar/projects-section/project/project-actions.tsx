@@ -1,18 +1,27 @@
 "use client";
 
-import { Archive, Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  Archive,
+  CheckCircle,
+  MoreHorizontal,
+  Pencil,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface ProjectActionsProps {
   onEdit: () => void;
-  onComplete: () => void;
+  onCompletionToggle: () => void;
+  projectCompleted: boolean;
   onArchive: () => void;
   onDelete: () => void;
 }
 
 export function ProjectActions({
   onEdit,
-  onComplete,
+  onCompletionToggle,
+  projectCompleted,
   onArchive,
   onDelete,
 }: ProjectActionsProps) {
@@ -64,9 +73,9 @@ export function ProjectActions({
     onDelete();
   }
 
-  function handleComplete() {
+  function handleCompletionToggle() {
     setOpen(false);
-    onComplete();
+    onCompletionToggle();
   }
 
   function handleArchive() {
@@ -106,11 +115,20 @@ export function ProjectActions({
 
           <button
             type="button"
-            onClick={handleComplete}
+            onClick={handleCompletionToggle}
             className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs cursor-pointer text-slate-300 hover:bg-slate-800/60"
           >
-            <Check className="h-3.5 w-3.5 text-slate-500" />
-            Concluir Projeto
+            {projectCompleted ? (
+              <>
+                <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
+                Reabrir Projeto
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-3.5 w-3.5 text-slate-500" />
+                Concluir Projeto
+              </>
+            )}
           </button>
 
           <button

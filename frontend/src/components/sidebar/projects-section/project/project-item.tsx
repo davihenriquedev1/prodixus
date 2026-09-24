@@ -11,7 +11,7 @@ interface ProjectItemProps {
   selected: boolean;
   setSelected: (projectId: string) => void;
   onUpdateProject: (project: ProjectType) => void;
-  onCompleteProject: (project: ProjectType) => void;
+  onCompletionToggleProject: (project: ProjectType) => void;
   onArchiveProject: (project: ProjectType) => void;
   onDeleteProject: (project: ProjectType) => void;
 }
@@ -21,7 +21,7 @@ export function ProjectItem({
   selected,
   setSelected,
   onUpdateProject,
-  onCompleteProject,
+  onCompletionToggleProject,
   onArchiveProject,
   onDeleteProject,
 }: ProjectItemProps) {
@@ -63,7 +63,8 @@ export function ProjectItem({
         <div className="hover:bg-slate-800/40 flex items-center justify-center">
           <ProjectActions
             onEdit={() => onUpdateProject(project)}
-            onComplete={() => onCompleteProject(project)}
+            onCompletionToggle={() => onCompletionToggleProject(project)}
+            projectCompleted={project.completed}
             onArchive={() => onArchiveProject(project)}
             onDelete={() => onDeleteProject(project)}
           />
