@@ -10,8 +10,8 @@ import {
   login as loginUser,
   register as registerUser,
   logout as logoutUser,
-} from "@/services/auth.service";
-import { AuthUser } from "@/types/auth";
+} from "@/features/auth/services/auth.service";
+import { AuthUser } from "@/features/auth/types/auth";
 import { useRouter } from "next/navigation";
 import {
   createContext,

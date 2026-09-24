@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Project } from "@/types/project";
+import type { Project } from "@/features/projects/types/project";
 import { createPortal } from "react-dom";
 import { EstimatedDurationUnit } from "@/types/estimated-duration-unit";
 import { formatEstimatedDuration } from "@/utils/format-estimated-duration";

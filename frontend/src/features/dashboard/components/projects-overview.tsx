@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import type { Project } from "@/types/project";
-import type { Task } from "@/types/task";
+import type { Project } from "@/features/projects/types/project";
+import type { Task } from "@/features/tasks/types/task";
 
 interface ProjectOverview extends Project {
   taskCount: number;

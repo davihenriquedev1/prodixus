@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 
 import type { z } from "zod";
 
-import { registerSchema } from "@/validators/auth.validator";
+import { registerSchema } from "@/features/auth/validators/auth.validator";
 import { toast } from "sonner";
 
 type RegisterFormData = z.infer<typeof registerSchema>;

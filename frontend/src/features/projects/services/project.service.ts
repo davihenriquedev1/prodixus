@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { Project } from "@/types/project";
+import type { Project } from "@/features/projects/types/project";
 
 export interface CreateProjectData {
   name: string;

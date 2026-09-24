@@ -1,4 +1,4 @@
-import type { AuthUser } from "@/types/auth";
+import type { AuthUser } from "@/features/auth/types/auth";
 
 const ACCESS_TOKEN_KEY = "prodixus_access_token";
 const REFRESH_TOKEN_KEY = "prodixus_refresh_token";

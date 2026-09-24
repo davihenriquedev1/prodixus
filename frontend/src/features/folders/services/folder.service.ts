@@ -1,5 +1,5 @@
 import { api } from "@/lib/axios";
-import type { Folder } from "@/types/folder";
+import type { Folder } from "@/features/folders/types/folder";
 
 interface CreateFolderData {
   name: string;

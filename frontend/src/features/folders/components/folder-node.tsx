@@ -1,9 +1,9 @@
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 import { useState } from "react";
 import { FolderActions } from "./folder-actions";
-import type { Folder as FolderType } from "@/types/folder";
-import type { Project as ProjectType } from "@/types/project";
-import { ProjectItem } from "../project/project-item";
+import type { Folder as FolderType } from "@/features/folders/types/folder";
+import type { Project as ProjectType } from "@/features/projects/types/project";
+import { ProjectItem } from "@/features/projects/components/project-item";
 
 interface FolderNodeProps {
   folder: FolderType;

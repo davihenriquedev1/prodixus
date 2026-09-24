@@ -1,8 +1,8 @@
 "use client";
 
 import { CheckCircle2, Folder, ListTodo } from "lucide-react";
-import type { Project } from "@/types/project";
-import type { Task } from "@/types/task";
+import type { Project } from "@/features/projects/types/project";
+import type { Task } from "@/features/tasks/types/task";
 
 interface DashboardMetricsProps {
   projects: Project[];

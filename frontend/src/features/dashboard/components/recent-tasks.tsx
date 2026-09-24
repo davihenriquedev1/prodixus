@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Circle } from "lucide-react";
-import type { Task } from "@/types/task";
+import type { Task } from "@/features/tasks/types/task";
 
 interface RecentTasksProps {
   tasks: Task[];
