@@ -16,7 +16,7 @@ interface FolderNodeProps {
   onDeleteFolder: (folder: FolderType) => void;
   onCreateProject: (folderId: string | null) => void;
   onUpdateProject: (project: ProjectType) => void;
-  onCompleteProject: (project: ProjectType) => void;
+  onCompletionToggleProject: (project: ProjectType) => void;
   onArchiveProject: (project: ProjectType) => void;
   onDeleteProject: (project: ProjectType) => void;
 }
@@ -32,7 +32,7 @@ export function FolderNode({
   onDeleteFolder,
   onCreateProject,
   onUpdateProject,
-  onCompleteProject,
+  onCompletionToggleProject,
   onArchiveProject,
   onDeleteProject,
 }: FolderNodeProps) {
@@ -93,7 +93,7 @@ export function FolderNode({
               onDeleteFolder={onDeleteFolder}
               onCreateProject={onCreateProject}
               onUpdateProject={onUpdateProject}
-              onCompleteProject={onCompleteProject}
+              onCompletionToggleProject={onCompletionToggleProject}
               onArchiveProject={onArchiveProject}
               onDeleteProject={onDeleteProject}
             />
@@ -105,7 +105,7 @@ export function FolderNode({
               setSelected={setSelectedProject}
               key={project.id}
               project={project}
-              onCompleteProject={onCompleteProject}
+              onCompletionToggleProject={onCompletionToggleProject}
               onArchiveProject={onArchiveProject}
               onUpdateProject={onUpdateProject}
               onDeleteProject={onDeleteProject}
