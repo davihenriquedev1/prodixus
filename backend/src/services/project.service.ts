@@ -8,6 +8,8 @@ import { ProjectRepository } from "@/repositories/project.repository.js";
 import { UserRepository } from "@/repositories/user.repository.js";
 import { FolderRepository } from "@/repositories/folder.repository.js";
 import type { Prisma } from "../../generated/prisma/client.js";
+import { TaskRepository } from "@/repositories/task.repository.js";
+import { prisma } from "@/config/prisma.js";
 
 export const ProjectService = {
   async createProject(
@@ -150,17 +152,34 @@ export const ProjectService = {
       }),
     };
 
-    const project = await ProjectRepository.update(
-      userId,
-      projectId,
-      projectData,
-    );
+    const result = await prisma.$transaction(async (tx) => {
+      const project = await ProjectRepository.update(
+        userId,
+        projectId,
+        projectData,
+        tx,
+      );
 
-    if (project == null) {
+      if (!project) {
+        return null;
+      }
+
+      if (data.completed !== undefined) {
+        await TaskRepository.updateMany(
+          projectId,
+          { completed: data.completed },
+          tx,
+        );
+      }
+
+      return project;
+    });
+
+    if (!result) {
       throw new AppError("PROJECT_NOT_FOUND");
     }
 
-    return project;
+    return result;
   },
   async deleteProject(
     userId: string | undefined,
