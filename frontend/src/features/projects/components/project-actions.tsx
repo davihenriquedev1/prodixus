@@ -8,14 +8,15 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ButtonHTMLAttributes, useEffect, useRef, useState } from "react";
 
-interface ProjectActionsProps {
+interface ProjectActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   onEdit: () => void;
   onCompletionToggle: () => void;
   projectCompleted: boolean;
   onArchive: () => void;
   onDelete: () => void;
+  size: number;
 }
 
 export function ProjectActions({
@@ -24,6 +25,7 @@ export function ProjectActions({
   projectCompleted,
   onArchive,
   onDelete,
+  size,
 }: ProjectActionsProps) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -92,7 +94,9 @@ export function ProjectActions({
         aria-label="Ações do projeto"
         onClick={toggleMenu}
       >
-        <MoreHorizontal className="w-3.5 h-3.5" />
+        <MoreHorizontal
+          className={`${!size ? "w-3.5 h-3.5" : `w-${size} h-${size}`}`}
+        />
       </button>
 
       {open && (
