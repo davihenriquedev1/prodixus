@@ -13,3 +13,26 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateTaskData {
+  title: string;
+  projectId: string;
+  parentId?: string;
+  notes?: string;
+  priority?: number;
+  estimatedDuration?: number;
+  startAt?: string;
+  dueAt?: string;
+}
+
+export interface UpdateTaskData {
+  title?: string;
+  notes?: string;
+  priority?: number;
+  estimatedDuration?: number;
+  startAt?: string;
+  dueAt?: string;
+  completed?: boolean;
+  archived?: boolean;
+  parentId?: string | null;
+}

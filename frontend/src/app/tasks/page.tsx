@@ -8,15 +8,20 @@ import { ProjectActions } from "@/features/projects/components/project-actions";
 import { getProjects } from "@/features/projects/services/project.service";
 import type { Project } from "@/features/projects/types/project";
 import { ProjectTaskList } from "@/features/tasks/components/project-task-list";
-import { updateTask } from "@/features/tasks/services/task.service";
+import { deleteTask, updateTask } from "@/features/tasks/services/task.service";
 import { ProtectedRoute } from "@/features/auth/components/protected-routes";
 import { AppShell } from "@/components/app-shell";
+import { Panel } from "@/components/ui/panel";
+import { TaskSettings } from "@/features/tasks/components/task-settings";
+import { AnimatePresence } from "motion/react";
 
 export default function TasksPage() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [project, setProject] = useState<Project | null>(null);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -40,13 +45,24 @@ export default function TasksPage() {
   }, [projectId]);
 
   async function handleCompletionToggle(task: Task) {
-    return updateTask(task.id, {
-      completed: !task.completed,
-    });
+    return updateTask(task.projectId, task.id, { completed: !task.completed });
   }
 
   function handleOpenDetails(task: Task) {
+    setEditingTask(task);
     setSelectedTask(task);
+  }
+
+  function handleTaskSelect(task: Task) {
+    setSelectedTask(task);
+
+    if (editingTask) {
+      setEditingTask(task);
+    }
+  }
+
+  function handleCreateTask() {
+    setIsCreatingTask(true);
   }
 
   if (isLoading) {
@@ -76,7 +92,10 @@ export default function TasksPage() {
   return (
     <ProtectedRoute>
       <AppShell>
-        <main className="relative flex-1 overflow-hidden p-4">
+        <main
+          className="relative flex-1 p-4 overflow-x-hidden"
+          onClick={() => setSelectedTask(null)}
+        >
           <div
             className="pointer-events-none absolute -right-32 z-0 -top-32 h-150 w-150 rounded-full blur-[80px]"
             style={{
@@ -108,7 +127,7 @@ export default function TasksPage() {
               <button
                 type="button"
                 title="Criar nova tarefa"
-                onClick={() => {}}
+                onClick={handleCreateTask}
                 className="flex cursor-pointer items-center p-1.5 transition-opacity opacity-80 hover:opacity-100 hover:bg-slate-800/60"
                 style={{ color: primaryColor }}
               >
@@ -129,16 +148,38 @@ export default function TasksPage() {
             className="opacity-20 mb-4"
             style={{ borderBottom: "1px solid", borderColor: primaryColor }}
           ></div>
-
-          <ProjectTaskList
-            projectId={project.id}
-            primaryColor={primaryColor}
-            accentColor={accentColor}
-            errorColor={errorColor}
-            onCompletionToggle={handleCompletionToggle}
-            onOpenDetails={handleOpenDetails}
-          />
+          <div className="overflow-x-scroll">
+            <ProjectTaskList
+              projectId={project.id}
+              primaryColor={primaryColor}
+              accentColor={accentColor}
+              errorColor={errorColor}
+              isCreatingTask={isCreatingTask}
+              selectedTask={selectedTask}
+              onSelectTask={handleTaskSelect}
+              onCreatingTaskChange={setIsCreatingTask}
+              onClearSelectedTask={() => setSelectedTask(null)}
+              onOpenDetails={handleOpenDetails}
+            />
+          </div>
         </main>
+        <AnimatePresence>
+          {editingTask && (
+            <Panel>
+              <TaskSettings
+                task={editingTask}
+                onClose={() => setEditingTask(null)}
+                onTaskUpdated={(updatedTask) => {
+                  setEditingTask(updatedTask);
+                  setSelectedTask(updatedTask);
+                }}
+                primaryColor={primaryColor}
+                accentColor={accentColor}
+                errorColor={errorColor}
+              />
+            </Panel>
+          )}
+        </AnimatePresence>
       </AppShell>
     </ProtectedRoute>
   );
