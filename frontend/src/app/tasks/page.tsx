@@ -8,7 +8,6 @@ import { ProjectActions } from "@/features/projects/components/project-actions";
 import { getProjects } from "@/features/projects/services/project.service";
 import type { Project } from "@/features/projects/types/project";
 import { ProjectTaskList } from "@/features/tasks/components/project-task-list";
-import { deleteTask, updateTask } from "@/features/tasks/services/task.service";
 import { ProtectedRoute } from "@/features/auth/components/protected-routes";
 import { AppShell } from "@/components/app-shell";
 import { Panel } from "@/components/ui/panel";
@@ -43,10 +42,6 @@ export default function TasksPage() {
 
     loadProject();
   }, [projectId]);
-
-  async function handleCompletionToggle(task: Task) {
-    return updateTask(task.projectId, task.id, { completed: !task.completed });
-  }
 
   function handleOpenDetails(task: Task) {
     setEditingTask(task);

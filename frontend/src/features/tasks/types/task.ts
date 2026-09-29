@@ -35,4 +35,5 @@ export interface UpdateTaskData {
   completed?: boolean;
   archived?: boolean;
   parentId?: string | null;
+  projectId?: string;
 }

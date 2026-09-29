@@ -2,6 +2,8 @@ import { Pencil, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import type { Task } from "@/features/tasks/types/task";
 import { TaskActions } from "./task-actions";
+import { MovePosition } from "@/types/move-position";
+import { getMenuPosition } from "@/utils/get-menu-position";
 
 interface ProjectTaskItemProps {
   task: Task;
@@ -10,10 +12,10 @@ interface ProjectTaskItemProps {
   isSelected: boolean;
   onSelect: (task: Task) => void;
   onCompletionToggle: (task: Task) => void;
+  onMove: (task: Task, position: MovePosition) => void;
   onArchive: (task: Task) => void;
   onDelete: (task: Task) => void;
   onOpenDetails: (task: Task) => void;
-  // onAddNewSubtask: (task: Task) => void;
 }
 
 export function ProjectTaskItem({
@@ -23,10 +25,10 @@ export function ProjectTaskItem({
   isSelected,
   onSelect,
   onCompletionToggle,
+  onMove,
   onArchive,
   onDelete,
   onOpenDetails,
-  // onAddNewSubtask,
 }: ProjectTaskItemProps) {
   return (
     <motion.div
@@ -110,6 +112,7 @@ export function ProjectTaskItem({
             taskCompleted={task.completed}
             onEdit={() => onOpenDetails(task)}
             onCompletionToggle={() => onCompletionToggle(task)}
+            onMove={(position) => onMove(task, position)}
             onArchive={() => onArchive(task)}
             onDelete={() => onDelete(task)}
             size={6}

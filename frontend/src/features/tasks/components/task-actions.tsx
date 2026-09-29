@@ -1,19 +1,24 @@
 "use client";
 
+import type { MovePosition } from "@/types/move-position";
+import type { ButtonHTMLAttributes, MouseEvent } from "react";
+import { getMenuPosition } from "@/utils/get-menu-position";
 import {
   Archive,
   CheckCircle,
+  FolderOutput,
   MoreHorizontal,
   Pencil,
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { ButtonHTMLAttributes, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   onEdit: () => void;
   onCompletionToggle: () => void;
   taskCompleted: boolean;
+  onMove: (position: MovePosition) => void;
   onArchive: () => void;
   onDelete: () => void;
   size: number;
@@ -24,13 +29,14 @@ export function TaskActions({
   onEdit,
   onCompletionToggle,
   taskCompleted,
+  onMove,
   onArchive,
   onDelete,
   color,
   size,
 }: TaskActionsProps) {
   const [open, setOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({
+  const [menuPosition, setMenuPosition] = useState<MovePosition>({
     top: 0,
     left: 0,
   });
@@ -38,8 +44,18 @@ export function TaskActions({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  function handleToggleActions(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (!buttonRef.current) {
+      return;
+    }
+    const position = getMenuPosition(buttonRef.current, 184, 160, 4);
+    setMenuPosition(position);
+    setOpen((value) => !value);
+  }
+
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: globalThis.MouseEvent) {
       const target = event.target as Node;
 
       if (
@@ -57,36 +73,6 @@ export function TaskActions({
     };
   }, []);
 
-  function toggleMenu() {
-    if (!buttonRef.current) return;
-
-    const rect = buttonRef.current.getBoundingClientRect();
-
-    const menuWidth = 176;
-    const menuHeight = 160;
-    const gap = 4;
-
-    const spaceRight = window.innerWidth - rect.right;
-    const spaceLeft = rect.left;
-    const spaceBottom = window.innerHeight - rect.top;
-    const spaceTop = rect.bottom;
-
-    const left =
-      spaceRight >= menuWidth + gap
-        ? rect.right + gap
-        : rect.left - menuWidth - gap;
-
-    const top =
-      spaceBottom >= menuHeight + gap ? rect.top : rect.bottom - menuHeight;
-
-    setMenuPosition({
-      top: Math.max(gap, top),
-      left: Math.max(gap, Math.min(left, window.innerWidth - menuWidth - gap)),
-    });
-
-    setOpen((value) => !value);
-  }
-
   function handleEdit() {
     setOpen(false);
     onEdit();
@@ -102,6 +88,17 @@ export function TaskActions({
     onCompletionToggle();
   }
 
+  function handleMove() {
+    if (!menuRef.current) {
+      return;
+    }
+
+    const position = getMenuPosition(menuRef.current, 256, 200, 4);
+
+    setOpen(false);
+    onMove(position);
+  }
+
   function handleArchive() {
     setOpen(false);
     onArchive();
@@ -115,10 +112,7 @@ export function TaskActions({
         className="cursor-pointer p-1.5 text-slate-500 hover:bg-slate-800/60 hover:text-slate-300"
         aria-label="Ações da tarefa"
         style={{ color: color }}
-        onClick={(event) => {
-          event.stopPropagation();
-          toggleMenu();
-        }}
+        onClick={handleToggleActions}
       >
         <MoreHorizontal
           className={`${!size ? "h-3.5 w-3.5" : `h-${size} w-${size}`}`}
@@ -128,7 +122,7 @@ export function TaskActions({
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-100 w-44 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
+          className="fixed z-100 w-46 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,
@@ -160,6 +154,15 @@ export function TaskActions({
                 Concluir Tarefa
               </>
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleMove}
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+          >
+            <FolderOutput className="h-3.5 w-3.5 text-slate-500" />
+            Mover para outro projeto
           </button>
 
           <button

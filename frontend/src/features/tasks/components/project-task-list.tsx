@@ -19,6 +19,10 @@ import {
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskItem } from "./project-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
+import { ChooseProjectToMove } from "./choose-project-to-move";
+import { Project } from "@/features/projects/types/project";
+import { MovePosition } from "@/types/move-position";
+import { getProjects } from "@/features/projects/services/project.service";
 
 interface ProjectTaskListProps {
   projectId: string;
@@ -48,37 +52,23 @@ export function ProjectTaskList({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+
   const [newTaskTitle, setNewTaskTitle] = useState("");
 
   const [actionTask, setActionTask] = useState<Task | null>(null);
-  const [actionType, setActionType] = useState<"archive" | "delete" | null>(
-    null,
-  );
+  const [actionConfirmType, setActionConfirmType] = useState<
+    "archive" | "delete" | null
+  >(null);
+
+  const [taskToMove, setTaskToMove] = useState<Task | null>(null);
+  const [moveMenuPosition, setMoveMenuPosition] = useState<MovePosition>({
+    top: 0,
+    left: 0,
+  });
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const newTaskInputRef = useRef<HTMLInputElement>(null);
   const newTaskItemRef = useRef<HTMLDivElement>(null);
-
-  async function handleCompletionToggle(task: Task) {
-    const updatedTask = await updateTask(task.projectId, task.id, {
-      completed: !task.completed,
-    });
-
-    setTasks((currentTasks) =>
-      currentTasks.map((currentTask) =>
-        currentTask.id === updatedTask.id ? updatedTask : currentTask,
-      ),
-    );
-  }
-
-  function handleArchiveTask(task: Task) {
-    setActionTask(task);
-    setActionType("archive");
-  }
-
-  function handleDeleteTask(task: Task) {
-    setActionTask(task);
-    setActionType("delete");
-  }
 
   async function handleCreateTask() {
     const title = newTaskTitle.trim();
@@ -113,12 +103,55 @@ export function ProjectTaskList({
     }
   }
 
-  async function handleConfirmAction() {
-    if (!actionTask || !actionType) {
+  async function handleCompletionToggle(task: Task) {
+    const updatedTask = await updateTask(task.projectId, task.id, {
+      completed: !task.completed,
+    });
+
+    setTasks((currentTasks) =>
+      currentTasks.map((currentTask) =>
+        currentTask.id === updatedTask.id ? updatedTask : currentTask,
+      ),
+    );
+  }
+
+  function handleMoveTask(task: Task, position: MovePosition) {
+    setTaskToMove(task);
+    setMoveMenuPosition(position);
+  }
+
+  async function handleChooseProject(targetProjectId: string) {
+    if (!taskToMove) {
       return;
     }
 
-    if (actionType === "archive") {
+    const updatedTask = await updateTask(projectId, taskToMove.id, {
+      projectId: targetProjectId,
+    });
+
+    setTasks((currentTasks) =>
+      currentTasks.filter((currentTask) => currentTask.id !== updatedTask.id),
+    );
+
+    setTaskToMove(null);
+  }
+
+  function handleArchiveTask(task: Task) {
+    setActionTask(task);
+    setActionConfirmType("archive");
+  }
+
+  function handleDeleteTask(task: Task) {
+    setActionTask(task);
+    setActionConfirmType("delete");
+  }
+
+  async function handleConfirmAction() {
+    if (!actionTask || !actionConfirmType) {
+      return;
+    }
+
+    if (actionConfirmType === "archive") {
       const updatedTask = await updateTask(
         actionTask.projectId,
         actionTask.id,
@@ -130,7 +163,7 @@ export function ProjectTaskList({
       );
     }
 
-    if (actionType === "delete") {
+    if (actionConfirmType === "delete") {
       await deleteTask(actionTask.projectId, actionTask.id);
 
       setTasks((currentTasks) =>
@@ -143,8 +176,18 @@ export function ProjectTaskList({
     }
 
     setActionTask(null);
-    setActionType(null);
+    setActionConfirmType(null);
   }
+
+  useEffect(() => {
+    async function loadProjects() {
+      const data = await getProjects();
+      const availableProjects = data.filter((p) => !p.archived);
+      setProjects(availableProjects);
+    }
+
+    void loadProjects();
+  }, []);
 
   useEffect(() => {
     if (!isCreatingTask) {
@@ -273,6 +316,7 @@ export function ProjectTaskList({
             onSelect={onSelectTask}
             primaryColor={primaryColor}
             accentColor={accentColor}
+            onMove={handleMoveTask}
             onCompletionToggle={handleCompletionToggle}
             onArchive={handleArchiveTask}
             onDelete={handleDeleteTask}
@@ -281,21 +325,34 @@ export function ProjectTaskList({
         ))}
       </div>
       <ActionConfirm
-        open={actionTask !== null && actionType !== null}
-        title={actionType === "archive" ? "Arquivar tarefa" : "Excluir tarefa"}
+        open={actionTask !== null && actionConfirmType !== null}
+        title={
+          actionConfirmType === "archive" ? "Arquivar tarefa" : "Excluir tarefa"
+        }
         message={
-          actionType === "archive"
+          actionConfirmType === "archive"
             ? "Tem certeza que deseja arquivar"
             : "Tem certeza que deseja excluir"
         }
-        confirmLabel={actionType === "archive" ? "Arquivar" : "Excluir"}
+        confirmLabel={actionConfirmType === "archive" ? "Arquivar" : "Excluir"}
         itemName={actionTask?.title ?? ""}
         onClose={() => {
           setActionTask(null);
-          setActionType(null);
+          setActionConfirmType(null);
         }}
         onConfirm={handleConfirmAction}
       />
+      {taskToMove !== null && (
+        <ChooseProjectToMove
+          currentProjectId={projectId}
+          projects={projects}
+          onMoveToProject={handleChooseProject}
+          onCancelMove={() => {
+            setTaskToMove(null);
+          }}
+          position={moveMenuPosition}
+        />
+      )}
     </>
   );
 }
