@@ -13,5 +13,8 @@ export const createTaskSchema = z.object({
 });
 
 export const updateTaskSchema = createTaskSchema
-  .extend({ parentId: z.uuid().nullable().optional() })
+  .extend({
+    parentId: z.uuid().nullable().optional(),
+    projectId: z.uuid().optional(),
+  })
   .partial();

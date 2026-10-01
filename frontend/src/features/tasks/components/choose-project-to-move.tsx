@@ -1,5 +1,5 @@
 import { Layers3 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Project } from "@/features/projects/types/project";
 import { MovePosition } from "@/types/move-position";
@@ -20,13 +20,31 @@ export function ChooseProjectToMove({
   position,
 }: ChooseProjectToMoveProps) {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const availableProjects = projects.filter(
     (project) => project.id !== currentProjectId,
   );
 
+  useEffect(() => {
+    function handleClickOutside(event: globalThis.MouseEvent) {
+      const target = event.target as Node;
+
+      if (!menuRef.current?.contains(target)) {
+        onCancelMove();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onCancelMove]);
+
   return (
     <div
+      ref={menuRef}
       className="fixed z-100 w-64 rounded-md border border-slate-800 bg-[#0D0F14] p-2 shadow-xl"
       style={{
         top: position.top,

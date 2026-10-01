@@ -20,8 +20,8 @@ import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskItem } from "./project-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
 import { ChooseProjectToMove } from "./choose-project-to-move";
-import { Project } from "@/features/projects/types/project";
-import { MovePosition } from "@/types/move-position";
+import type { Project } from "@/features/projects/types/project";
+import type { MovePosition } from "@/types/move-position";
 import { getProjects } from "@/features/projects/services/project.service";
 
 interface ProjectTaskListProps {
@@ -50,10 +50,18 @@ export function ProjectTaskList({
   onCreatingTaskChange,
 }: ProjectTaskListProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [parentTaskId, setParentTaskId] = useState<string | null>(null);
+  const newTaskInputRef = useRef<HTMLInputElement>(null);
+  const newTaskItemRef = useRef<HTMLDivElement>(null);
+
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const newSubtaskInputRef = useRef<HTMLInputElement>(null);
+  const newSubtaskItemRef = useRef<HTMLDivElement>(null);
 
   const [actionTask, setActionTask] = useState<Task | null>(null);
   const [actionConfirmType, setActionConfirmType] = useState<
@@ -65,10 +73,23 @@ export function ProjectTaskList({
     top: 0,
     left: 0,
   });
-  const [projects, setProjects] = useState<Project[]>([]);
 
-  const newTaskInputRef = useRef<HTMLInputElement>(null);
-  const newTaskItemRef = useRef<HTMLDivElement>(null);
+  const subtasksByParent = tasks.reduce<Record<string, Task[]>>(
+    (groups, task) => {
+      if (!task.parentId) {
+        return groups;
+      }
+
+      if (!groups[task.parentId]) {
+        groups[task.parentId] = [];
+      }
+
+      groups[task.parentId].push(task);
+
+      return groups;
+    },
+    {},
+  );
 
   async function handleCreateTask() {
     const title = newTaskTitle.trim();
@@ -103,6 +124,46 @@ export function ProjectTaskList({
     }
   }
 
+  async function handleCreateSubtask() {
+    if (!parentTaskId) {
+      return;
+    }
+
+    const title = newSubtaskTitle.trim();
+
+    if (!title) {
+      return;
+    }
+
+    const newSubtask = await createTask({
+      title,
+      projectId,
+      parentId: parentTaskId,
+    });
+
+    setTasks((currentTasks) => [...currentTasks, newSubtask]);
+
+    setNewSubtaskTitle("");
+    setParentTaskId(null);
+  }
+
+  function handleStartCreateSubtask(taskId: string) {
+    setParentTaskId(taskId);
+    setNewSubtaskTitle("");
+  }
+
+  function handleKeyDownCreatingSubtask(
+    event: KeyboardEvent<HTMLInputElement>,
+  ) {
+    if (event.key === "Enter") {
+      void handleCreateSubtask();
+    }
+
+    if (event.key === "Escape") {
+      setNewSubtaskTitle("");
+      setParentTaskId(null);
+    }
+  }
   async function handleCompletionToggle(task: Task) {
     const updatedTask = await updateTask(task.projectId, task.id, {
       completed: !task.completed,
@@ -133,8 +194,15 @@ export function ProjectTaskList({
       currentTasks.filter((currentTask) => currentTask.id !== updatedTask.id),
     );
 
+    if (selectedTask?.id === updatedTask.id) {
+      onClearSelectedTask();
+    }
+
     setTaskToMove(null);
   }
+  const handleCancelMove = useCallback(() => {
+    setTaskToMove(null);
+  }, []);
 
   function handleArchiveTask(task: Task) {
     setActionTask(task);
@@ -210,6 +278,32 @@ export function ProjectTaskList({
   }, [handleCancelCreateTask, isCreatingTask]);
 
   useEffect(() => {
+    if (parentTaskId === null) {
+      return;
+    }
+
+    function handleMouseDown(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (
+        newSubtaskItemRef.current &&
+        !newSubtaskItemRef.current.contains(target)
+      ) {
+        setNewSubtaskTitle("");
+        setParentTaskId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleMouseDown);
+
+    newSubtaskInputRef.current?.focus();
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [parentTaskId]);
+
+  useEffect(() => {
     async function loadTasks() {
       try {
         setError(false);
@@ -271,9 +365,9 @@ export function ProjectTaskList({
 
   return (
     <>
-      <div className="space-y-1">
+      <div className="space-y-2">
         <AnimatePresence>
-          {isCreatingTask && (
+          {isCreatingTask && parentTaskId === null && (
             <motion.div
               ref={newTaskItemRef}
               layout
@@ -308,21 +402,32 @@ export function ProjectTaskList({
           )}
         </AnimatePresence>
 
-        {tasks.map((task) => (
-          <ProjectTaskItem
-            key={task.id}
-            task={task}
-            isSelected={selectedTask?.id === task.id}
-            onSelect={onSelectTask}
-            primaryColor={primaryColor}
-            accentColor={accentColor}
-            onMove={handleMoveTask}
-            onCompletionToggle={handleCompletionToggle}
-            onArchive={handleArchiveTask}
-            onDelete={handleDeleteTask}
-            onOpenDetails={onOpenDetails}
-          />
-        ))}
+        {tasks
+          .filter((task) => !task.parentId)
+          .map((task) => (
+            <ProjectTaskItem
+              key={task.id}
+              task={task}
+              parentTaskId={parentTaskId}
+              subtasks={subtasksByParent[task.id] ?? []}
+              selectedTask={selectedTask}
+              onSelect={onSelectTask}
+              primaryColor={primaryColor}
+              accentColor={accentColor}
+              onMove={handleMoveTask}
+              onCompletionToggle={handleCompletionToggle}
+              onArchive={handleArchiveTask}
+              onDelete={handleDeleteTask}
+              onOpenDetails={onOpenDetails}
+              onCreateSubtask={handleStartCreateSubtask}
+              newSubtaskInputRef={newSubtaskInputRef}
+              newSubtaskItemRef={newSubtaskItemRef}
+              newSubtaskTitle={newSubtaskTitle}
+              setNewSubtaskTitle={setNewSubtaskTitle}
+              isCreatingSubtask={parentTaskId !== null}
+              handleKeyDownCreatingSubtask={handleKeyDownCreatingSubtask}
+            />
+          ))}
       </div>
       <ActionConfirm
         open={actionTask !== null && actionConfirmType !== null}
@@ -347,9 +452,7 @@ export function ProjectTaskList({
           currentProjectId={projectId}
           projects={projects}
           onMoveToProject={handleChooseProject}
-          onCancelMove={() => {
-            setTaskToMove(null);
-          }}
+          onCancelMove={handleCancelMove}
           position={moveMenuPosition}
         />
       )}

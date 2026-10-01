@@ -165,6 +165,21 @@ export const TaskService = {
       throw new AppError("TASK_NOT_FOUND");
     }
 
+    if (data.projectId !== undefined) {
+      const targetProject = await ProjectRepository.findFirstByUserId(
+        userId,
+        data.projectId,
+      );
+
+      if (!targetProject) {
+        throw new AppError("PROJECT_NOT_FOUND");
+      }
+
+      if (targetProject.archived) {
+        throw new AppError("PROJECT_ARCHIVED");
+      }
+    }
+
     if (data.parentId !== undefined && data.parentId !== null) {
       if (data.parentId === taskId) {
         throw new AppError("TASK_CANNOT_BE_OWN_PARENT");
@@ -200,6 +215,14 @@ export const TaskService = {
         parentTask: data.parentId
           ? { connect: { id: data.parentId } }
           : { disconnect: true },
+      }),
+
+      ...(data.projectId !== undefined && {
+        project: {
+          connect: {
+            id: data.projectId,
+          },
+        },
       }),
     };
 
