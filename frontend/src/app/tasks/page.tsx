@@ -1,7 +1,7 @@
 "use client";
 
 import { Layers3, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectActions } from "@/features/projects/components/project-actions";
@@ -14,7 +14,7 @@ import { Panel } from "@/components/ui/panel";
 import { TaskSettings } from "@/features/tasks/components/task-settings";
 import { AnimatePresence } from "motion/react";
 
-export default function TasksPage() {
+function TasksPageContent() {
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -22,6 +22,12 @@ export default function TasksPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [updatedTask, setUpdatedTask] = useState<Task | null>(null);
+  const editingTaskRef = useRef<Task | null>(null);
+
+  useEffect(() => {
+    editingTaskRef.current = editingTask;
+  }, [editingTask]);
 
   useEffect(() => {
     async function loadProject() {
@@ -60,6 +66,19 @@ export default function TasksPage() {
     setIsCreatingTask(true);
   }
 
+  function handleTaskUpdated(updatedTask: Task) {
+    setUpdatedTask(updatedTask);
+
+    if (editingTaskRef.current?.id === updatedTask.id) {
+      setEditingTask(updatedTask);
+    }
+  }
+
+  function handleClosePanel() {
+    editingTaskRef.current = null;
+    setEditingTask(null);
+  }
+
   if (isLoading) {
     return (
       <main className="flex-1 p-6">
@@ -87,10 +106,7 @@ export default function TasksPage() {
   return (
     <ProtectedRoute>
       <AppShell>
-        <main
-          className="relative flex-1 p-4 overflow-x-hidden"
-          onClick={() => setSelectedTask(null)}
-        >
+        <main className="relative flex-1 p-4 overflow-x-hidden">
           <div
             className="pointer-events-none absolute -right-32 z-0 -top-32 h-150 w-150 rounded-full blur-[80px]"
             style={{
@@ -98,64 +114,72 @@ export default function TasksPage() {
               opacity: 0.02,
             }}
           />
-          <div className="flex items-center justify-between pb-4 z-10">
-            <div className="flex items-center gap-3">
-              <div
-                className="h-9 w-1 rounded-full"
-                style={{
-                  backgroundColor: primaryColor,
-                  borderBottom: "1px solid ",
-                  borderColor: primaryColor,
-                }}
-              />
-
-              <div className="flex">
-                <Layers3
-                  className="w-6 h-6 mr-2"
-                  style={{ fill: primaryColor }}
+          <div
+            className="absolute inset-0 z-1 w-full h-full"
+            onClick={() => {
+              handleClosePanel();
+              setSelectedTask(null);
+            }}
+          />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between pb-4 z-10">
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-9 w-1 rounded-full"
+                  style={{
+                    backgroundColor: primaryColor,
+                    borderBottom: "1px solid ",
+                    borderColor: primaryColor,
+                  }}
                 />
-                <h1 className="text-base font-semibold">{project.name}</h1>
+                <div className="flex">
+                  <Layers3
+                    className="w-6 h-6 mr-2"
+                    style={{ fill: primaryColor }}
+                  />
+                  <h1 className="text-base font-semibold">{project.name}</h1>
+                </div>
+              </div>
+              <div className="flex items-center pr-1 ">
+                <button
+                  type="button"
+                  title="Criar nova tarefa"
+                  onClick={handleCreateTask}
+                  className="flex cursor-pointer items-center p-1.5 transition-opacity opacity-80 hover:opacity-100 hover:bg-slate-800/60"
+                  style={{ color: primaryColor }}
+                >
+                  <Plus className="h-6 w-6" />
+                </button>
+                <ProjectActions
+                  projectCompleted={project.completed}
+                  onEdit={() => {}}
+                  onCompletionToggle={() => {}}
+                  onArchive={() => {}}
+                  onDelete={() => {}}
+                  size={6}
+                />
               </div>
             </div>
-
-            <div className="flex items-center pr-1 ">
-              <button
-                type="button"
-                title="Criar nova tarefa"
-                onClick={handleCreateTask}
-                className="flex cursor-pointer items-center p-1.5 transition-opacity opacity-80 hover:opacity-100 hover:bg-slate-800/60"
-                style={{ color: primaryColor }}
-              >
-                <Plus className="h-6 w-6" />
-              </button>
-
-              <ProjectActions
-                projectCompleted={project.completed}
-                onEdit={() => {}}
-                onCompletionToggle={() => {}}
-                onArchive={() => {}}
-                onDelete={() => {}}
-                size={6}
+            <div
+              className="opacity-20 mb-4"
+              style={{ borderBottom: "1px solid", borderColor: primaryColor }}
+            ></div>
+            <div className="overflow-x-scroll">
+              <ProjectTaskList
+                projectId={project.id}
+                primaryColor={primaryColor}
+                accentColor={accentColor}
+                errorColor={errorColor}
+                isCreatingTask={isCreatingTask}
+                selectedTask={selectedTask}
+                onSelectTask={handleTaskSelect}
+                onCreatingTaskChange={setIsCreatingTask}
+                onClearSelectedTask={() => setSelectedTask(null)}
+                onOpenDetails={handleOpenDetails}
+                onTaskUpdated={handleTaskUpdated}
+                updatedTask={updatedTask}
               />
             </div>
-          </div>
-          <div
-            className="opacity-20 mb-4"
-            style={{ borderBottom: "1px solid", borderColor: primaryColor }}
-          ></div>
-          <div className="overflow-x-scroll">
-            <ProjectTaskList
-              projectId={project.id}
-              primaryColor={primaryColor}
-              accentColor={accentColor}
-              errorColor={errorColor}
-              isCreatingTask={isCreatingTask}
-              selectedTask={selectedTask}
-              onSelectTask={handleTaskSelect}
-              onCreatingTaskChange={setIsCreatingTask}
-              onClearSelectedTask={() => setSelectedTask(null)}
-              onOpenDetails={handleOpenDetails}
-            />
           </div>
         </main>
         <AnimatePresence>
@@ -163,19 +187,23 @@ export default function TasksPage() {
             <Panel>
               <TaskSettings
                 task={editingTask}
-                onClose={() => setEditingTask(null)}
-                onTaskUpdated={(updatedTask) => {
-                  setEditingTask(updatedTask);
-                  setSelectedTask(updatedTask);
-                }}
+                onClose={handleClosePanel}
+                onTaskUpdated={handleTaskUpdated}
                 primaryColor={primaryColor}
                 accentColor={accentColor}
-                errorColor={errorColor}
               />
             </Panel>
           )}
         </AnimatePresence>
       </AppShell>
     </ProtectedRoute>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <Suspense>
+      <TasksPageContent />
+    </Suspense>
   );
 }

@@ -12,6 +12,7 @@ import { DateTimeInput } from "@/components/ui/date-time-input";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface TaskSettingsProps {
   task: Task;
@@ -19,7 +20,6 @@ interface TaskSettingsProps {
   onTaskUpdated: (task: Task) => void;
   accentColor: string;
   primaryColor: string;
-  errorColor: string;
 }
 
 export function TaskSettings({
@@ -44,18 +44,11 @@ export function TaskSettings({
     setTitle(task.title);
     setNotes(task.notes ?? "");
     setPriority(String(task.priority));
-
     const duration = formatEstimatedDuration(task.estimatedDuration);
-
     setEstimatedDuration(duration.value);
     setEstimatedDurationUnit(duration.unit);
-
     setStartAt(formatDateTimeLocal(task.startAt));
     setDueAt(formatDateTimeLocal(task.dueAt));
-    console.log("startAt:", task.startAt);
-    console.log("dueAt:", task.dueAt);
-    console.log("formatted startAt:", formatDateTimeLocal(task.startAt));
-    console.log("formatted dueAt:", formatDateTimeLocal(task.dueAt));
   }, [task]);
 
   async function saveField(data: Parameters<typeof updateTask>[2]) {
@@ -65,6 +58,8 @@ export function TaskSettings({
       const updatedTask = await updateTask(task.projectId, task.id, data);
 
       onTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível salvar a alteração.");
     } finally {
       setIsSaving(false);
     }
@@ -89,7 +84,7 @@ export function TaskSettings({
     }
 
     await saveField({
-      notes: value || undefined,
+      notes: value || null,
     });
   }
 
@@ -113,7 +108,7 @@ export function TaskSettings({
       }
 
       await saveField({
-        estimatedDuration: undefined,
+        estimatedDuration: null,
       });
 
       return;
@@ -167,7 +162,7 @@ export function TaskSettings({
       }
 
       await saveField({
-        startAt: undefined,
+        startAt: null,
       });
 
       return;
@@ -175,10 +170,14 @@ export function TaskSettings({
 
     const [date, time] = value.split("T");
 
-    const isoValue = new Date(`${date}T${time || "00:00"}`).toISOString();
+    const dateValue = new Date(`${date}T${time || "00:00"}`);
+
+    if (Number.isNaN(dateValue.getTime())) {
+      return;
+    }
 
     await saveField({
-      startAt: isoValue,
+      startAt: dateValue.toISOString(),
     });
   }
 
@@ -191,7 +190,7 @@ export function TaskSettings({
       }
 
       await saveField({
-        dueAt: undefined,
+        dueAt: null,
       });
 
       return;
@@ -199,32 +198,27 @@ export function TaskSettings({
 
     const [date, time] = value.split("T");
 
-    const isoValue = new Date(`${date}T${time || "23:59"}`).toISOString();
+    const dateValue = new Date(`${date}T${time || "23:59"}`);
+
+    if (Number.isNaN(dateValue.getTime())) {
+      return;
+    }
 
     await saveField({
-      dueAt: isoValue,
+      dueAt: dateValue.toISOString(),
     });
   }
 
   return (
-    <div
-      className="flex h-full flex-col"
-      style={{
-        backgroundImage: `
-					linear-gradient(
-						90deg,
-						${primaryColor}08 0%,
-						${primaryColor}10 45%,
-						${primaryColor}12 100%
-					)
-				`,
-      }}
-    >
+    <div className="flex h-full flex-col">
       {/* Header */}
       <div className="border-b border-slate-800/80 py-2 px-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2
+              className="text-sm font-semibold text-slate-100"
+              style={{ color: primaryColor }}
+            >
               Editar tarefa
             </h2>
 

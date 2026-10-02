@@ -9,6 +9,7 @@ import { ProjectRepository } from "@/repositories/project.repository.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { TagRepository } from "@/repositories/tag.repository.js";
 import { TaskTagRepository } from "@/repositories/task-tag.repository.js";
+import { prisma } from "@/config/prisma.js";
 
 export const TaskService = {
   async createTask(
@@ -226,7 +227,39 @@ export const TaskService = {
       }),
     };
 
-    const taskUpdated = await TaskRepository.update(taskId, taskData);
+    const taskUpdated = await prisma.$transaction(async (tx) => {
+      const updatedTask = await TaskRepository.update(taskId, taskData, tx);
+
+      if (
+        data.projectId !== undefined &&
+        data.projectId !== projectId &&
+        !task.parentId
+      ) {
+        await TaskRepository.updateManyByParentId(
+          taskId,
+          { projectId: data.projectId },
+          tx,
+        );
+      }
+
+      if (data.archived === true && !task.parentId) {
+        await TaskRepository.updateManyByParentId(
+          taskId,
+          { archived: true },
+          tx,
+        );
+      }
+
+      if (data.completed !== undefined && !task.parentId) {
+        await TaskRepository.updateManyByParentId(
+          taskId,
+          { completed: data.completed },
+          tx,
+        );
+      }
+
+      return updatedTask;
+    });
 
     return taskUpdated;
   },
@@ -262,7 +295,10 @@ export const TaskService = {
       throw new AppError("TASK_NOT_FOUND");
     }
 
-    await TaskRepository.delete(taskId);
+    await prisma.$transaction(async (tx) => {
+      await TaskRepository.deleteManyByParentId(taskId, tx);
+      await TaskRepository.delete(taskId, tx);
+    });
   },
   async associateTag(
     userId: string | undefined,

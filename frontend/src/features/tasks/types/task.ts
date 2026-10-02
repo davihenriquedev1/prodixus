@@ -27,11 +27,11 @@ export interface CreateTaskData {
 
 export interface UpdateTaskData {
   title?: string;
-  notes?: string;
+  notes?: string | null;
   priority?: number;
-  estimatedDuration?: number;
-  startAt?: string;
-  dueAt?: string;
+  estimatedDuration?: number | null;
+  startAt?: string | null;
+  dueAt?: string | null;
   completed?: boolean;
   archived?: boolean;
   parentId?: string | null;

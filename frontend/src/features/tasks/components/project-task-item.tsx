@@ -9,7 +9,13 @@ import { AnimatePresence, motion } from "motion/react";
 import type { Task } from "@/features/tasks/types/task";
 import { TaskActions } from "./task-actions";
 import type { MovePosition } from "@/types/move-position";
-import { KeyboardEventHandler, RefObject, useState } from "react";
+import {
+  KeyboardEvent,
+  KeyboardEventHandler,
+  RefObject,
+  useEffect,
+  useState,
+} from "react";
 
 interface ProjectTaskItemProps {
   task: Task;
@@ -21,6 +27,7 @@ interface ProjectTaskItemProps {
   onSelect: (task: Task) => void;
   onCompletionToggle: (task: Task) => void;
   onMove: (task: Task, position: MovePosition) => void;
+  onConvertToParent: (subtask: Task) => void;
   onArchive: (task: Task) => void;
   onDelete: (task: Task) => void;
   onOpenDetails: (task: Task) => void;
@@ -33,7 +40,10 @@ interface ProjectTaskItemProps {
   setNewSubtaskTitle: (title: string) => void;
   isCreatingSubtask: boolean;
 
+  onTitleUpdate: (task: Task, title: string) => void;
+
   handleKeyDownCreatingSubtask: KeyboardEventHandler<HTMLInputElement>;
+  pendingTaskId: string | null;
 }
 
 export function ProjectTaskItem({
@@ -46,6 +56,7 @@ export function ProjectTaskItem({
   selectedTask,
   onCompletionToggle,
   onMove,
+  onConvertToParent,
   onArchive,
   onDelete,
   onOpenDetails,
@@ -56,6 +67,8 @@ export function ProjectTaskItem({
   setNewSubtaskTitle,
   isCreatingSubtask,
   handleKeyDownCreatingSubtask,
+  pendingTaskId,
+  onTitleUpdate,
 }: ProjectTaskItemProps) {
   const [openSubtasks, setOpenSubtasks] = useState(false);
 
@@ -66,6 +79,8 @@ export function ProjectTaskItem({
   );
 
   const isSelected = isTaskSelected || isSubtaskSelected;
+
+  const isTaskPending = pendingTaskId === task.id;
 
   return (
     <motion.div
@@ -95,7 +110,7 @@ export function ProjectTaskItem({
         }}
         className={`relative group flex items-center gap-3 px-3 py-1.5 transition-colors ${
           subtasks.length === 0 ? "border" : openSubtasks ? "border-b" : ""
-        } ${!isTaskSelected ? "hover:bg-slate-800/50" : "bg-slate-600/50"}
+        } ${isTaskSelected ? "bg-slate-800/70" : "hover:bg-slate-800/20"}
           } ${task.completed ? "opacity-25 bg-transparent/95" : ""}`}
         style={
           isTaskSelected
@@ -105,6 +120,7 @@ export function ProjectTaskItem({
       >
         <button
           type="button"
+          disabled={isTaskPending}
           aria-label={
             task.completed
               ? `Marcar ${task.title} como incompleta`
@@ -119,7 +135,7 @@ export function ProjectTaskItem({
             event.stopPropagation();
             onCompletionToggle(task);
           }}
-          className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 transition-all relative"
+          className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 transition-all relative disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             borderColor: task.completed ? primaryColor : `${primaryColor}99`,
             backgroundColor: task.completed ? primaryColor : "transparent",
@@ -130,37 +146,38 @@ export function ProjectTaskItem({
           )}
         </button>
 
-        <button
-          type="button"
-          title={task.title}
-          className="min-w-0 flex-1 cursor-pointer truncate text-left text-sm transition-colors p-1"
-        >
-          {task.title}
-        </button>
+        <TaskTitleInput
+          task={task}
+          disabled={isTaskPending}
+          onUpdate={onTitleUpdate}
+        />
 
         <div className="flex items-center">
           <button
             type="button"
+            disabled={isTaskPending}
             aria-label={`Adicionar subtarefa`}
             title="Adicionar subtarefa"
             onClick={(event) => {
               event.stopPropagation();
+              setOpenSubtasks(true);
               onCreateSubtask(task.id);
             }}
-            className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-1.5 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+            className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-1.5 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
             style={{ color: accentColor }}
           >
             <Plus className="h-6 w-6" />
           </button>
           <button
             type="button"
+            disabled={isTaskPending}
             aria-label={`Editar ${task.title}`}
-            title="Editar tarefa"
+            title="Ver detalhes da tarefa"
             onClick={(event) => {
               event.stopPropagation();
               onOpenDetails(task);
             }}
-            className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+            className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
             style={{ color: accentColor }}
           >
             <FileText className="h-5 w-5" />
@@ -169,6 +186,7 @@ export function ProjectTaskItem({
             className={`${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
           >
             <TaskActions
+              disabled={isTaskPending}
               taskCompleted={task.completed}
               onEdit={() => onOpenDetails(task)}
               onCompletionToggle={() => onCompletionToggle(task)}
@@ -186,16 +204,30 @@ export function ProjectTaskItem({
         )}
       </div>
 
+      {subtasks.length > 0 && (
+        <div
+          title="Ver subtarefas"
+          className={`cursor-pointer flex justify-center transition-colors
+            ${isTaskSelected && !openSubtasks ? "bg-slate-600/50 hover:brightness-120" : !isTaskSelected ? " hover:bg-black/10 " : ""} 
+            ${task.completed ? "opacity-10 hover:bg-slate-600/40  " : ""}
+          `}
+          onClick={() => setOpenSubtasks(!openSubtasks)}
+        >
+          {openSubtasks ? (
+            <ChevronUp className="h-4 w-4 text-slate-500/80" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-slate-500/80" />
+          )}
+        </div>
+      )}
+
       {isCreatingSubtask && parentTaskId === task.id && (
         <>
-          <ChevronDown className="h-4 w-4 text-slate-800/90 self-center" />
-          <motion.div
+          {subtasks.length === 0 && (
+            <ChevronUp className="h-4 w-4 text-slate-500/80 opacity-30 self-center" />
+          )}
+          <div
             ref={newSubtaskItemRef}
-            layout
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18 }}
             className="group flex items-center gap-3 bg-slate-800/10 px-3 py-2 mx-2 mb-2"
             style={{
               border: `1px solid ${accentColor}`,
@@ -219,31 +251,20 @@ export function ProjectTaskItem({
                 <MoreHorizontal className="h-6 w-6 text-slate-500/30" />
               </div>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-      {subtasks.length > 0 && (
-        <div
-          className={`cursor-pointer flex justify-center transition-colors
-            ${isTaskSelected && !openSubtasks ? "bg-slate-600/50 hover:brightness-120" : !isTaskSelected ? "hover:bg-black/20" : ""}
-          `}
-          onClick={() => setOpenSubtasks(!openSubtasks)}
-        >
-          {openSubtasks ? (
-            <ChevronUp className="h-4 w-4 text-slate-500/80" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-slate-500/80" />
-          )}
-        </div>
-      )}
+
       <AnimatePresence initial={false}>
-        <motion.div layout>
+        <motion.div>
           {openSubtasks &&
-            subtasks.map((subtask, index) => {
+            subtasks.map((subtask) => {
               const isSubtaskSelected = selectedTask?.id === subtask.id;
+              const isSubtaskPending = pendingTaskId === subtask.id;
+
               return (
                 <motion.div
-                  key={index}
+                  key={subtask.id}
                   initial={{ height: 0 }}
                   animate={{ height: "auto" }}
                   exit={{ height: 0 }}
@@ -252,17 +273,20 @@ export function ProjectTaskItem({
                     event.stopPropagation();
                     onSelect(subtask);
                   }}
-                  className={`relative group flex items-center gap-3 border px-3 py-2 transition-colors mx-2 mb-2 ${
-                    isSubtaskSelected
-                      ? "bg-slate-600/50"
-                      : "border-slate-800/50  hover:bg-slate-800/50"
-                  } ${subtask.completed ? "opacity-25 bg-transparent/95" : ""}`}
+                  className={`
+                    relative group flex items-center gap-3 border px-3 py-1.5 transition-colors mx-2 mb-2 
+                    ${
+                      isSubtaskSelected
+                        ? "bg-slate-800/70"
+                        : "border-slate-800/50  hover:bg-slate-800/20"
+                    } ${subtask.completed ? "opacity-25 bg-transparent/95" : ""}`}
                   style={
                     isSubtaskSelected ? { borderColor: accentColor } : undefined
                   }
                 >
                   <button
                     type="button"
+                    disabled={isSubtaskPending}
                     aria-label={
                       subtask.completed
                         ? `Marcar ${subtask.title} como incompleta`
@@ -277,7 +301,7 @@ export function ProjectTaskItem({
                       event.stopPropagation();
                       onCompletionToggle(subtask);
                     }}
-                    className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 transition-all relative"
+                    className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 transition-all relative disabled:cursor-not-allowed disabled:opacity-50"
                     style={{
                       borderColor: subtask.completed
                         ? primaryColor
@@ -292,16 +316,15 @@ export function ProjectTaskItem({
                     )}
                   </button>
 
-                  <button
-                    type="button"
-                    title={subtask.title}
-                    className="min-w-0 flex-1 cursor-pointer truncate text-left text-sm transition-colors p-1"
-                  >
-                    {subtask.title}
-                  </button>
+                  <TaskTitleInput
+                    task={subtask}
+                    disabled={isSubtaskPending}
+                    onUpdate={onTitleUpdate}
+                  />
 
                   <div className="flex items-center">
                     <button
+                      disabled={isSubtaskPending}
                       type="button"
                       aria-label={`Editar ${subtask.title}`}
                       title="Editar tarefa"
@@ -309,7 +332,7 @@ export function ProjectTaskItem({
                         event.stopPropagation();
                         onOpenDetails(subtask);
                       }}
-                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 ${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 disabled:cursor-not-allowed disabled:opacity-50 ${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
                       style={{ color: accentColor }}
                     >
                       <FileText className="h-5 w-5" />
@@ -320,12 +343,13 @@ export function ProjectTaskItem({
                       <TaskActions
                         taskCompleted={subtask.completed}
                         onEdit={() => onOpenDetails(subtask)}
+                        onConvertToParent={() => onConvertToParent(subtask)}
                         onCompletionToggle={() => onCompletionToggle(subtask)}
-                        onMove={(position) => onMove(subtask, position)}
                         onArchive={() => onArchive(subtask)}
                         onDelete={() => onDelete(subtask)}
                         size={6}
                         color={accentColor}
+                        disabled={isSubtaskPending}
                       />
                     </div>
                   </div>
@@ -338,5 +362,47 @@ export function ProjectTaskItem({
         </motion.div>
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+interface TaskTitleInputProps {
+  task: Task;
+  disabled: boolean;
+  onUpdate: (task: Task, title: string) => void;
+}
+
+function TaskTitleInput({ task, disabled, onUpdate }: TaskTitleInputProps) {
+  const [value, setValue] = useState(task.title);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setValue(task.title);
+  }, [task.title]);
+
+  function handleBlur() {
+    onUpdate(task, value);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+    }
+
+    if (event.key === "Escape") {
+      setValue(task.title);
+      event.currentTarget.blur();
+    }
+  }
+
+  return (
+    <input
+      type="text"
+      disabled={disabled}
+      value={value}
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      className="min-w-0 flex-1 cursor-pointer outline-0 focus:outline-1 focus:outline-slate-600/50 truncate text-left text-sm p-1 disabled:cursor-not-allowed disabled:opacity-50"
+    />
   );
 }

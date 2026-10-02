@@ -16,7 +16,7 @@ interface ProjectActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   projectCompleted: boolean;
   onArchive: () => void;
   onDelete: () => void;
-  size: number;
+  size?: number;
 }
 
 export function ProjectActions({

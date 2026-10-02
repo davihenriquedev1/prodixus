@@ -9,7 +9,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-
+import { toast } from "sonner";
 import {
   createTask,
   deleteTask,
@@ -31,10 +31,12 @@ interface ProjectTaskListProps {
   errorColor: string;
   isCreatingTask: boolean;
   selectedTask: Task | null;
+  updatedTask: Task | null;
   onSelectTask: (task: Task) => void;
   onClearSelectedTask: () => void;
   onOpenDetails: (task: Task) => void;
   onCreatingTaskChange: (value: boolean) => void;
+  onTaskUpdated: (task: Task) => void;
 }
 
 export function ProjectTaskList({
@@ -44,20 +46,28 @@ export function ProjectTaskList({
   errorColor,
   isCreatingTask,
   selectedTask,
+  updatedTask,
   onSelectTask,
   onClearSelectedTask,
   onOpenDetails,
   onCreatingTaskChange,
+  onTaskUpdated,
 }: ProjectTaskListProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [parentTaskId, setParentTaskId] = useState<string | null>(null);
   const newTaskInputRef = useRef<HTMLInputElement>(null);
   const newTaskItemRef = useRef<HTMLDivElement>(null);
+
+  const [isCreatingTaskRequest, setIsCreatingTaskRequest] = useState(false);
+  const [isCreatingSubtaskRequest, setIsCreatingSubtaskRequest] =
+    useState(false);
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const newSubtaskInputRef = useRef<HTMLInputElement>(null);
@@ -94,19 +104,27 @@ export function ProjectTaskList({
   async function handleCreateTask() {
     const title = newTaskTitle.trim();
 
-    if (!title) {
+    if (!title || isCreatingTaskRequest) {
       return;
     }
 
-    const newTask = await createTask({
-      title,
-      projectId,
-    });
+    setIsCreatingTaskRequest(true);
 
-    setTasks((currentTasks) => [...currentTasks, newTask]);
+    try {
+      const newTask = await createTask({
+        title,
+        projectId,
+      });
 
-    setNewTaskTitle("");
-    onCreatingTaskChange(false);
+      setTasks((currentTasks) => [...currentTasks, newTask]);
+
+      setNewTaskTitle("");
+      onCreatingTaskChange(false);
+    } catch {
+      toast.error("Não foi possível criar a tarefa.");
+    } finally {
+      setIsCreatingTaskRequest(false);
+    }
   }
 
   const handleCancelCreateTask = useCallback(() => {
@@ -125,7 +143,7 @@ export function ProjectTaskList({
   }
 
   async function handleCreateSubtask() {
-    if (!parentTaskId) {
+    if (!parentTaskId || isCreatingSubtaskRequest) {
       return;
     }
 
@@ -135,16 +153,24 @@ export function ProjectTaskList({
       return;
     }
 
-    const newSubtask = await createTask({
-      title,
-      projectId,
-      parentId: parentTaskId,
-    });
+    setIsCreatingSubtaskRequest(true);
 
-    setTasks((currentTasks) => [...currentTasks, newSubtask]);
+    try {
+      const newSubtask = await createTask({
+        title,
+        projectId,
+        parentId: parentTaskId,
+      });
 
-    setNewSubtaskTitle("");
-    setParentTaskId(null);
+      setTasks((currentTasks) => [...currentTasks, newSubtask]);
+
+      setNewSubtaskTitle("");
+      setParentTaskId(null);
+    } catch {
+      toast.error("Não foi possível criar a subtarefa.");
+    } finally {
+      setIsCreatingSubtaskRequest(false);
+    }
   }
 
   function handleStartCreateSubtask(taskId: string) {
@@ -164,16 +190,73 @@ export function ProjectTaskList({
       setParentTaskId(null);
     }
   }
-  async function handleCompletionToggle(task: Task) {
-    const updatedTask = await updateTask(task.projectId, task.id, {
-      completed: !task.completed,
-    });
 
-    setTasks((currentTasks) =>
-      currentTasks.map((currentTask) =>
-        currentTask.id === updatedTask.id ? updatedTask : currentTask,
-      ),
-    );
+  function handleTaskUpdated(updatedTask: Task) {
+    onTaskUpdated(updatedTask);
+  }
+
+  async function handleTitleDynamicUpdate(task: Task, title: string) {
+    const normalizedTitle = title.trim();
+
+    if (!normalizedTitle || normalizedTitle === task.title) {
+      return;
+    }
+
+    if (pendingTaskId === task.id) {
+      return;
+    }
+
+    setPendingTaskId(task.id);
+
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        title: normalizedTitle,
+      });
+
+      handleTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível atualizar o título da tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  async function handleCompletionToggle(task: Task) {
+    if (pendingTaskId === task.id) {
+      return;
+    }
+
+    setPendingTaskId(task.id);
+
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        completed: !task.completed,
+      });
+
+      const updatedTaskIds = new Set([
+        updatedTask.id,
+        ...(subtasksByParent[updatedTask.id] ?? []).map(
+          (subtask) => subtask.id,
+        ),
+      ]);
+
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          updatedTaskIds.has(currentTask.id)
+            ? {
+                ...currentTask,
+                completed: updatedTask.completed,
+              }
+            : currentTask,
+        ),
+      );
+
+      onTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível atualizar a tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
   }
 
   function handleMoveTask(task: Task, position: MovePosition) {
@@ -181,25 +264,64 @@ export function ProjectTaskList({
     setMoveMenuPosition(position);
   }
 
-  async function handleChooseProject(targetProjectId: string) {
-    if (!taskToMove) {
+  async function handleConvertToParent(task: Task) {
+    if (pendingTaskId === task.id) {
       return;
     }
 
-    const updatedTask = await updateTask(projectId, taskToMove.id, {
-      projectId: targetProjectId,
-    });
+    setPendingTaskId(task.id);
 
-    setTasks((currentTasks) =>
-      currentTasks.filter((currentTask) => currentTask.id !== updatedTask.id),
-    );
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        parentId: null,
+      });
 
-    if (selectedTask?.id === updatedTask.id) {
-      onClearSelectedTask();
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          currentTask.id === updatedTask.id ? updatedTask : currentTask,
+        ),
+      );
+
+      onTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível transformar a tarefa em principal.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+  async function handleChooseProject(targetProjectId: string) {
+    if (!taskToMove || pendingTaskId === taskToMove.id) {
+      return;
     }
 
-    setTaskToMove(null);
+    setPendingTaskId(taskToMove.id);
+
+    try {
+      const updatedTask = await updateTask(projectId, taskToMove.id, {
+        projectId: targetProjectId,
+      });
+
+      const movedTaskIds = new Set([
+        taskToMove.id,
+        ...(subtasksByParent[taskToMove.id] ?? []).map((subtask) => subtask.id),
+      ]);
+
+      setTasks((currentTasks) =>
+        currentTasks.filter((currentTask) => !movedTaskIds.has(currentTask.id)),
+      );
+
+      if (selectedTask?.id === updatedTask.id) {
+        onClearSelectedTask();
+      }
+
+      setTaskToMove(null);
+    } catch {
+      toast.error("Não foi possível mover a tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
   }
+
   const handleCancelMove = useCallback(() => {
     setTaskToMove(null);
   }, []);
@@ -219,32 +341,59 @@ export function ProjectTaskList({
       return;
     }
 
-    if (actionConfirmType === "archive") {
-      const updatedTask = await updateTask(
-        actionTask.projectId,
-        actionTask.id,
-        { archived: true },
-      );
-
-      setTasks((currentTasks) =>
-        currentTasks.filter((task) => task.id !== updatedTask.id),
-      );
+    if (pendingTaskId === actionTask.id) {
+      return;
     }
 
-    if (actionConfirmType === "delete") {
-      await deleteTask(actionTask.projectId, actionTask.id);
+    setPendingTaskId(actionTask.id);
+    try {
+      if (actionConfirmType === "archive") {
+        await updateTask(actionTask.projectId, actionTask.id, {
+          archived: true,
+        });
 
-      setTasks((currentTasks) =>
-        currentTasks.filter((task) => task.id !== actionTask.id),
+        const archivedTaskIds = new Set([
+          actionTask.id,
+          ...(subtasksByParent[actionTask.id] ?? []).map(
+            (subtask) => subtask.id,
+          ),
+        ]);
+
+        setTasks((currentTasks) =>
+          currentTasks.filter((task) => !archivedTaskIds.has(task.id)),
+        );
+      }
+
+      if (actionConfirmType === "delete") {
+        await deleteTask(actionTask.projectId, actionTask.id);
+
+        const deletedTaskIds = new Set([
+          actionTask.id,
+          ...(subtasksByParent[actionTask.id] ?? []).map(
+            (subtask) => subtask.id,
+          ),
+        ]);
+
+        setTasks((currentTasks) =>
+          currentTasks.filter((task) => !deletedTaskIds.has(task.id)),
+        );
+      }
+
+      if (selectedTask?.id === actionTask.id) {
+        onClearSelectedTask();
+      }
+
+      setActionTask(null);
+      setActionConfirmType(null);
+    } catch {
+      toast.error(
+        actionConfirmType === "archive"
+          ? "Não foi possível arquivar a tarefa."
+          : "Não foi possível excluir a tarefa.",
       );
+    } finally {
+      setPendingTaskId(null);
     }
-
-    if (selectedTask?.id === actionTask.id) {
-      onClearSelectedTask();
-    }
-
-    setActionTask(null);
-    setActionConfirmType(null);
   }
 
   useEffect(() => {
@@ -308,10 +457,8 @@ export function ProjectTaskList({
       try {
         setError(false);
         setIsLoading(true);
-
         const data = await getProjectTasks(projectId);
-
-        setTasks(data);
+        setTasks(data.filter((task) => !task.archived));
       } catch {
         setError(true);
       } finally {
@@ -321,6 +468,17 @@ export function ProjectTaskList({
 
     void loadTasks();
   }, [projectId]);
+
+  useEffect(() => {
+    if (!updatedTask) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task.id === updatedTask.id ? updatedTask : task,
+      ),
+    );
+  }, [updatedTask]);
 
   if (isLoading) {
     return (
@@ -363,6 +521,9 @@ export function ProjectTaskList({
     );
   }
 
+  const actionTaskHasSubtasks =
+    actionTask !== null && (subtasksByParent[actionTask.id]?.length ?? 0) > 0;
+
   return (
     <>
       <div className="space-y-2">
@@ -384,6 +545,7 @@ export function ProjectTaskList({
 
               <input
                 ref={newTaskInputRef}
+                disabled={isCreatingTaskRequest}
                 type="text"
                 value={newTaskTitle}
                 onChange={(event) => setNewTaskTitle(event.target.value)}
@@ -426,6 +588,9 @@ export function ProjectTaskList({
               setNewSubtaskTitle={setNewSubtaskTitle}
               isCreatingSubtask={parentTaskId !== null}
               handleKeyDownCreatingSubtask={handleKeyDownCreatingSubtask}
+              pendingTaskId={pendingTaskId}
+              onConvertToParent={handleConvertToParent}
+              onTitleUpdate={handleTitleDynamicUpdate}
             />
           ))}
       </div>
@@ -437,7 +602,9 @@ export function ProjectTaskList({
         message={
           actionConfirmType === "archive"
             ? "Tem certeza que deseja arquivar"
-            : "Tem certeza que deseja excluir"
+            : actionTaskHasSubtasks
+              ? "Esta tarefa possui subtarefas. Todas elas também serão excluídas. Tem certeza que deseja excluir"
+              : "Tem certeza que deseja excluir"
         }
         confirmLabel={actionConfirmType === "archive" ? "Arquivar" : "Excluir"}
         itemName={actionTask?.title ?? ""}
