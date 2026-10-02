@@ -34,6 +34,11 @@ export const errorTypes = {
     message: "Project not found",
   },
 
+  PROJECT_ARCHIVED: {
+    statusCode: 409,
+    message: "Project archived",
+  },
+
   TASK_NOT_FOUND: {
     statusCode: 404,
     message: "Task not found",

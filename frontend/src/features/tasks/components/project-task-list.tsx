@@ -1,0 +1,628 @@
+"use client";
+
+import { ListTodo, MoreHorizontal } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import { toast } from "sonner";
+import {
+  createTask,
+  deleteTask,
+  getProjectTasks,
+  updateTask,
+} from "@/features/tasks/services/task.service";
+import type { Task } from "@/features/tasks/types/task";
+import { ProjectTaskItem } from "./project-task-item";
+import { ActionConfirm } from "@/components/ui/action-confirm";
+import { ChooseProjectToMove } from "./choose-project-to-move";
+import type { Project } from "@/features/projects/types/project";
+import type { MovePosition } from "@/types/move-position";
+import { getProjects } from "@/features/projects/services/project.service";
+
+interface ProjectTaskListProps {
+  projectId: string;
+  primaryColor: string;
+  accentColor: string;
+  errorColor: string;
+  isCreatingTask: boolean;
+  selectedTask: Task | null;
+  updatedTask: Task | null;
+  onSelectTask: (task: Task) => void;
+  onClearSelectedTask: () => void;
+  onOpenDetails: (task: Task) => void;
+  onCreatingTaskChange: (value: boolean) => void;
+  onTaskUpdated: (task: Task) => void;
+}
+
+export function ProjectTaskList({
+  projectId,
+  primaryColor,
+  accentColor,
+  errorColor,
+  isCreatingTask,
+  selectedTask,
+  updatedTask,
+  onSelectTask,
+  onClearSelectedTask,
+  onOpenDetails,
+  onCreatingTaskChange,
+  onTaskUpdated,
+}: ProjectTaskListProps) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [parentTaskId, setParentTaskId] = useState<string | null>(null);
+  const newTaskInputRef = useRef<HTMLInputElement>(null);
+  const newTaskItemRef = useRef<HTMLDivElement>(null);
+
+  const [isCreatingTaskRequest, setIsCreatingTaskRequest] = useState(false);
+  const [isCreatingSubtaskRequest, setIsCreatingSubtaskRequest] =
+    useState(false);
+
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
+  const newSubtaskInputRef = useRef<HTMLInputElement>(null);
+  const newSubtaskItemRef = useRef<HTMLDivElement>(null);
+
+  const [actionTask, setActionTask] = useState<Task | null>(null);
+  const [actionConfirmType, setActionConfirmType] = useState<
+    "archive" | "delete" | null
+  >(null);
+
+  const [taskToMove, setTaskToMove] = useState<Task | null>(null);
+  const [moveMenuPosition, setMoveMenuPosition] = useState<MovePosition>({
+    top: 0,
+    left: 0,
+  });
+
+  const subtasksByParent = tasks.reduce<Record<string, Task[]>>(
+    (groups, task) => {
+      if (!task.parentId) {
+        return groups;
+      }
+
+      if (!groups[task.parentId]) {
+        groups[task.parentId] = [];
+      }
+
+      groups[task.parentId].push(task);
+
+      return groups;
+    },
+    {},
+  );
+
+  async function handleCreateTask() {
+    const title = newTaskTitle.trim();
+
+    if (!title || isCreatingTaskRequest) {
+      return;
+    }
+
+    setIsCreatingTaskRequest(true);
+
+    try {
+      const newTask = await createTask({
+        title,
+        projectId,
+      });
+
+      setTasks((currentTasks) => [...currentTasks, newTask]);
+
+      setNewTaskTitle("");
+      onCreatingTaskChange(false);
+    } catch {
+      toast.error("Não foi possível criar a tarefa.");
+    } finally {
+      setIsCreatingTaskRequest(false);
+    }
+  }
+
+  const handleCancelCreateTask = useCallback(() => {
+    setNewTaskTitle("");
+    onCreatingTaskChange(false);
+  }, [onCreatingTaskChange]);
+
+  function handleKeyDownCreating(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      void handleCreateTask();
+    }
+
+    if (event.key === "Escape") {
+      handleCancelCreateTask();
+    }
+  }
+
+  async function handleCreateSubtask() {
+    if (!parentTaskId || isCreatingSubtaskRequest) {
+      return;
+    }
+
+    const title = newSubtaskTitle.trim();
+
+    if (!title) {
+      return;
+    }
+
+    setIsCreatingSubtaskRequest(true);
+
+    try {
+      const newSubtask = await createTask({
+        title,
+        projectId,
+        parentId: parentTaskId,
+      });
+
+      setTasks((currentTasks) => [...currentTasks, newSubtask]);
+
+      setNewSubtaskTitle("");
+      setParentTaskId(null);
+    } catch {
+      toast.error("Não foi possível criar a subtarefa.");
+    } finally {
+      setIsCreatingSubtaskRequest(false);
+    }
+  }
+
+  function handleStartCreateSubtask(taskId: string) {
+    setParentTaskId(taskId);
+    setNewSubtaskTitle("");
+  }
+
+  function handleKeyDownCreatingSubtask(
+    event: KeyboardEvent<HTMLInputElement>,
+  ) {
+    if (event.key === "Enter") {
+      void handleCreateSubtask();
+    }
+
+    if (event.key === "Escape") {
+      setNewSubtaskTitle("");
+      setParentTaskId(null);
+    }
+  }
+
+  function handleTaskUpdated(updatedTask: Task) {
+    onTaskUpdated(updatedTask);
+  }
+
+  async function handleTitleDynamicUpdate(task: Task, title: string) {
+    const normalizedTitle = title.trim();
+
+    if (!normalizedTitle || normalizedTitle === task.title) {
+      return;
+    }
+
+    if (pendingTaskId === task.id) {
+      return;
+    }
+
+    setPendingTaskId(task.id);
+
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        title: normalizedTitle,
+      });
+
+      handleTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível atualizar o título da tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  async function handleCompletionToggle(task: Task) {
+    if (pendingTaskId === task.id) {
+      return;
+    }
+
+    setPendingTaskId(task.id);
+
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        completed: !task.completed,
+      });
+
+      const updatedTaskIds = new Set([
+        updatedTask.id,
+        ...(subtasksByParent[updatedTask.id] ?? []).map(
+          (subtask) => subtask.id,
+        ),
+      ]);
+
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          updatedTaskIds.has(currentTask.id)
+            ? {
+                ...currentTask,
+                completed: updatedTask.completed,
+              }
+            : currentTask,
+        ),
+      );
+
+      onTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível atualizar a tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  function handleMoveTask(task: Task, position: MovePosition) {
+    setTaskToMove(task);
+    setMoveMenuPosition(position);
+  }
+
+  async function handleConvertToParent(task: Task) {
+    if (pendingTaskId === task.id) {
+      return;
+    }
+
+    setPendingTaskId(task.id);
+
+    try {
+      const updatedTask = await updateTask(task.projectId, task.id, {
+        parentId: null,
+      });
+
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) =>
+          currentTask.id === updatedTask.id ? updatedTask : currentTask,
+        ),
+      );
+
+      onTaskUpdated(updatedTask);
+    } catch {
+      toast.error("Não foi possível transformar a tarefa em principal.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+  async function handleChooseProject(targetProjectId: string) {
+    if (!taskToMove || pendingTaskId === taskToMove.id) {
+      return;
+    }
+
+    setPendingTaskId(taskToMove.id);
+
+    try {
+      const updatedTask = await updateTask(projectId, taskToMove.id, {
+        projectId: targetProjectId,
+      });
+
+      const movedTaskIds = new Set([
+        taskToMove.id,
+        ...(subtasksByParent[taskToMove.id] ?? []).map((subtask) => subtask.id),
+      ]);
+
+      setTasks((currentTasks) =>
+        currentTasks.filter((currentTask) => !movedTaskIds.has(currentTask.id)),
+      );
+
+      if (selectedTask?.id === updatedTask.id) {
+        onClearSelectedTask();
+      }
+
+      setTaskToMove(null);
+    } catch {
+      toast.error("Não foi possível mover a tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  const handleCancelMove = useCallback(() => {
+    setTaskToMove(null);
+  }, []);
+
+  function handleArchiveTask(task: Task) {
+    setActionTask(task);
+    setActionConfirmType("archive");
+  }
+
+  function handleDeleteTask(task: Task) {
+    setActionTask(task);
+    setActionConfirmType("delete");
+  }
+
+  async function handleConfirmAction() {
+    if (!actionTask || !actionConfirmType) {
+      return;
+    }
+
+    if (pendingTaskId === actionTask.id) {
+      return;
+    }
+
+    setPendingTaskId(actionTask.id);
+    try {
+      if (actionConfirmType === "archive") {
+        await updateTask(actionTask.projectId, actionTask.id, {
+          archived: true,
+        });
+
+        const archivedTaskIds = new Set([
+          actionTask.id,
+          ...(subtasksByParent[actionTask.id] ?? []).map(
+            (subtask) => subtask.id,
+          ),
+        ]);
+
+        setTasks((currentTasks) =>
+          currentTasks.filter((task) => !archivedTaskIds.has(task.id)),
+        );
+      }
+
+      if (actionConfirmType === "delete") {
+        await deleteTask(actionTask.projectId, actionTask.id);
+
+        const deletedTaskIds = new Set([
+          actionTask.id,
+          ...(subtasksByParent[actionTask.id] ?? []).map(
+            (subtask) => subtask.id,
+          ),
+        ]);
+
+        setTasks((currentTasks) =>
+          currentTasks.filter((task) => !deletedTaskIds.has(task.id)),
+        );
+      }
+
+      if (selectedTask?.id === actionTask.id) {
+        onClearSelectedTask();
+      }
+
+      setActionTask(null);
+      setActionConfirmType(null);
+    } catch {
+      toast.error(
+        actionConfirmType === "archive"
+          ? "Não foi possível arquivar a tarefa."
+          : "Não foi possível excluir a tarefa.",
+      );
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  useEffect(() => {
+    async function loadProjects() {
+      const data = await getProjects();
+      const availableProjects = data.filter((p) => !p.archived);
+      setProjects(availableProjects);
+    }
+
+    void loadProjects();
+  }, []);
+
+  useEffect(() => {
+    if (!isCreatingTask) {
+      return;
+    }
+
+    function handleMouseDown(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (newTaskItemRef.current && !newTaskItemRef.current.contains(target)) {
+        handleCancelCreateTask();
+      }
+    }
+
+    document.addEventListener("mousedown", handleMouseDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [handleCancelCreateTask, isCreatingTask]);
+
+  useEffect(() => {
+    if (parentTaskId === null) {
+      return;
+    }
+
+    function handleMouseDown(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (
+        newSubtaskItemRef.current &&
+        !newSubtaskItemRef.current.contains(target)
+      ) {
+        setNewSubtaskTitle("");
+        setParentTaskId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleMouseDown);
+
+    newSubtaskInputRef.current?.focus();
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [parentTaskId]);
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        setError(false);
+        setIsLoading(true);
+        const data = await getProjectTasks(projectId);
+        setTasks(data.filter((task) => !task.archived));
+      } catch {
+        setError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void loadTasks();
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!updatedTask) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task.id === updatedTask.id ? updatedTask : task,
+      ),
+    );
+  }, [updatedTask]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: primaryColor }}
+        />
+        Carregando tarefas...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="flex items-center gap-2 py-4 text-sm"
+        style={{ color: errorColor }}
+      >
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: errorColor }}
+        />
+        Não foi possível carregar as tarefas.
+      </div>
+    );
+  }
+
+  if (tasks.length === 0 && !isCreatingTask) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+        <ListTodo className="h-5 w-5" style={{ color: accentColor }} />
+
+        <p className="text-sm text-slate-500">Nenhuma tarefa neste projeto.</p>
+
+        <p className="text-xs text-slate-600">
+          Crie uma nova tarefa para começar.
+        </p>
+      </div>
+    );
+  }
+
+  const actionTaskHasSubtasks =
+    actionTask !== null && (subtasksByParent[actionTask.id]?.length ?? 0) > 0;
+
+  return (
+    <>
+      <div className="space-y-2">
+        <AnimatePresence>
+          {isCreatingTask && parentTaskId === null && (
+            <motion.div
+              ref={newTaskItemRef}
+              layout
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+              className="group flex items-center gap-3 bg-slate-800/10 px-3 py-2"
+              style={{
+                border: `1px solid ${accentColor}`,
+              }}
+            >
+              <div className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-500 opacity-40" />
+
+              <input
+                ref={newTaskInputRef}
+                disabled={isCreatingTaskRequest}
+                type="text"
+                value={newTaskTitle}
+                onChange={(event) => setNewTaskTitle(event.target.value)}
+                onKeyDown={handleKeyDownCreating}
+                placeholder="Nome da tarefa..."
+                autoComplete="off"
+                className="min-w-0 flex-1 bg-transparent p-1 text-sm text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
+              />
+
+              <div className="flex items-center">
+                <div className="flex shrink-0 items-center justify-center p-1.5">
+                  <MoreHorizontal className="h-6 w-6 text-slate-500/30" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {tasks
+          .filter((task) => !task.parentId)
+          .map((task) => (
+            <ProjectTaskItem
+              key={task.id}
+              task={task}
+              parentTaskId={parentTaskId}
+              subtasks={subtasksByParent[task.id] ?? []}
+              selectedTask={selectedTask}
+              onSelect={onSelectTask}
+              primaryColor={primaryColor}
+              accentColor={accentColor}
+              onMove={handleMoveTask}
+              onCompletionToggle={handleCompletionToggle}
+              onArchive={handleArchiveTask}
+              onDelete={handleDeleteTask}
+              onOpenDetails={onOpenDetails}
+              onCreateSubtask={handleStartCreateSubtask}
+              newSubtaskInputRef={newSubtaskInputRef}
+              newSubtaskItemRef={newSubtaskItemRef}
+              newSubtaskTitle={newSubtaskTitle}
+              setNewSubtaskTitle={setNewSubtaskTitle}
+              isCreatingSubtask={parentTaskId !== null}
+              handleKeyDownCreatingSubtask={handleKeyDownCreatingSubtask}
+              pendingTaskId={pendingTaskId}
+              onConvertToParent={handleConvertToParent}
+              onTitleUpdate={handleTitleDynamicUpdate}
+            />
+          ))}
+      </div>
+      <ActionConfirm
+        open={actionTask !== null && actionConfirmType !== null}
+        title={
+          actionConfirmType === "archive" ? "Arquivar tarefa" : "Excluir tarefa"
+        }
+        message={
+          actionConfirmType === "archive"
+            ? "Tem certeza que deseja arquivar"
+            : actionTaskHasSubtasks
+              ? "Esta tarefa possui subtarefas. Todas elas também serão excluídas. Tem certeza que deseja excluir"
+              : "Tem certeza que deseja excluir"
+        }
+        confirmLabel={actionConfirmType === "archive" ? "Arquivar" : "Excluir"}
+        itemName={actionTask?.title ?? ""}
+        onClose={() => {
+          setActionTask(null);
+          setActionConfirmType(null);
+        }}
+        onConfirm={handleConfirmAction}
+      />
+      {taskToMove !== null && (
+        <ChooseProjectToMove
+          currentProjectId={projectId}
+          projects={projects}
+          onMoveToProject={handleChooseProject}
+          onCancelMove={handleCancelMove}
+          position={moveMenuPosition}
+        />
+      )}
+    </>
+  );
+}

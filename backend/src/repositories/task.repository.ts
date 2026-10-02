@@ -20,16 +20,20 @@ export const TaskRepository = {
       where: { projectId },
     });
   },
-  async update(taskId: string, data: Prisma.TaskUpdateInput) {
-    return prisma.task.update({
+  async update(
+    taskId: string,
+    data: Prisma.TaskUpdateInput,
+    tx: PrismaTransaction = prisma,
+  ) {
+    return tx.task.update({
       data,
       where: {
         id: taskId,
       },
     });
   },
-  async delete(taskId: string) {
-    return prisma.task.delete({
+  async delete(taskId: string, tx: PrismaTransaction = prisma) {
+    return tx.task.delete({
       where: {
         id: taskId,
       },
@@ -45,6 +49,25 @@ export const TaskRepository = {
         projectId,
       },
       data,
+    });
+  },
+  async updateManyByParentId(
+    parentId: string,
+    data: Prisma.TaskUncheckedUpdateManyInput,
+    tx: PrismaTransaction = prisma,
+  ) {
+    return tx.task.updateMany({
+      where: {
+        parentId,
+      },
+      data,
+    });
+  },
+  async deleteManyByParentId(parentId: string, tx: PrismaTransaction = prisma) {
+    return tx.task.deleteMany({
+      where: {
+        parentId,
+      },
     });
   },
 };

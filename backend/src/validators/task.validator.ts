@@ -12,6 +12,15 @@ export const createTaskSchema = z.object({
   parentId: z.uuid().optional(),
 });
 
-export const updateTaskSchema = createTaskSchema
-  .extend({ parentId: z.uuid().nullable().optional() })
-  .partial();
+export const updateTaskSchema = z.object({
+  title: z.string().min(1, "Task title is required").optional(),
+  notes: z.string().nullable().optional(),
+  priority: z.number().int().optional(),
+  estimatedDuration: z.number().int().nullable().optional(),
+  startAt: z.coerce.date().nullable().optional(),
+  dueAt: z.coerce.date().nullable().optional(),
+  completed: z.boolean().optional(),
+  archived: z.boolean().optional(),
+  parentId: z.uuid().nullable().optional(),
+  projectId: z.uuid().optional(),
+});

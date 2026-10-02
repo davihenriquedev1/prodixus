@@ -3,10 +3,20 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState, type InputHTMLAttributes } from "react";
 
-type InputProps = InputHTMLAttributes<HTMLInputElement>;
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  accentColor?: string;
+}
 
-export function Input({ type, className = "", ...props }: InputProps) {
+export function Input({
+  type,
+  className = "",
+  accentColor,
+  onFocus,
+  onBlur,
+  ...props
+}: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const isPassword = type === "password";
 
@@ -14,9 +24,20 @@ export function Input({ type, className = "", ...props }: InputProps) {
     <div className="relative">
       <input
         type={isPassword && showPassword ? "text" : type}
-        className={`w-full rounded-lg border border-slate-800 bg-[#0D0F14]/70 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition focus:border-slate-600 focus:ring-1 focus:ring-slate-700 ${
+        className={`w-full rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition ${
           isPassword ? "pr-10" : ""
-        } ${className}`}
+        } ${type === "number" ? "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" : ""} ${className}`}
+        style={{
+          borderColor: isFocused ? accentColor : undefined,
+        }}
+        onFocus={(event) => {
+          setIsFocused(true);
+          onFocus?.(event);
+        }}
+        onBlur={(event) => {
+          setIsFocused(false);
+          onBlur?.(event);
+        }}
         {...props}
       />
 
