@@ -17,7 +17,7 @@ import {
 import type {
   CreateProjectData,
   UpdateProjectData,
-} from "@/features/projects/services/project.service";
+} from "@/features/projects/types/project";
 import type { Folder } from "@/features/folders/types/folder";
 import type { Project } from "@/features/projects/types/project";
 import { ActionConfirm } from "@/components/ui/action-confirm";
@@ -25,10 +25,20 @@ import { FolderDialog } from "@/features/folders/components/folder-dialog";
 import { ProjectDialog } from "@/features/projects/components/project-dialog";
 import { TagsSection } from "@/components/sidebar/tags-section/tags-section";
 import { ProjectsSection } from "./projects-section/projects-section";
+import { CreateTagData, Tag, UpdateTagData } from "@/features/tags/types/tag";
+import {
+  createTag,
+  deleteTag,
+  getTags,
+  updateTag,
+} from "@/features/tags/services/tag.service";
+import { TagDialog } from "@/features/tags/components/tag-dialog";
+import axios from "axios";
 
 export function Sidebar() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [mutationError, setMutationError] = useState(false);
@@ -52,16 +62,22 @@ export function Sidebar() {
   );
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
 
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
+
   useEffect(() => {
     async function loadSidebarData() {
       try {
-        const [foldersData, projectsData] = await Promise.all([
+        const [foldersData, projectsData, tagsData] = await Promise.all([
           getFolders(),
           getProjects(),
+          getTags(),
         ]);
 
         setFolders(foldersData);
         setProjects(projectsData);
+        setTags(tagsData);
       } catch {
         setError(true);
       } finally {
@@ -189,6 +205,50 @@ export function Sidebar() {
     }
   }
 
+  async function handleCreateTag(data: CreateTagData) {
+    try {
+      setMutationError(false);
+
+      const tag = await createTag(data);
+
+      setTags((current) => [...current, tag]);
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to create tag");
+    }
+  }
+
+  async function handleUpdateTag(tagId: string, data: UpdateTagData) {
+    try {
+      setMutationError(false);
+
+      const tag = await updateTag(tagId, data);
+
+      setTags((current) =>
+        current.map((item) => (item.id === tag.id ? tag : item)),
+      );
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Update tag error:", error.response?.data);
+      }
+      setMutationError(true);
+      throw error;
+    }
+  }
+
+  async function handleDeleteTag(tagId: string) {
+    try {
+      setMutationError(false);
+
+      await deleteTag(tagId);
+
+      setTags((current) => current.filter((item) => item.id !== tagId));
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to delete tag");
+    }
+  }
+
   return (
     <aside className="w-72 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
       <div className="p-3 space-y-6 overflow-y-auto">
@@ -243,7 +303,21 @@ export function Sidebar() {
           }}
         />
 
-        <TagsSection />
+        <TagsSection
+          tags={tags}
+          isLoading={isLoading}
+          error={error}
+          mutationError={mutationError}
+          onCreateTag={() => {
+            setIsCreatingTag(true);
+          }}
+          onUpdateTag={(tag) => {
+            setEditingTag(tag);
+          }}
+          onDeleteTag={(tag) => {
+            setDeletingTag(tag);
+          }}
+        />
       </div>
 
       <div className="p-3 border-t border-slate-800/60">
@@ -343,6 +417,37 @@ export function Sidebar() {
         confirmLabel="Arquivar"
         onClose={() => setArchivingProject(null)}
         onConfirm={() => handleArchiveProject(archivingProject!.id)}
+      />
+      <TagDialog
+        open={isCreatingTag}
+        title="Nova Tag"
+        onClose={() => {
+          setIsCreatingTag(false);
+        }}
+        onSubmit={(data) => handleCreateTag(data)}
+      />
+      <TagDialog
+        open={editingTag !== null}
+        title="Editar tag"
+        initialTag={editingTag}
+        onClose={() => {
+          setEditingTag(null);
+        }}
+        onSubmit={(data) => {
+          if (!editingTag) {
+            return Promise.resolve();
+          }
+          return handleUpdateTag(editingTag.id, data);
+        }}
+      />
+      <ActionConfirm
+        open={deletingTag !== null}
+        title="Excluir tag"
+        message="Tem certeza que deseja excluir"
+        itemName={deletingTag?.name ?? ""}
+        confirmLabel="Excluir"
+        onClose={() => setDeletingTag(null)}
+        onConfirm={() => handleDeleteTag(deletingTag!.id)}
       />
     </aside>
   );

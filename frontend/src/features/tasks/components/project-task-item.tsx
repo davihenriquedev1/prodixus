@@ -7,15 +7,10 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Task } from "@/features/tasks/types/task";
-import { TaskActions } from "./task-actions";
+import { ProjectTaskActions } from "./project-task-actions";
 import type { MovePosition } from "@/types/move-position";
-import {
-  KeyboardEvent,
-  KeyboardEventHandler,
-  RefObject,
-  useEffect,
-  useState,
-} from "react";
+import { KeyboardEventHandler, RefObject, useState } from "react";
+import { TaskTitleInput } from "./task-title-input";
 
 interface ProjectTaskItemProps {
   task: Task;
@@ -185,7 +180,7 @@ export function ProjectTaskItem({
           <div
             className={`${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
           >
-            <TaskActions
+            <ProjectTaskActions
               disabled={isTaskPending}
               taskCompleted={task.completed}
               onEdit={() => onOpenDetails(task)}
@@ -340,7 +335,7 @@ export function ProjectTaskItem({
                     <div
                       className={`${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
                     >
-                      <TaskActions
+                      <ProjectTaskActions
                         taskCompleted={subtask.completed}
                         onEdit={() => onOpenDetails(subtask)}
                         onConvertToParent={() => onConvertToParent(subtask)}
@@ -362,47 +357,5 @@ export function ProjectTaskItem({
         </motion.div>
       </AnimatePresence>
     </motion.div>
-  );
-}
-
-interface TaskTitleInputProps {
-  task: Task;
-  disabled: boolean;
-  onUpdate: (task: Task, title: string) => void;
-}
-
-function TaskTitleInput({ task, disabled, onUpdate }: TaskTitleInputProps) {
-  const [value, setValue] = useState(task.title);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setValue(task.title);
-  }, [task.title]);
-
-  function handleBlur() {
-    onUpdate(task, value);
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      event.currentTarget.blur();
-    }
-
-    if (event.key === "Escape") {
-      setValue(task.title);
-      event.currentTarget.blur();
-    }
-  }
-
-  return (
-    <input
-      type="text"
-      disabled={disabled}
-      value={value}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      className="min-w-0 flex-1 cursor-pointer outline-0 focus:outline-1 focus:outline-slate-600/50 truncate text-left text-sm p-1 disabled:cursor-not-allowed disabled:opacity-50"
-    />
   );
 }

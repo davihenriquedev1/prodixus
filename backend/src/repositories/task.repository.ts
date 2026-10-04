@@ -15,9 +15,28 @@ export const TaskRepository = {
       },
     });
   },
+  async findFirstByUserId(userId: string, taskId: string) {
+    return prisma.task.findFirst({
+      where: {
+        id: taskId,
+        userId,
+      },
+    });
+  },
   async findManyByProjectId(projectId: string) {
     return prisma.task.findMany({
       where: { projectId },
+    });
+  },
+  async findManyByTagId(tagId: string) {
+    return prisma.task.findMany({
+      where: {
+        taskTags: {
+          some: {
+            tagId,
+          },
+        },
+      },
     });
   },
   async update(

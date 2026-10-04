@@ -191,10 +191,6 @@ export function ProjectTaskList({
     }
   }
 
-  function handleTaskUpdated(updatedTask: Task) {
-    onTaskUpdated(updatedTask);
-  }
-
   async function handleTitleDynamicUpdate(task: Task, title: string) {
     const normalizedTitle = title.trim();
 
@@ -213,7 +209,7 @@ export function ProjectTaskList({
         title: normalizedTitle,
       });
 
-      handleTaskUpdated(updatedTask);
+      onTaskUpdated(updatedTask);
     } catch {
       toast.error("Não foi possível atualizar o título da tarefa.");
     } finally {

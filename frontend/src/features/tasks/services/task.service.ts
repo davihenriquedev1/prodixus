@@ -10,6 +10,11 @@ export async function getProjectTasks(projectId: string) {
   return response.data;
 }
 
+export async function getTagTasks(tagId: string) {
+  const response = await api.get<Task[]>(`/api/tags/${tagId}/tasks`);
+  return response.data;
+}
+
 export async function getTask(taskId: string) {
   const response = await api.get<Task>(`/api/tasks/${taskId}`);
   return response.data;

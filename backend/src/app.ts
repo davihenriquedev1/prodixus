@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import projectRouter from "./routes/project.routes.js";
 import taskRouter from "./routes/task.routes.js";
+import taskTagRouter from "./routes/task-tag.routes.js";
 import tagRouter from "./routes/tag.routes.js";
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error.middleware.js";
@@ -25,8 +26,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/projects/:projectId/tasks", taskRouter);
+app.use("/api/tasks/:taskId/tags", taskTagRouter);
 app.use("/api/tags", tagRouter);
-
 app.use("/api/folders", folderRouter);
 
 // Error handlers (middlewares)

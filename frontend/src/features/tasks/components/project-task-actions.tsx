@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface TaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ProjectTaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   onEdit: () => void;
   onCompletionToggle: () => void;
   taskCompleted: boolean;
@@ -28,7 +28,7 @@ interface TaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   disabled?: boolean;
 }
 
-export function TaskActions({
+export function ProjectTaskActions({
   onEdit,
   onCompletionToggle,
   taskCompleted,
@@ -39,7 +39,7 @@ export function TaskActions({
   color,
   size,
   disabled,
-}: TaskActionsProps) {
+}: ProjectTaskActionsProps) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<MovePosition>({
     top: 0,

@@ -14,3 +14,26 @@ export interface Project {
   updatedAt: string;
   folderId: string | null;
 }
+
+export interface CreateProjectData {
+  name: string;
+  estimatedDuration?: number;
+  dueAt?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  errorColor?: string;
+  folderId?: string;
+}
+
+export interface UpdateProjectData {
+  name?: string;
+  notes?: string;
+  completed?: boolean;
+  archived?: boolean;
+  estimatedDuration?: number;
+  dueAt?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  errorColor?: string;
+  folderId?: string;
+}
