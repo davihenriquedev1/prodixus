@@ -1,28 +1,9 @@
 import { api } from "@/lib/axios";
-import type { Project } from "@/features/projects/types/project";
-
-export interface CreateProjectData {
-  name: string;
-  estimatedDuration?: number;
-  dueAt?: string;
-  primaryColor?: string;
-  accentColor?: string;
-  errorColor?: string;
-  folderId?: string;
-}
-
-export interface UpdateProjectData {
-  name?: string;
-  notes?: string;
-  completed?: boolean;
-  archived?: boolean;
-  estimatedDuration?: number;
-  dueAt?: string;
-  primaryColor?: string;
-  accentColor?: string;
-  errorColor?: string;
-  folderId?: string;
-}
+import type {
+  CreateProjectData,
+  Project,
+  UpdateProjectData,
+} from "@/features/projects/types/project";
 
 export async function getProjects() {
   const response = await api.get<Project[]>("/api/projects");

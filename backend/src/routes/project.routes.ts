@@ -2,7 +2,7 @@ import { ProjectController } from "@/controllers/project.controller.js";
 import { authMiddleware } from "@/middlewares/auth.middleware.js";
 import { Router } from "express";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.post("/", authMiddleware, (req, res) =>
   ProjectController.create(req, res),

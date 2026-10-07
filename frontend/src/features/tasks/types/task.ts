@@ -1,3 +1,5 @@
+import { Tag } from "@/features/tags/types/tag";
+
 export interface Task {
   id: string;
   title: string;
@@ -12,6 +14,7 @@ export interface Task {
   parentId: string | null;
   createdAt: string;
   updatedAt: string;
+  tags: Tag[];
 }
 
 export interface CreateTaskData {

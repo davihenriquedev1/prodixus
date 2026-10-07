@@ -11,11 +11,12 @@ import {
   MoreHorizontal,
   Pencil,
   RotateCcw,
+  TagPlus,
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface TaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ProjectTaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   onEdit: () => void;
   onCompletionToggle: () => void;
   taskCompleted: boolean;
@@ -23,12 +24,13 @@ interface TaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   onConvertToParent?: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onEditTags?: (position: MovePosition) => void;
   size: number;
   color: string;
   disabled?: boolean;
 }
 
-export function TaskActions({
+export function ProjectTaskActions({
   onEdit,
   onCompletionToggle,
   taskCompleted,
@@ -36,10 +38,11 @@ export function TaskActions({
   onConvertToParent,
   onArchive,
   onDelete,
+  onEditTags,
   color,
   size,
   disabled,
-}: TaskActionsProps) {
+}: ProjectTaskActionsProps) {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<MovePosition>({
     top: 0,
@@ -120,6 +123,14 @@ export function TaskActions({
     onConvertToParent();
   }
 
+  function handleEditTags() {
+    if (!menuRef.current) return;
+    if (!onEditTags) return;
+    setOpen(false);
+    const position = getMenuPosition(menuRef.current, 256, 200, 4);
+    onEditTags(position);
+  }
+
   return (
     <>
       <button
@@ -184,6 +195,7 @@ export function TaskActions({
               Mover para outro projeto
             </button>
           )}
+
           {onConvertToParent && (
             <button
               type="button"
@@ -192,6 +204,17 @@ export function TaskActions({
             >
               <LayersArrowUp className="h-3.5 w-3.5 text-slate-500" />
               Converter em tarefa pai
+            </button>
+          )}
+
+          {onEditTags && (
+            <button
+              type="button"
+              onClick={handleEditTags}
+              className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+            >
+              <TagPlus className="h-3.5 w-3.5 text-slate-500" />
+              Adicionar/remover tags
             </button>
           )}
 

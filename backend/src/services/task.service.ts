@@ -7,9 +7,29 @@ import type {
 import { TaskRepository } from "@/repositories/task.repository.js";
 import { ProjectRepository } from "@/repositories/project.repository.js";
 import type { Prisma } from "../../generated/prisma/client.js";
-import { TagRepository } from "@/repositories/tag.repository.js";
-import { TaskTagRepository } from "@/repositories/task-tag.repository.js";
 import { prisma } from "@/config/prisma.js";
+import { TagRepository } from "@/repositories/tag.repository.js";
+
+function mapTaskWithTags<
+  T extends {
+    taskTags: Array<{
+      tag: {
+        id: string;
+        name: string;
+        color: string;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }>;
+  },
+>(task: T) {
+  const { taskTags, ...rest } = task;
+
+  return {
+    ...rest,
+    tags: taskTags.map(({ tag }) => tag),
+  };
+}
 
 export const TaskService = {
   async createTask(
@@ -77,7 +97,9 @@ export const TaskService = {
       }),
     };
 
-    return TaskRepository.create(taskData);
+    const task = await TaskRepository.create(taskData);
+
+    return mapTaskWithTags(task);
   },
   async getTasks(userId: string | undefined, projectId: string | undefined) {
     if (!userId) {
@@ -97,7 +119,9 @@ export const TaskService = {
       throw new AppError("PROJECT_NOT_FOUND");
     }
 
-    return TaskRepository.findManyByProjectId(projectId);
+    const tasks = await TaskRepository.findManyByProjectId(projectId);
+
+    return tasks.map(mapTaskWithTags);
   },
   async getTask(
     userId: string | undefined,
@@ -131,7 +155,7 @@ export const TaskService = {
       throw new AppError("TASK_NOT_FOUND");
     }
 
-    return task;
+    return mapTaskWithTags(task);
   },
   async updateTask(
     userId: string | undefined,
@@ -261,7 +285,7 @@ export const TaskService = {
       return updatedTask;
     });
 
-    return taskUpdated;
+    return mapTaskWithTags(taskUpdated);
   },
   async deleteTask(
     userId: string | undefined,
@@ -300,41 +324,13 @@ export const TaskService = {
       await TaskRepository.delete(taskId, tx);
     });
   },
-  async associateTag(
-    userId: string | undefined,
-    projectId: string | undefined,
-    taskId: string | undefined,
-    tagId: string | undefined,
-  ) {
+  async getTasksByTagId(userId: string | undefined, tagId: string | undefined) {
     if (!userId) {
       throw new AppError("USER_ID_NOT_RECEIVED");
     }
 
-    if (!projectId) {
-      throw new AppError("PROJECT_ID_NOT_RECEIVED");
-    }
-
-    if (!taskId) {
-      throw new AppError("TASK_ID_NOT_RECEIVED");
-    }
-
     if (!tagId) {
       throw new AppError("TAG_ID_NOT_RECEIVED");
-    }
-
-    const project = await ProjectRepository.findFirstByUserId(
-      userId,
-      projectId,
-    );
-
-    if (!project) {
-      throw new AppError("PROJECT_NOT_FOUND");
-    }
-
-    const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
-
-    if (!task) {
-      throw new AppError("TASK_NOT_FOUND");
     }
 
     const tag = await TagRepository.findFirstByUserId(userId, tagId);
@@ -343,76 +339,8 @@ export const TaskService = {
       throw new AppError("TAG_NOT_FOUND");
     }
 
-    const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
+    const tasks = await TaskRepository.findManyByTagId(userId, tagId);
 
-    if (taskTag) {
-      throw new AppError("TASK_TAG_ASSOCIATION_ALREADY_EXISTS");
-    }
-
-    const data: Prisma.TaskTagCreateInput = {
-      tag: {
-        connect: {
-          id: tagId,
-        },
-      },
-      task: {
-        connect: {
-          id: taskId,
-        },
-      },
-    };
-
-    return TaskTagRepository.create(data);
-  },
-  async removeTag(
-    userId: string | undefined,
-    projectId: string | undefined,
-    taskId: string | undefined,
-    tagId: string | undefined,
-  ) {
-    if (!userId) {
-      throw new AppError("USER_ID_NOT_RECEIVED");
-    }
-
-    if (!projectId) {
-      throw new AppError("PROJECT_ID_NOT_RECEIVED");
-    }
-
-    if (!taskId) {
-      throw new AppError("TASK_ID_NOT_RECEIVED");
-    }
-
-    if (!tagId) {
-      throw new AppError("TAG_ID_NOT_RECEIVED");
-    }
-
-    const project = await ProjectRepository.findFirstByUserId(
-      userId,
-      projectId,
-    );
-
-    if (!project) {
-      throw new AppError("PROJECT_NOT_FOUND");
-    }
-
-    const task = await TaskRepository.findFirstByProjectId(projectId, taskId);
-
-    if (!task) {
-      throw new AppError("TASK_NOT_FOUND");
-    }
-
-    const tag = await TagRepository.findFirstByUserId(userId, tagId);
-
-    if (!tag) {
-      throw new AppError("TAG_NOT_FOUND");
-    }
-
-    const taskTag = await TaskTagRepository.findByTaskIdAndTagId(taskId, tagId);
-
-    if (!taskTag) {
-      throw new AppError("TASK_TAG_NOT_FOUND");
-    }
-
-    await TaskTagRepository.delete(taskId, tagId);
+    return tasks.map(mapTaskWithTags);
   },
 };

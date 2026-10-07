@@ -1,4 +1,5 @@
 import { TagService } from "@/services/tag.service.js";
+import { TaskService } from "@/services/task.service.js";
 import {
   createTagSchema,
   updateTagSchema,
@@ -16,19 +17,24 @@ export const TagController = {
     return res.status(200).json(result);
   },
   async getTag(req: Request, res: Response) {
-    const id = req.params.id as string;
-    const result = await TagService.getTag(req.userId, id);
+    const tagId = req.params.tagId as string;
+    const result = await TagService.getTag(req.userId, tagId);
     return res.status(200).json(result);
   },
   async update(req: Request, res: Response) {
-    const id = req.params.id as string;
+    const tagId = req.params.tagId as string;
     const data = updateTagSchema.parse(req.body);
-    const result = await TagService.updateTag(req.userId, id, data);
+    const result = await TagService.updateTag(req.userId, tagId, data);
     return res.status(200).json(result);
   },
   async delete(req: Request, res: Response) {
-    const id = req.params.id as string;
-    await TagService.deleteTag(req.userId, id);
+    const tagId = req.params.tagId as string;
+    await TagService.deleteTag(req.userId, tagId);
     return res.sendStatus(204);
+  },
+  async getTasks(req: Request, res: Response) {
+    const tagId = req.params.tagId as string;
+    const tasks = await TaskService.getTasksByTagId(req.userId, tagId);
+    return res.status(200).json(tasks);
   },
 };

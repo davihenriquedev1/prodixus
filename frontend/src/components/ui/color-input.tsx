@@ -13,8 +13,7 @@ export function ColorInput({
 }: ColorInputProps) {
   return (
     <div>
-      <label className="mb-1.5 block text-[11px] text-slate-500">{label}</label>
-
+      <label className="mb-1.5 block text-xs text-slate-400">{label}</label>
       <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-1.5">
         <input
           type="color"

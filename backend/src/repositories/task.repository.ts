@@ -5,7 +5,16 @@ type PrismaTransaction = Prisma.TransactionClient;
 
 export const TaskRepository = {
   async create(data: Prisma.TaskCreateInput) {
-    return prisma.task.create({ data });
+    return prisma.task.create({
+      data,
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
   },
   async findFirstByProjectId(projectId: string, taskId: string) {
     return prisma.task.findFirst({
@@ -13,11 +22,63 @@ export const TaskRepository = {
         projectId,
         id: taskId,
       },
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+  },
+  async findFirstByUserId(userId: string, taskId: string) {
+    return prisma.task.findFirst({
+      where: {
+        id: taskId,
+        project: {
+          userId,
+        },
+      },
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
   },
   async findManyByProjectId(projectId: string) {
     return prisma.task.findMany({
       where: { projectId },
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+  },
+  async findManyByTagId(userId: string, tagId: string) {
+    return prisma.task.findMany({
+      where: {
+        project: {
+          userId,
+        },
+        taskTags: {
+          some: {
+            tagId,
+          },
+        },
+      },
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
   },
   async update(
@@ -29,6 +90,13 @@ export const TaskRepository = {
       data,
       where: {
         id: taskId,
+      },
+      include: {
+        taskTags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
   },
