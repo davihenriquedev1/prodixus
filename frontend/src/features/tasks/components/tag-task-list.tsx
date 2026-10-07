@@ -11,7 +11,8 @@ import {
 import type { Task } from "@/features/tasks/types/task";
 import { TagTaskItem } from "./tag-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
-
+import { getProjects } from "@/features/projects/services/project.service";
+import type { Project } from "@/features/projects/types/project";
 interface TagTaskListProps {
   tagId: string;
   color: string;
@@ -36,6 +37,8 @@ export function TagTaskList({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 
+  const [projects, setProjects] = useState<Project[]>([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -52,9 +55,13 @@ export function TagTaskList({
         setError(false);
         setIsLoading(true);
 
-        const data = await getTagTasks(tagId);
+        const [tasksData, projectsData] = await Promise.all([
+          getTagTasks(tagId),
+          getProjects(),
+        ]);
 
-        setTasks(data.filter((task) => !task.archived));
+        setTasks(tasksData.filter((task) => !task.archived));
+        setProjects(projectsData);
       } catch {
         setError(true);
       } finally {
@@ -229,21 +236,28 @@ export function TagTaskList({
   return (
     <>
       <div className="space-y-2">
-        {tasks.map((task) => (
-          <TagTaskItem
-            key={task.id}
-            task={task}
-            selectedTask={selectedTask}
-            color={color}
-            pendingTaskId={pendingTaskId}
-            onSelect={onSelectTask}
-            onCompletionToggle={handleCompletionToggle}
-            onArchive={handleArchiveTask}
-            onDelete={handleDeleteTask}
-            onOpenDetails={onOpenDetails}
-            onTitleUpdate={handleTitleUpdate}
-          />
-        ))}
+        {tasks.map((task) => {
+          const project = projects.find(
+            (project) => project.id === task.projectId,
+          );
+
+          return (
+            <TagTaskItem
+              key={task.id}
+              task={task}
+              project={project ?? null}
+              selectedTask={selectedTask}
+              color={color}
+              pendingTaskId={pendingTaskId}
+              onSelect={onSelectTask}
+              onCompletionToggle={handleCompletionToggle}
+              onArchive={handleArchiveTask}
+              onDelete={handleDeleteTask}
+              onOpenDetails={onOpenDetails}
+              onTitleUpdate={handleTitleUpdate}
+            />
+          );
+        })}
       </div>
 
       <ActionConfirm

@@ -42,7 +42,7 @@ export function TaskTitleInput({
       onChange={(event) => setValue(event.target.value)}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
-      className="min-w-0 flex-1 cursor-pointer outline-0 focus:outline-1 focus:outline-slate-600/50 truncate text-left text-sm p-1 disabled:cursor-not-allowed disabled:opacity-50"
+      className="min-w-0 flex-1 cursor-pointer outline-1 outline-slate-600/10 focus:outline-slate-600/50 truncate text-left text-sm p-1 disabled:cursor-not-allowed disabled:opacity-50"
     />
   );
 }

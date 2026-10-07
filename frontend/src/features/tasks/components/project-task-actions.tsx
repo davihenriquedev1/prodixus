@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Pencil,
   RotateCcw,
+  TagPlus,
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +24,7 @@ interface ProjectTaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement
   onConvertToParent?: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onEditTags?: (position: MovePosition) => void;
   size: number;
   color: string;
   disabled?: boolean;
@@ -36,6 +38,7 @@ export function ProjectTaskActions({
   onConvertToParent,
   onArchive,
   onDelete,
+  onEditTags,
   color,
   size,
   disabled,
@@ -120,6 +123,14 @@ export function ProjectTaskActions({
     onConvertToParent();
   }
 
+  function handleEditTags() {
+    if (!menuRef.current) return;
+    if (!onEditTags) return;
+    setOpen(false);
+    const position = getMenuPosition(menuRef.current, 256, 200, 4);
+    onEditTags(position);
+  }
+
   return (
     <>
       <button
@@ -184,6 +195,7 @@ export function ProjectTaskActions({
               Mover para outro projeto
             </button>
           )}
+
           {onConvertToParent && (
             <button
               type="button"
@@ -192,6 +204,17 @@ export function ProjectTaskActions({
             >
               <LayersArrowUp className="h-3.5 w-3.5 text-slate-500" />
               Converter em tarefa pai
+            </button>
+          )}
+
+          {onEditTags && (
+            <button
+              type="button"
+              onClick={handleEditTags}
+              className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+            >
+              <TagPlus className="h-3.5 w-3.5 text-slate-500" />
+              Adicionar/remover tags
             </button>
           )}
 

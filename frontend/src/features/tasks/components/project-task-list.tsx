@@ -11,11 +11,14 @@ import {
 } from "react";
 import { toast } from "sonner";
 import {
+  addTagToTask,
   createTask,
   deleteTask,
   getProjectTasks,
+  removeTagFromTask,
   updateTask,
 } from "@/features/tasks/services/task.service";
+import { getTags } from "@/features/tags/services/tag.service";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskItem } from "./project-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
@@ -23,6 +26,8 @@ import { ChooseProjectToMove } from "./choose-project-to-move";
 import type { Project } from "@/features/projects/types/project";
 import type { MovePosition } from "@/types/move-position";
 import { getProjects } from "@/features/projects/services/project.service";
+import { Tag } from "@/features/tags/types/tag";
+import { TaskTagSelector } from "./task-tag-selector";
 
 interface ProjectTaskListProps {
   projectId: string;
@@ -54,6 +59,7 @@ export function ProjectTaskList({
   onTaskUpdated,
 }: ProjectTaskListProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -80,6 +86,12 @@ export function ProjectTaskList({
 
   const [taskToMove, setTaskToMove] = useState<Task | null>(null);
   const [moveMenuPosition, setMoveMenuPosition] = useState<MovePosition>({
+    top: 0,
+    left: 0,
+  });
+
+  const [taskToEditTags, setTaskToEditTags] = useState<Task | null>(null);
+  const [tagMenuPosition, setTagMenuPosition] = useState<MovePosition>({
     top: 0,
     left: 0,
   });
@@ -255,10 +267,70 @@ export function ProjectTaskList({
     }
   }
 
-  function handleMoveTask(task: Task, position: MovePosition) {
-    setTaskToMove(task);
-    setMoveMenuPosition(position);
+  function handleOpenTagSelector(task: Task, position: MovePosition) {
+    setTaskToEditTags(task);
+    setTagMenuPosition(position);
   }
+
+  async function handleEditTags(tag: Tag) {
+    if (!taskToEditTags || pendingTaskId === taskToEditTags.id) {
+      return;
+    }
+
+    const hasTag = taskToEditTags.tags.some(
+      (currentTag) => currentTag.id === tag.id,
+    );
+
+    setPendingTaskId(taskToEditTags.id);
+
+    try {
+      if (hasTag) {
+        await removeTagFromTask(taskToEditTags.id, tag.id);
+
+        const updatedTask = {
+          ...taskToEditTags,
+          tags: taskToEditTags.tags.filter(
+            (currentTag) => currentTag.id !== tag.id,
+          ),
+        };
+
+        setTaskToEditTags(updatedTask);
+
+        setTasks((currentTasks) =>
+          currentTasks.map((currentTask) =>
+            currentTask.id === updatedTask.id ? updatedTask : currentTask,
+          ),
+        );
+
+        onTaskUpdated(updatedTask);
+      } else {
+        await addTagToTask(taskToEditTags.id, tag.id);
+
+        const updatedTask = {
+          ...taskToEditTags,
+          tags: [...taskToEditTags.tags, tag],
+        };
+
+        setTaskToEditTags(updatedTask);
+
+        setTasks((currentTasks) =>
+          currentTasks.map((currentTask) =>
+            currentTask.id === updatedTask.id ? updatedTask : currentTask,
+          ),
+        );
+
+        onTaskUpdated(updatedTask);
+      }
+    } catch {
+      toast.error("Erro ao atualizar as tags da tarefa.");
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
+
+  const handleCancelEditTags = useCallback(() => {
+    setTaskToEditTags(null);
+  }, []);
 
   async function handleConvertToParent(task: Task) {
     if (pendingTaskId === task.id) {
@@ -285,6 +357,12 @@ export function ProjectTaskList({
       setPendingTaskId(null);
     }
   }
+
+  function handleMoveTask(task: Task, position: MovePosition) {
+    setTaskToMove(task);
+    setMoveMenuPosition(position);
+  }
+
   async function handleChooseProject(targetProjectId: string) {
     if (!taskToMove || pendingTaskId === taskToMove.id) {
       return;
@@ -476,6 +554,19 @@ export function ProjectTaskList({
     );
   }, [updatedTask]);
 
+  useEffect(() => {
+    async function loadTags() {
+      try {
+        const data = await getTags();
+        setTags(data);
+      } catch {
+        toast.error("Não foi possível carregar as tags.");
+      }
+    }
+
+    void loadTags();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
@@ -577,6 +668,7 @@ export function ProjectTaskList({
               onArchive={handleArchiveTask}
               onDelete={handleDeleteTask}
               onOpenDetails={onOpenDetails}
+              onEditTags={handleOpenTagSelector}
               onCreateSubtask={handleStartCreateSubtask}
               newSubtaskInputRef={newSubtaskInputRef}
               newSubtaskItemRef={newSubtaskItemRef}
@@ -617,6 +709,15 @@ export function ProjectTaskList({
           onMoveToProject={handleChooseProject}
           onCancelMove={handleCancelMove}
           position={moveMenuPosition}
+        />
+      )}
+      {taskToEditTags !== null && (
+        <TaskTagSelector
+          currentTags={taskToEditTags.tags}
+          tags={tags}
+          onEditTags={handleEditTags}
+          onCancel={handleCancelEditTags}
+          position={tagMenuPosition}
         />
       )}
     </>

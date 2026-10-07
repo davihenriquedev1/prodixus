@@ -2,7 +2,7 @@ import { TaskTagController } from "@/controllers/task-tag.controller.js";
 import { authMiddleware } from "@/middlewares/auth.middleware.js";
 import { Router } from "express";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.post("/:tagId", authMiddleware, (req, res) =>
   TaskTagController.associateTag(req, res),

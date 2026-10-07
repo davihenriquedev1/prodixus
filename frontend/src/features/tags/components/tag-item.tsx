@@ -7,6 +7,7 @@ import { TagActions } from "./tag-actions";
 
 interface TagItemProps {
   tag: TagType;
+  taskCount: number;
   selected: boolean;
   setSelected: (tagId: string) => void;
   onUpdateTag: (tag: TagType) => void;
@@ -15,6 +16,7 @@ interface TagItemProps {
 
 export function TagItem({
   tag,
+  taskCount,
   selected,
   setSelected,
   onUpdateTag,
@@ -36,17 +38,23 @@ export function TagItem({
           className="min-w-0 flex-1 flex items-center px-1 py-1.5 cursor-pointer hover:bg-slate-800/40"
         >
           {selected ? (
-            <Circle className="w-3 h-3 shrink-0 mr-1" fill="#90a1b9" />
+            <Circle className="w-3 h-3 shrink-0 mr-1.5" fill="#90a1b9" />
           ) : (
-            <span className="w-3 shrink-0 mr-1" />
+            <span className="w-3 shrink-0 mr-1.5" />
           )}
 
-          <Tag className="w-3.5 h-3.5 mr-2" fill={tag.color} />
+          <Tag className="w-3.5 h-3.5 mr-1" fill={tag.color} />
 
-          <span className="truncate">{tag.name}</span>
+          <span className="truncate mr-1">{tag.name}</span>
+          <span
+            className="text-xs text-slate-500/70"
+            title="Tarefas a realizar"
+          >
+            ({taskCount})
+          </span>
         </button>
 
-        <div className="hover:bg-slate-800/40 flex items-center justify-center">
+        <div className="hover:bg-slate-800/80 flex items-center justify-center">
           <TagActions
             onEdit={() => onUpdateTag(tag)}
             onDelete={() => onDeleteTag(tag)}
