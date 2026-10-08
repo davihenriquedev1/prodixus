@@ -14,25 +14,27 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <AppShell>
-        <main className="p-8 max-w-6xl w-full mx-auto space-y-8">
+        <main className="p-4 max-w-6xl w-full mx-auto space-y-8">
           <DashboardGreeting />
 
           <DashboardMetrics
-            projects={dashboardData.projects}
-            tasks={dashboardData.tasks}
+            activeProjects={dashboardData.activeProjects}
+            activeTasks={dashboardData.activeTasks}
+            completedTasks={dashboardData.completedTasks}
             isLoading={dashboardData.isLoading}
             error={dashboardData.error}
           />
 
           <ProjectsOverview
-            projects={dashboardData.projects}
+            projects={dashboardData.activeProjects}
             tasks={dashboardData.tasks}
             isLoading={dashboardData.isLoading}
             error={dashboardData.error}
           />
 
           <RecentTasks
-            tasks={dashboardData.tasks}
+            projects={dashboardData.activeProjects}
+            tasks={dashboardData.activeTasks}
             isLoading={dashboardData.isLoading}
             error={dashboardData.error}
           />
