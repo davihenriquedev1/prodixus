@@ -7,13 +7,17 @@ import type { Project } from "@/features/projects/types/project";
 import type { Task } from "@/features/tasks/types/task";
 
 interface DashboardData {
-  projects: Project[];
+  activeProjects: Project[];
+  activeTasks: Task[];
+  completedTasks: Task[];
   tasks: Task[];
 }
 
 export function useDashboardData() {
   const [data, setData] = useState<DashboardData>({
-    projects: [],
+    activeProjects: [],
+    activeTasks: [],
+    completedTasks: [],
     tasks: [],
   });
 
@@ -25,13 +29,21 @@ export function useDashboardData() {
       try {
         const projects = await getProjects();
 
-        const projectTasks = await Promise.all(
+        const activeProjects = projects.filter(
+          (project) => !project.completed && !project.archived,
+        );
+
+        const tasks = await Promise.all(
           projects.map((project) => getProjectTasks(project.id)),
         );
 
         setData({
-          projects,
-          tasks: projectTasks.flat(),
+          activeProjects: activeProjects,
+          activeTasks: tasks
+            .flat()
+            .filter((task) => !task.completed && !task.archived),
+          completedTasks: tasks.flat().filter((task) => task.completed),
+          tasks: tasks.flat(),
         });
       } catch {
         setError(true);

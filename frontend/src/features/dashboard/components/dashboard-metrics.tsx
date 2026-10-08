@@ -1,19 +1,21 @@
 "use client";
 
-import { CheckCircle2, Folder, ListTodo } from "lucide-react";
+import { CheckCircle2, Layers3, ListTodo } from "lucide-react";
 import type { Project } from "@/features/projects/types/project";
 import type { Task } from "@/features/tasks/types/task";
 
 interface DashboardMetricsProps {
-  projects: Project[];
-  tasks: Task[];
+  activeProjects: Project[];
+  activeTasks: Task[];
+  completedTasks: Task[];
   isLoading: boolean;
   error: boolean;
 }
 
 export function DashboardMetrics({
-  projects,
-  tasks,
+  activeProjects,
+  activeTasks,
+  completedTasks,
   isLoading,
   error,
 }: DashboardMetricsProps) {
@@ -43,43 +45,63 @@ export function DashboardMetrics({
 
   const metrics = [
     {
-      label: "Projects",
-      value: projects.length,
-      icon: Folder,
+      label: "Projetos pendentes",
+      value: activeProjects.length,
+      icon: Layers3,
+      color: "#38BDF8",
     },
     {
-      label: "Tasks",
-      value: tasks.length,
+      label: "Tarefas pendentes",
+      value: activeTasks.length,
       icon: ListTodo,
+      color: "#F59E0B",
     },
     {
-      label: "Completed",
-      value: tasks.filter((task) => task.completed).length,
+      label: "Tarefas concluídas",
+      value: completedTasks.length,
       icon: CheckCircle2,
+      color: "#05df72",
     },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {metrics.map((metric) => {
-        const Icon = metric.icon;
+    <>
+      <h1 className="text-2xl uppercase">Visão geral</h1>
+      <div className="grid grid-cols-3 gap-4">
+        {metrics.map((metric) => {
+          const Icon = metric.icon;
 
-        return (
-          <div
-            key={metric.label}
-            className="bg-[#0D0F14]/70 border border-slate-800/80 rounded-xl p-5 backdrop-blur-sm"
-          >
-            <div className="flex items-center gap-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase mb-2">
-              <Icon className="w-3.5 h-3.5" />
-              <span>{metric.label}</span>
-            </div>
+          return (
+            <div
+              key={metric.label.trim()}
+              className="flex flex-col rounded-lg p-4 border border-slate-500/40 bg-slate-600/20"
+            >
+              <div
+                className="flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase mb-3"
+                style={{ color: metric.color }}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{metric.label}</span>
+              </div>
 
-            <div className="text-3xl font-extrabold text-slate-100">
-              {metric.value}
+              <div
+                className="text-5xl font-normal"
+                style={{
+                  color: "#FFF",
+                  textShadow: `
+                    0 0 1px #ffffff,
+                    0 0 30px #ffffff,
+                    0 0 10px ${metric.color},
+                    0 0 30px ${metric.color}99
+                  `,
+                }}
+              >
+                {metric.value}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
