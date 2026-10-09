@@ -5,67 +5,50 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectActions } from "@/features/projects/components/project-actions";
-import { getProjects } from "@/features/projects/services/project.service";
-import type { Project } from "@/features/projects/types/project";
 import { ProjectTaskList } from "@/features/tasks/components/project-task-list";
 import { ProtectedRoute } from "@/features/auth/components/protected-routes";
 import { AppShell } from "@/components/app-shell";
 import { Panel } from "@/components/ui/panel";
 import { TaskSettings } from "@/features/tasks/components/task-settings";
 import { AnimatePresence } from "motion/react";
-import { Tag as TagType } from "@/features/tags/types/tag";
-import { getTags } from "@/features/tags/services/tag.service";
 import { TagActions } from "@/features/tags/components/tag-actions";
 import { TagTaskList } from "@/features/tasks/components/tag-task-list";
+import { useProjects } from "@/features/projects/hooks/use-projects";
+import { useTags } from "@/features/tags/hooks/use-tags";
 
 function TasksPageContent() {
-  const searchParams = useSearchParams();
-  const projectId = searchParams.get("projectId");
-  const tagId = searchParams.get("tagId");
-
-  const [project, setProject] = useState<Project | null>(null);
-  const [tag, setTag] = useState<TagType | null>(null);
-
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [updatedTask, setUpdatedTask] = useState<Task | null>(null);
+
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
+  const tagId = searchParams.get("tagId");
+
+  const {
+    data: projects = [],
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+  } = useProjects();
+
+  const {
+    data: tags = [],
+    isLoading: isTagsLoading,
+    isError: isTagsError,
+  } = useTags();
+
+  const project = projects.find((item) => item.id === projectId) ?? null;
+  const tag = tags.find((item) => item.id === tagId) ?? null;
+
+  const isLoading = isProjectsLoading || isTagsLoading;
+  const hasError = isProjectsError || isTagsError;
 
   const editingTaskRef = useRef<Task | null>(null);
 
   useEffect(() => {
     editingTaskRef.current = editingTask;
   }, [editingTask]);
-
-  useEffect(() => {
-    async function loadProject() {
-      try {
-        const projects = await getProjects();
-        setProject(projects.find((item) => item.id === projectId) ?? null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    async function loadTag() {
-      try {
-        const tags = await getTags();
-        setTag(tags.find((item) => item.id === tagId) ?? null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (projectId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTag(null);
-      loadProject();
-    } else if (tagId) {
-      setProject(null);
-      loadTag();
-    }
-  }, [projectId, tagId]);
 
   function handleOpenDetails(task: Task) {
     setEditingTask(task);
@@ -122,6 +105,16 @@ function TasksPageContent() {
       <main className="flex-1 p-6">
         <div className="py-20 text-center text-sm text-slate-500">
           Tag não encontrada
+        </div>
+      </main>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <main className="flex-1 p-6">
+        <div className="py-20 text-center text-sm text-slate-500">
+          Não foi possível carregar os dados.
         </div>
       </main>
     );
@@ -233,7 +226,6 @@ function TasksPageContent() {
                   onClearSelectedTask={() => setSelectedTask(null)}
                   onOpenDetails={handleOpenDetails}
                   onTaskUpdated={handleTaskUpdated}
-                  updatedTask={updatedTask}
                 />
               )}
 
