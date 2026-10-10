@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 interface ProjectItemProps {
   project: Project;
   selected: boolean;
-  setSelected: (projectId: string) => void;
   onUpdateProject: (project: ProjectType) => void;
   onCompletionToggleProject: (project: ProjectType) => void;
   onArchiveProject: (project: ProjectType) => void;
@@ -19,7 +18,6 @@ interface ProjectItemProps {
 export function ProjectItem({
   project,
   selected,
-  setSelected,
   onUpdateProject,
   onCompletionToggleProject,
   onArchiveProject,
@@ -28,7 +26,6 @@ export function ProjectItem({
   const router = useRouter();
 
   function selectProject() {
-    setSelected(project.id);
     router.push(`/tasks?projectId=${project.id}`);
   }
 
@@ -38,24 +35,25 @@ export function ProjectItem({
         <button
           type="button"
           onClick={selectProject}
-          className={`min-w-0 flex-1 flex items-center px-1 py-1.5 cursor-pointer hover:bg-slate-800/40 ${
+          className={`min-w-0 flex-1 flex items-center py-1 cursor-pointer ${
             project.completed
               ? "text-slate-500"
               : "text-slate-300 hover:text-slate-100"
           }`}
+          style={selected ? { color: "#f8fafc" } : {}}
         >
           {project.completed ? (
-            <Check className="w-3 h-3 shrink-0 mr-1" />
+            <Check className="w-2.5 h-2.5 shrink-0 mr-1" />
           ) : selected ? (
             <Circle
-              className="w-3 h-3 shrink-0 mr-1"
+              className="w-2.5 h-2.5 shrink-0 mr-1"
               fill={project.primaryColor || ""}
             />
           ) : (
-            <span className="w-3 shrink-0 mr-1" />
+            <span className="w-2.5 shrink-0 mr-1" />
           )}
 
-          <Layers3 className="w-3.5 h-3.5 mr-2" />
+          <Layers3 className="w-3.5 h-3.5 mr-1" />
 
           <span className="truncate">{project.name}</span>
         </button>

@@ -2,7 +2,7 @@ import { Layers3 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import type { Project } from "@/features/projects/types/project";
-import { MovePosition } from "@/types/move-position";
+import type { MovePosition } from "@/types/move-position";
 
 interface ChooseProjectToMoveProps {
   currentProjectId: string;
@@ -64,6 +64,7 @@ export function ChooseProjectToMove({
               <button
                 key={project.id}
                 type="button"
+                aria-pressed={isSelected}
                 onClick={() => setSelectedProject(project.id)}
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
                   isSelected ? "bg-slate-800/80" : "hover:bg-slate-800/60"
@@ -71,9 +72,7 @@ export function ChooseProjectToMove({
               >
                 <Layers3
                   className="h-4 w-4 shrink-0"
-                  style={{
-                    color: project.primaryColor as string,
-                  }}
+                  style={{ color: project.primaryColor || "#64748B" }}
                 />
 
                 <span className="min-w-0 flex-1 truncate text-sm text-slate-300">

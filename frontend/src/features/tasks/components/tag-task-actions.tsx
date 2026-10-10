@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonHTMLAttributes, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { getMenuPosition } from "@/utils/get-menu-position";
 import {
   Archive,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface TagTaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface TagTaskActionsProps {
   onEdit: () => void;
   onCompletionToggle: () => void;
   taskCompleted: boolean;
@@ -55,6 +55,13 @@ export function TagTaskActions({
     setMenuPosition(position);
     setOpen((value) => !value);
   }
+
+  useEffect(() => {
+    if (disabled) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOpen(false);
+    }
+  }, [disabled]);
 
   useEffect(() => {
     function handleClickOutside(event: globalThis.MouseEvent) {
@@ -101,7 +108,7 @@ export function TagTaskActions({
         ref={buttonRef}
         disabled={disabled}
         type="button"
-        className="cursor-pointer p-1.5 text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 disabled:cursor-not-allowed disabled:opacity-40"
+        className="cursor-pointer p-1.5 text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 disabled:cursor-not-allowed disabled:opacity-40 opacity-100"
         aria-label="Ações da tarefa"
         title="Ações da tarefa"
         style={{ color }}
@@ -115,7 +122,7 @@ export function TagTaskActions({
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-100 w-46 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
+          className="fixed z-100 w-46 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150 opacity-100"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,

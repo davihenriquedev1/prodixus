@@ -7,7 +7,7 @@ interface TagsSectionProps {
   isLoading: boolean;
   error: unknown;
   mutationError: boolean;
-
+  selectedTagId: string | null;
   onCreateTag: () => void;
   onUpdateTag: (tag: Tag) => void;
   onDeleteTag: (tag: Tag) => void;
@@ -18,6 +18,7 @@ export function TagsSection({
   isLoading,
   error,
   mutationError,
+  selectedTagId,
   onCreateTag,
   onUpdateTag,
   onDeleteTag,
@@ -56,6 +57,7 @@ export function TagsSection({
         <div className="text-xs">
           <TagsSectionList
             tags={tags}
+            selectedTagId={selectedTagId}
             onCreateTag={onCreateTag}
             onUpdateTag={onUpdateTag}
             onDeleteTag={onDeleteTag}

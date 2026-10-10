@@ -6,3 +6,13 @@ export interface Folder {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateFolderData {
+  name: string;
+  parentId?: string | null;
+}
+
+export interface UpdateFolderData {
+  name?: string;
+  parentId?: string | null;
+}

@@ -9,6 +9,7 @@ interface ProjectsSectionProps {
   isLoading: boolean;
   error: unknown;
   mutationError: boolean;
+  selectedProjectId: string | null;
 
   onCreateFolder: (parentId: string | null) => void;
   onUpdateFolder: (folder: Folder) => void;
@@ -27,6 +28,7 @@ export function ProjectsSection({
   isLoading,
   error,
   mutationError,
+  selectedProjectId,
   onCreateFolder,
   onUpdateFolder,
   onDeleteFolder,
@@ -68,6 +70,7 @@ export function ProjectsSection({
           <ProjectsSectionTree
             folders={folders}
             projects={projects}
+            selectedProjectId={selectedProjectId}
             onCreateFolder={onCreateFolder}
             onUpdateFolder={onUpdateFolder}
             onDeleteFolder={onDeleteFolder}

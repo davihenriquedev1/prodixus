@@ -1,18 +1,15 @@
 "use client";
 
 import { ListTodo } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  deleteTask,
-  getTagTasks,
-  updateTask,
-} from "@/features/tasks/services/task.service";
+import { useTagTasks } from "@/features/tasks/hooks/use-tasks";
+import { useProjects } from "@/features/projects/hooks/use-projects";
+import { useTaskMutations } from "@/features/tasks/hooks/use-task-mutations";
 import type { Task } from "@/features/tasks/types/task";
 import { TagTaskItem } from "./tag-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
-import { getProjects } from "@/features/projects/services/project.service";
-import type { Project } from "@/features/projects/types/project";
+
 interface TagTaskListProps {
   tagId: string;
   color: string;
@@ -21,7 +18,6 @@ interface TagTaskListProps {
   onClearSelectedTask: () => void;
   onOpenDetails: (task: Task) => void;
   onTaskUpdated: (task: Task) => void;
-  updatedTask: Task | null;
 }
 
 export function TagTaskList({
@@ -32,16 +28,8 @@ export function TagTaskList({
   onClearSelectedTask,
   onOpenDetails,
   onTaskUpdated,
-  updatedTask,
 }: TagTaskListProps) {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
-
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
-
   const [actionTask, setActionTask] = useState<Task | null>(null);
   const [actionConfirmType, setActionConfirmType] = useState<
     "archive" | "delete" | null
@@ -49,28 +37,23 @@ export function TagTaskList({
 
   const errorColor = "#EF4444";
 
-  useEffect(() => {
-    async function loadTasks() {
-      try {
-        setError(false);
-        setIsLoading(true);
+  const {
+    data: tagTasks = [],
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+  } = useTagTasks(tagId);
 
-        const [tasksData, projectsData] = await Promise.all([
-          getTagTasks(tagId),
-          getProjects(),
-        ]);
+  const {
+    data: projects = [],
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+  } = useProjects();
 
-        setTasks(tasksData.filter((task) => !task.archived));
-        setProjects(projectsData);
-      } catch {
-        setError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const { updateTaskMutation, deleteTaskMutation } = useTaskMutations();
 
-    void loadTasks();
-  }, [tagId]);
+  const tasks = tagTasks.filter((task) => !task.archived);
+  const isLoading = isTasksLoading || isProjectsLoading;
+  const error = isTasksError || isProjectsError;
 
   async function handleTitleUpdate(task: Task, title: string) {
     const normalizedTitle = title.trim();
@@ -86,15 +69,11 @@ export function TagTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await updateTask(task.projectId, task.id, {
-        title: normalizedTitle,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: { title: normalizedTitle },
       });
-
-      setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          currentTask.id === updatedTask.id ? updatedTask : currentTask,
-        ),
-      );
 
       onTaskUpdated(updatedTask);
     } catch {
@@ -112,15 +91,11 @@ export function TagTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await updateTask(task.projectId, task.id, {
-        completed: !task.completed,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: { completed: !task.completed },
       });
-
-      setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          currentTask.id === updatedTask.id ? updatedTask : currentTask,
-        ),
-      );
 
       onTaskUpdated(updatedTask);
     } catch {
@@ -153,18 +128,19 @@ export function TagTaskList({
 
     try {
       if (actionConfirmType === "archive") {
-        await updateTask(actionTask.projectId, actionTask.id, {
-          archived: true,
+        await updateTaskMutation.mutateAsync({
+          projectId: actionTask.projectId,
+          taskId: actionTask.id,
+          data: { archived: true },
         });
       }
 
       if (actionConfirmType === "delete") {
-        await deleteTask(actionTask.projectId, actionTask.id);
+        await deleteTaskMutation.mutateAsync({
+          projectId: actionTask.projectId,
+          taskId: actionTask.id,
+        });
       }
-
-      setTasks((currentTasks) =>
-        currentTasks.filter((task) => task.id !== actionTask.id),
-      );
 
       if (selectedTask?.id === actionTask.id) {
         onClearSelectedTask();
@@ -183,17 +159,6 @@ export function TagTaskList({
     }
   }
 
-  useEffect(() => {
-    if (!updatedTask) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === updatedTask.id ? updatedTask : task,
-      ),
-    );
-  }, [updatedTask]);
-
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
@@ -210,7 +175,7 @@ export function TagTaskList({
     return (
       <div
         className="flex items-center gap-2 py-4 text-sm"
-        style={{ color: color }}
+        style={{ color: errorColor }}
       >
         <span
           className="h-2 w-2 rounded-full"

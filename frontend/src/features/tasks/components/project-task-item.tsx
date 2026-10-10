@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "motion/react";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskActions } from "./project-task-actions";
 import type { MovePosition } from "@/types/move-position";
-import { KeyboardEventHandler, RefObject, useState } from "react";
+import { useState, type KeyboardEventHandler, type RefObject } from "react";
 import { TaskTitleInput } from "./task-title-input";
 import { TaskTags } from "./task-tags";
 
@@ -91,8 +91,8 @@ export function ProjectTaskItem({
         ${subtasks.length > 0 ? " border" : ""}
         ${
           isSelected
-            ? "bg-slate-800/40"
-            : "bg-slate-800/10 hover:bg-slate-800/40"
+            ? "bg-slate-800/70"
+            : "bg-slate-800/15 hover:bg-slate-800/20"
         }
       `}
       style={
@@ -106,10 +106,12 @@ export function ProjectTaskItem({
           event.stopPropagation();
           onSelect(task);
         }}
-        className={`relative group flex flex-col px-2.5 py-1.5 transition-colors ${
-          subtasks.length === 0 ? "border" : openSubtasks ? "border-b" : ""
-        } ${isTaskSelected ? "bg-slate-800/70" : "hover:bg-slate-800/20"}
-          } ${task.completed ? "opacity-25 bg-transparent/95" : ""}`}
+        className={`
+          relative group flex flex-col px-2.5 py-1.5 transition-colors 
+          ${
+            subtasks.length === 0 ? "border" : openSubtasks ? "border-b" : ""
+          } ${isTaskSelected ? "bg-slate-800/70" : "hover:bg-slate-800/20"}
+          } ${task.completed ? "opacity-15 bg-transparent/95" : ""}`}
         style={
           isTaskSelected
             ? { borderColor: accentColor }
@@ -207,20 +209,31 @@ export function ProjectTaskItem({
       </div>
 
       {subtasks.length > 0 && (
-        <div
-          title="Ver subtarefas"
-          className={`cursor-pointer flex justify-center transition-colors
-            ${isTaskSelected && !openSubtasks ? "bg-slate-600/50 hover:brightness-120" : !isTaskSelected ? " hover:bg-black/10 " : ""} 
-            ${task.completed ? "opacity-10 hover:bg-slate-600/40  " : ""}
+        <button
+          title={openSubtasks ? "Ocultar subtarefas" : "Ver subtarefas"}
+          aria-expanded={openSubtasks}
+          className={`
+            cursor-pointer flex justify-center transition-colors
+            ${
+              isTaskSelected && !openSubtasks
+                ? "bg-slate-800/70 "
+                : !isTaskSelected
+                  ? " bg-slate-800/15 hover:bg-slate-800/20"
+                  : ""
+            } 
+            ${task.completed ? "opacity-10 hover:bg-slate-600/40" : ""}
           `}
-          onClick={() => setOpenSubtasks(!openSubtasks)}
+          onClick={(event) => {
+            event.stopPropagation();
+            setOpenSubtasks((current) => !current);
+          }}
         >
           {openSubtasks ? (
             <ChevronUp className="h-4 w-4 text-slate-500/80" />
           ) : (
             <ChevronDown className="h-4 w-4 text-slate-500/80" />
           )}
-        </div>
+        </button>
       )}
 
       {isCreatingSubtask && parentTaskId === task.id && (

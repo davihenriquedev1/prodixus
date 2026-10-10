@@ -1,5 +1,6 @@
 "use client";
 
+import { getMenuPosition } from "@/utils/get-menu-position";
 import {
   Archive,
   CheckCircle,
@@ -8,9 +9,9 @@ import {
   RotateCcw,
   Trash2,
 } from "lucide-react";
-import { ButtonHTMLAttributes, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-interface ProjectActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ProjectActionsProps {
   onEdit: () => void;
   onCompletionToggle: () => void;
   projectCompleted: boolean;
@@ -52,16 +53,13 @@ export function ProjectActions({
     };
   }, []);
 
-  function toggleMenu() {
-    if (!buttonRef.current) return;
-
-    const rect = buttonRef.current.getBoundingClientRect();
-
-    setMenuPosition({
-      top: rect.top,
-      left: rect.right + 4,
-    });
-
+  function handleToggleActions(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    if (!buttonRef.current) {
+      return;
+    }
+    const position = getMenuPosition(buttonRef.current, 176, 160, 4);
+    setMenuPosition(position);
     setOpen((value) => !value);
   }
 
@@ -92,7 +90,7 @@ export function ProjectActions({
         type="button"
         className="p-1.5 cursor-pointer hover:bg-slate-800/60 text-slate-500 hover:text-slate-300"
         aria-label="Ações do projeto"
-        onClick={toggleMenu}
+        onClick={handleToggleActions}
       >
         <MoreHorizontal
           className={`${!size ? "w-3.5 h-3.5" : `w-${size} h-${size}`}`}

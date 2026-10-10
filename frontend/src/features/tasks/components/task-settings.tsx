@@ -3,8 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState, type FocusEvent } from "react";
 
-import { updateTask } from "@/features/tasks/services/task.service";
-import type { Task } from "@/features/tasks/types/task";
+import type { Task, UpdateTaskData } from "@/features/tasks/types/task";
 import { EstimatedDurationUnit } from "@/types/estimated-duration-unit";
 import { formatEstimatedDuration } from "@/utils/format-estimated-duration";
 import { formatDateTimeLocal } from "@/utils/format-datetime-local";
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useTaskMutations } from "../hooks/use-task-mutations";
 
 interface TaskSettingsProps {
   task: Task;
@@ -39,6 +39,8 @@ export function TaskSettings({
   const [dueAt, setDueAt] = useState(task.dueAt ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
+  const { updateTaskMutation } = useTaskMutations();
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTitle(task.title);
@@ -51,11 +53,15 @@ export function TaskSettings({
     setDueAt(formatDateTimeLocal(task.dueAt));
   }, [task]);
 
-  async function saveField(data: Parameters<typeof updateTask>[2]) {
+  async function saveField(data: UpdateTaskData) {
     try {
       setIsSaving(true);
 
-      const updatedTask = await updateTask(task.projectId, task.id, data);
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data,
+      });
 
       onTaskUpdated(updatedTask);
     } catch {

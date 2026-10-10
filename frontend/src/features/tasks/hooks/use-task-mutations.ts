@@ -10,24 +10,33 @@ import {
   updateTask,
 } from "@/features/tasks/services/task.service";
 import { taskQueryKeys } from "./task.query-keys";
+import { dashboardQueryKeys } from "@/features/dashboard/hooks/dashboard-query-keys";
 
 export function useTaskMutations() {
   const queryClient = useQueryClient();
 
   const invalidateTasks = async (projectId: string) => {
-    await queryClient.invalidateQueries({
-      queryKey: taskQueryKeys.project(projectId),
-    });
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.project(projectId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.all,
+      }),
+      queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.all,
+      }),
+    ]);
   };
 
-  const create = useMutation({
+  const createTaskMutation = useMutation({
     mutationFn: createTask,
     onSuccess: async (task) => {
       await invalidateTasks(task.projectId);
     },
   });
 
-  const update = useMutation({
+  const updateTaskMutation = useMutation({
     mutationFn: ({
       projectId,
       taskId,
@@ -38,16 +47,17 @@ export function useTaskMutations() {
       data: Parameters<typeof updateTask>[2];
     }) => updateTask(projectId, taskId, data),
 
-    onSuccess: async (task, variables) => {
-      await invalidateTasks(variables.projectId);
-
-      if (task.projectId !== variables.projectId) {
-        await invalidateTasks(task.projectId);
-      }
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.all,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.all,
+      });
     },
   });
 
-  const remove = useMutation({
+  const deleteTaskMutation = useMutation({
     mutationFn: ({
       projectId,
       taskId,
@@ -56,12 +66,17 @@ export function useTaskMutations() {
       taskId: string;
     }) => deleteTask(projectId, taskId),
 
-    onSuccess: async (_, variables) => {
-      await invalidateTasks(variables.projectId);
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.all,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.all,
+      });
     },
   });
 
-  const addTag = useMutation({
+  const addTagToTaskMutation = useMutation({
     mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) =>
       addTagToTask(taskId, tagId),
 
@@ -69,10 +84,13 @@ export function useTaskMutations() {
       await queryClient.invalidateQueries({
         queryKey: taskQueryKeys.all,
       });
+      await queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.all,
+      });
     },
   });
 
-  const removeTag = useMutation({
+  const removeTagFromTaskMutation = useMutation({
     mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) =>
       removeTagFromTask(taskId, tagId),
 
@@ -80,14 +98,17 @@ export function useTaskMutations() {
       await queryClient.invalidateQueries({
         queryKey: taskQueryKeys.all,
       });
+      await queryClient.invalidateQueries({
+        queryKey: dashboardQueryKeys.all,
+      });
     },
   });
 
   return {
-    create,
-    update,
-    remove,
-    addTag,
-    removeTag,
+    createTaskMutation,
+    updateTaskMutation,
+    deleteTaskMutation,
+    removeTagFromTaskMutation,
+    addTagToTaskMutation,
   };
 }

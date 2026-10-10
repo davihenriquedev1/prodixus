@@ -14,12 +14,12 @@ import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskItem } from "./project-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
 import { ChooseProjectToMove } from "./choose-project-to-move";
-import { useTasks } from "@/features/tasks/hooks/use-tasks";
+import { useProjectTasks } from "@/features/tasks/hooks/use-tasks";
 import { useTaskMutations } from "@/features/tasks/hooks/use-task-mutations";
 import { useTags } from "@/features/tags/hooks/use-tags";
 import { useProjects } from "@/features/projects/hooks/use-projects";
 import type { MovePosition } from "@/types/move-position";
-import { Tag } from "@/features/tags/types/tag";
+import type { Tag } from "@/features/tags/types/tag";
 import { TaskTagSelector } from "./task-tag-selector";
 
 interface ProjectTaskListProps {
@@ -85,7 +85,7 @@ export function ProjectTaskList({
     data: projectTasks = [],
     isLoading,
     isError: error,
-  } = useTasks(projectId);
+  } = useProjectTasks(projectId);
 
   const tasks = projectTasks.filter((task) => !task.archived);
 
@@ -95,7 +95,13 @@ export function ProjectTaskList({
 
   const projects = allProjects.filter((project) => !project.archived);
 
-  const { create, update, remove, addTag, removeTag } = useTaskMutations();
+  const {
+    createTaskMutation,
+    updateTaskMutation,
+    deleteTaskMutation,
+    addTagToTaskMutation,
+    removeTagFromTaskMutation,
+  } = useTaskMutations();
 
   const subtasksByParent = tasks.reduce<Record<string, Task[]>>(
     (groups, task) => {
@@ -124,7 +130,7 @@ export function ProjectTaskList({
     setIsCreatingTaskRequest(true);
 
     try {
-      await create.mutateAsync({
+      await createTaskMutation.mutateAsync({
         title,
         projectId,
       });
@@ -167,7 +173,7 @@ export function ProjectTaskList({
     setIsCreatingSubtaskRequest(true);
 
     try {
-      await create.mutateAsync({
+      await createTaskMutation.mutateAsync({
         title,
         projectId,
         parentId: parentTaskId,
@@ -214,7 +220,7 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await update.mutateAsync({
+      const updatedTask = await updateTaskMutation.mutateAsync({
         projectId: task.projectId,
         taskId: task.id,
         data: {
@@ -238,7 +244,7 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await update.mutateAsync({
+      const updatedTask = await updateTaskMutation.mutateAsync({
         projectId: task.projectId,
         taskId: task.id,
         data: {
@@ -273,7 +279,7 @@ export function ProjectTaskList({
 
     try {
       if (hasTag) {
-        await removeTag.mutateAsync({
+        await removeTagFromTaskMutation.mutateAsync({
           taskId: task.id,
           tagId: tag.id,
         });
@@ -283,7 +289,7 @@ export function ProjectTaskList({
           tags: task.tags.filter((currentTag) => currentTag.id !== tag.id),
         });
       } else {
-        await addTag.mutateAsync({
+        await addTagToTaskMutation.mutateAsync({
           taskId: task.id,
           tagId: tag.id,
         });
@@ -312,7 +318,7 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await update.mutateAsync({
+      const updatedTask = await updateTaskMutation.mutateAsync({
         projectId: task.projectId,
         taskId: task.id,
         data: {
@@ -344,7 +350,7 @@ export function ProjectTaskList({
     setTaskToMove(null);
 
     try {
-      const updatedTask = await update.mutateAsync({
+      const updatedTask = await updateTaskMutation.mutateAsync({
         projectId: task.projectId,
         taskId: task.id,
         data: {
@@ -388,7 +394,7 @@ export function ProjectTaskList({
     setPendingTaskId(actionTask.id);
     try {
       if (actionConfirmType === "archive") {
-        await update.mutateAsync({
+        await updateTaskMutation.mutateAsync({
           projectId: actionTask.projectId,
           taskId: actionTask.id,
           data: {
@@ -398,7 +404,7 @@ export function ProjectTaskList({
       }
 
       if (actionConfirmType === "delete") {
-        await remove.mutateAsync({
+        await deleteTaskMutation.mutateAsync({
           projectId: actionTask.projectId,
           taskId: actionTask.id,
         });
@@ -440,6 +446,12 @@ export function ProjectTaskList({
       document.removeEventListener("mousedown", handleMouseDown);
     };
   }, [handleCancelCreateTask, isCreatingTask]);
+
+  useEffect(() => {
+    if (isCreatingTask && parentTaskId === null) {
+      newTaskInputRef.current?.focus();
+    }
+  }, [isCreatingTask, parentTaskId]);
 
   useEffect(() => {
     if (parentTaskId === null) {

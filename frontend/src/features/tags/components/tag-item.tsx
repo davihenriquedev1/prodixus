@@ -9,7 +9,6 @@ interface TagItemProps {
   tag: TagType;
   taskCount: number;
   selected: boolean;
-  setSelected: (tagId: string) => void;
   onUpdateTag: (tag: TagType) => void;
   onDeleteTag: (tag: TagType) => void;
 }
@@ -18,14 +17,12 @@ export function TagItem({
   tag,
   taskCount,
   selected,
-  setSelected,
   onUpdateTag,
   onDeleteTag,
 }: TagItemProps) {
   const router = useRouter();
 
   function selectTag() {
-    setSelected(tag.id);
     router.push(`/tasks?tagId=${tag.id}`);
   }
 
@@ -35,12 +32,13 @@ export function TagItem({
         <button
           type="button"
           onClick={selectTag}
-          className="min-w-0 flex-1 flex items-center px-1 py-1.5 cursor-pointer hover:bg-slate-800/40"
+          className="min-w-0 flex-1 flex items-center py-1 cursor-pointer text-slate-300 hover:text-slate-100"
+          style={selected ? { color: "#f8fafc" } : {}}
         >
           {selected ? (
-            <Circle className="w-3 h-3 shrink-0 mr-1.5" fill="#90a1b9" />
+            <Circle className="w-2.5 h-2.5 shrink-0 mr-1" fill="#90a1b9" />
           ) : (
-            <span className="w-3 shrink-0 mr-1.5" />
+            <span className="w-2.5 shrink-0 mr-1" />
           )}
 
           <Tag className="w-3.5 h-3.5 mr-1" fill={tag.color} />

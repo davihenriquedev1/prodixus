@@ -1,48 +1,27 @@
 "use client";
 
 import { Home, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  createFolder,
-  deleteFolder,
-  getFolders,
-  updateFolder,
-} from "@/features/folders/services/folder.service";
-import {
-  createProject,
-  deleteProject,
-  getProjects,
-  updateProject,
-} from "@/features/projects/services/project.service";
-import type {
-  CreateProjectData,
-  UpdateProjectData,
-} from "@/features/projects/types/project";
+import { useState } from "react";
+import { useFolderMutations } from "@/features/folders/hooks/use-folder-mutations";
+import { useTagMutations } from "@/features/tags/hooks/use-tag-mutations";
+import type { CreateProjectData } from "@/features/projects/types/project";
 import type { Folder } from "@/features/folders/types/folder";
 import type { Project } from "@/features/projects/types/project";
 import { ActionConfirm } from "@/components/ui/action-confirm";
 import { FolderDialog } from "@/features/folders/components/folder-dialog";
-import { ProjectDialog } from "@/features/projects/components/project-dialog";
 import { TagsSection } from "@/components/sidebar/tags-section/tags-section";
 import { ProjectsSection } from "./projects-section/projects-section";
 import { CreateTagData, Tag, UpdateTagData } from "@/features/tags/types/tag";
-import {
-  createTag,
-  deleteTag,
-  getTags,
-  updateTag,
-} from "@/features/tags/services/tag.service";
 import { TagDialog } from "@/features/tags/components/tag-dialog";
-import axios from "axios";
+import { ProjectDialog } from "@/features/projects/components/project-dialog";
+import { useFolders } from "@/features/folders/hooks/use-folders";
+import { useTags } from "@/features/tags/hooks/use-tags";
+import { useProjects } from "@/features/projects/hooks/use-projects";
+import { useProjectMutations } from "@/features/projects/hooks/use-project-mutations";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePanel } from "@/contexts/panel-context";
 
 export function Sidebar() {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [error, setError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mutationError, setMutationError] = useState(false);
-
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [creatingFolderParentId, setCreatingFolderParentId] = useState<
     string | null
@@ -54,7 +33,6 @@ export function Sidebar() {
   const [creatingProjectFolderId, setCreatingProjectFolderId] = useState<
     string | null
   >(null);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [completionTogglingProject, setCompletionTogglingProject] =
     useState<Project | null>(null);
   const [archivingProject, setArchivingProject] = useState<Project | null>(
@@ -66,35 +44,54 @@ export function Sidebar() {
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [deletingTag, setDeletingTag] = useState<Tag | null>(null);
 
-  useEffect(() => {
-    async function loadSidebarData() {
-      try {
-        const [foldersData, projectsData, tagsData] = await Promise.all([
-          getFolders(),
-          getProjects(),
-          getTags(),
-        ]);
+  const [mutationError, setMutationError] = useState(false);
 
-        setFolders(foldersData);
-        setProjects(projectsData);
-        setTags(tagsData);
-      } catch {
-        setError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const searchParams = useSearchParams();
+  const selectedProjectId = searchParams.get("projectId");
+  const selectedTagId = searchParams.get("tagId");
 
-    loadSidebarData();
-  }, []);
+  const { openProjectPanel } = usePanel();
+  const router = useRouter();
+  const location = usePathname();
+
+  const {
+    data: folders = [],
+    isLoading: isLoadingFolders,
+    isError: foldersError,
+  } = useFolders();
+
+  const {
+    data: projects = [],
+    isLoading: isLoadingProjects,
+    isError: projectsError,
+  } = useProjects();
+
+  const {
+    data: tags = [],
+    isLoading: isLoadingTags,
+    isError: tagsError,
+  } = useTags();
+
+  const { createFolderMutation, updateFolderMutation, deleteFolderMutation } =
+    useFolderMutations();
+
+  const {
+    createProjectMutation,
+    updateProjectMutation,
+    deleteProjectMutation,
+  } = useProjectMutations();
+
+  const { createTagMutation, updateTagMutation, deleteTagMutation } =
+    useTagMutations();
 
   async function handleCreateFolder(name: string, parentId: string | null) {
     try {
       setMutationError(false);
 
-      const folder = await createFolder({ name, parentId });
-
-      setFolders((current) => [...current, folder]);
+      await createFolderMutation.mutateAsync({
+        name,
+        parentId,
+      });
     } catch {
       setMutationError(true);
       throw new Error("Failed to create folder");
@@ -105,11 +102,10 @@ export function Sidebar() {
     try {
       setMutationError(false);
 
-      const folder = await updateFolder(folderId, { name });
-
-      setFolders((current) =>
-        current.map((item) => (item.id === folder.id ? folder : item)),
-      );
+      await updateFolderMutation.mutateAsync({
+        folderId,
+        data: { name },
+      });
     } catch {
       setMutationError(true);
       throw new Error("Failed to update folder");
@@ -120,11 +116,7 @@ export function Sidebar() {
     try {
       setMutationError(false);
 
-      await deleteFolder(folderId);
-
-      setFolders((current) =>
-        current.filter((folder) => folder.id !== folderId),
-      );
+      await deleteFolderMutation.mutateAsync(folderId);
     } catch {
       setMutationError(true);
       throw new Error("Failed to delete folder");
@@ -135,30 +127,10 @@ export function Sidebar() {
     try {
       setMutationError(false);
 
-      const project = await createProject(data);
-
-      setProjects((current) => [...current, project]);
+      await createProjectMutation.mutateAsync(data);
     } catch {
       setMutationError(true);
       throw new Error("Failed to create project");
-    }
-  }
-
-  async function handleUpdateProject(
-    projectId: string,
-    data: UpdateProjectData,
-  ) {
-    try {
-      setMutationError(false);
-
-      const project = await updateProject(projectId, data);
-
-      setProjects((current) =>
-        current.map((item) => (item.id === project.id ? project : item)),
-      );
-    } catch {
-      setMutationError(true);
-      throw new Error("Failed to update project");
     }
   }
 
@@ -166,39 +138,41 @@ export function Sidebar() {
     try {
       setMutationError(false);
 
-      const updatedProject = await updateProject(project.id, {
-        completed: !project.completed,
+      await updateProjectMutation.mutateAsync({
+        projectId: project.id,
+        data: {
+          completed: !project.completed,
+        },
       });
 
-      setProjects((current) =>
-        current.map((item) =>
-          item.id === updatedProject.id ? updatedProject : item,
-        ),
-      );
+      setCompletionTogglingProject(null);
     } catch {
       setMutationError(true);
       throw new Error("Failed to toggle project completion");
     }
   }
 
-  async function handleArchiveProject(projectId: string) {
-    const project = await updateProject(projectId, {
-      archived: true,
-    });
-
-    setProjects((current) =>
-      current.map((item) => (item.id === project.id ? project : item)),
-    );
-  }
-  async function handleDeleteProject(projectId: string) {
+  async function handleArchiveProject(project: Project) {
     try {
       setMutationError(false);
 
-      await deleteProject(projectId);
+      await updateProjectMutation.mutateAsync({
+        projectId: project.id,
+        data: { archived: true },
+      });
 
-      setProjects((current) =>
-        current.filter((project) => project.id !== projectId),
-      );
+      setArchivingProject(null);
+      router.push("/dashboard");
+    } catch {
+      setMutationError(true);
+      throw new Error("Failed to archive project");
+    }
+  }
+
+  async function handleDeleteProject(projectId: string) {
+    try {
+      setMutationError(false);
+      await deleteProjectMutation.mutateAsync({ projectId });
     } catch {
       setMutationError(true);
       throw new Error("Failed to delete project");
@@ -208,10 +182,7 @@ export function Sidebar() {
   async function handleCreateTag(data: CreateTagData) {
     try {
       setMutationError(false);
-
-      const tag = await createTag(data);
-
-      setTags((current) => [...current, tag]);
+      await createTagMutation.mutateAsync(data);
     } catch {
       setMutationError(true);
       throw new Error("Failed to create tag");
@@ -222,27 +193,20 @@ export function Sidebar() {
     try {
       setMutationError(false);
 
-      const tag = await updateTag(tagId, data);
-
-      setTags((current) =>
-        current.map((item) => (item.id === tag.id ? tag : item)),
-      );
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error("Update tag error:", error.response?.data);
-      }
+      await updateTagMutation.mutateAsync({
+        tagId,
+        data,
+      });
+    } catch {
       setMutationError(true);
-      throw error;
+      throw new Error("Failed to update tag");
     }
   }
 
   async function handleDeleteTag(tagId: string) {
     try {
       setMutationError(false);
-
-      await deleteTag(tagId);
-
-      setTags((current) => current.filter((item) => item.id !== tagId));
+      await deleteTagMutation.mutateAsync(tagId);
     } catch {
       setMutationError(true);
       throw new Error("Failed to delete tag");
@@ -263,7 +227,10 @@ export function Sidebar() {
         </div>
 
         <nav>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-slate-800/50 text-slate-100 border border-slate-700/50">
+          <button
+            className={`w-full cursor-pointer flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50" : ""} `}
+            onClick={() => router.push("/dashboard")}
+          >
             <Home className="w-4 h-4" />
             <span>Início</span>
           </button>
@@ -272,9 +239,10 @@ export function Sidebar() {
         <ProjectsSection
           folders={folders}
           projects={projects}
-          isLoading={isLoading}
-          error={error}
+          isLoading={isLoadingFolders || isLoadingProjects}
+          error={foldersError || projectsError}
           mutationError={mutationError}
+          selectedProjectId={selectedProjectId}
           onCreateFolder={(parentId) => {
             setCreatingFolderParentId(parentId);
             setIsCreatingFolder(true);
@@ -290,7 +258,7 @@ export function Sidebar() {
             setIsCreatingProject(true);
           }}
           onUpdateProject={(project) => {
-            setEditingProject(project);
+            openProjectPanel(project);
           }}
           onCompletionToggleProject={(project) => {
             setCompletionTogglingProject(project);
@@ -305,9 +273,10 @@ export function Sidebar() {
 
         <TagsSection
           tags={tags}
-          isLoading={isLoading}
-          error={error}
+          isLoading={isLoadingTags}
+          error={tagsError}
           mutationError={mutationError}
+          selectedTagId={selectedTagId}
           onCreateTag={() => {
             setIsCreatingTag(true);
           }}
@@ -319,13 +288,28 @@ export function Sidebar() {
           }}
         />
       </div>
-
       <div className="p-3 border-t border-slate-800/60">
         <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
           <Settings className="w-4 h-4" />
           <span>Configurações</span>
         </button>
       </div>
+      <ProjectDialog
+        open={isCreatingProject}
+        folders={folders}
+        onClose={() => {
+          setIsCreatingProject(false);
+          setCreatingProjectFolderId(null);
+        }}
+        onSubmit={(data) =>
+          handleCreateProject({
+            ...data,
+            ...(creatingProjectFolderId && {
+              folderId: creatingProjectFolderId,
+            }),
+          })
+        }
+      />
       <FolderDialog
         open={isCreatingFolder}
         title={creatingFolderParentId ? "Nova subpasta" : "Nova pasta"}
@@ -358,26 +342,6 @@ export function Sidebar() {
         confirmLabel="Excluir"
         onClose={() => setDeletingFolder(null)}
         onConfirm={() => handleDeleteFolder(deletingFolder!.id)}
-      />
-      <ProjectDialog
-        open={isCreatingProject}
-        title="Novo projeto"
-        onClose={() => setIsCreatingProject(false)}
-        onSubmit={(data) =>
-          handleCreateProject({
-            ...data,
-            ...(creatingProjectFolderId && {
-              folderId: creatingProjectFolderId,
-            }),
-          })
-        }
-      />
-      <ProjectDialog
-        open={editingProject !== null}
-        title="Editar projeto"
-        initialProject={editingProject}
-        onClose={() => setEditingProject(null)}
-        onSubmit={(data) => handleUpdateProject(editingProject!.id, data)}
       />
       <ActionConfirm
         open={deletingProject !== null}
@@ -416,7 +380,7 @@ export function Sidebar() {
         itemName={archivingProject?.name ?? ""}
         confirmLabel="Arquivar"
         onClose={() => setArchivingProject(null)}
-        onConfirm={() => handleArchiveProject(archivingProject!.id)}
+        onConfirm={() => handleArchiveProject(archivingProject!)}
       />
       <TagDialog
         open={isCreatingTag}

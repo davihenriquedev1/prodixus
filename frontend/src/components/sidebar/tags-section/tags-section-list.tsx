@@ -5,16 +5,17 @@ import { useEffect, useState } from "react";
 
 interface TagsSectionListProps {
   tags: Tag[];
+  selectedTagId: string | null;
   onCreateTag: (tag: Tag) => void;
   onUpdateTag: (tag: Tag) => void;
   onDeleteTag: (tag: Tag) => void;
 }
 export function TagsSectionList({
   tags,
+  selectedTagId,
   onUpdateTag,
   onDeleteTag,
 }: TagsSectionListProps) {
-  const [selectedTag, setSelectedTag] = useState("");
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -51,8 +52,7 @@ export function TagsSectionList({
           key={tag.id}
           tag={tag}
           taskCount={taskCounts[tag.id] ?? 0}
-          selected={selectedTag === tag.id}
-          setSelected={setSelectedTag}
+          selected={selectedTagId === tag.id}
           onUpdateTag={onUpdateTag}
           onDeleteTag={onDeleteTag}
         />

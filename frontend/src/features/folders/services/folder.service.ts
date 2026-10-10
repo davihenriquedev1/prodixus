@@ -1,20 +1,9 @@
 import { api } from "@/lib/axios";
-import type { Folder } from "@/features/folders/types/folder";
-
-interface CreateFolderData {
-  name: string;
-  parentId?: string | null;
-}
-
-interface UpdateFolderData {
-  name?: string;
-  parentId?: string | null;
-}
-
-export async function getFolders() {
-  const response = await api.get<Folder[]>("/api/folders");
-  return response.data;
-}
+import type {
+  CreateFolderData,
+  Folder,
+  UpdateFolderData,
+} from "@/features/folders/types/folder";
 
 export async function createFolder(data: CreateFolderData) {
   const response = await api.post<Folder>(
@@ -24,6 +13,11 @@ export async function createFolder(data: CreateFolderData) {
       : { name: data.name },
   );
 
+  return response.data;
+}
+
+export async function getFolders() {
+  const response = await api.get<Folder[]>("/api/folders");
   return response.data;
 }
 
