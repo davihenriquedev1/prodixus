@@ -9,8 +9,7 @@ interface FolderNodeProps {
   folder: FolderType;
   folders: FolderType[];
   projects: ProjectType[];
-  selectedProject: string;
-  setSelectedProject: (projectId: string) => void;
+  selectedProjectId: string | null;
   onCreateFolder: (parentId: string | null) => void;
   onUpdateFolder: (folder: FolderType) => void;
   onDeleteFolder: (folder: FolderType) => void;
@@ -25,8 +24,7 @@ export function FolderNode({
   folder,
   folders,
   projects,
-  selectedProject,
-  setSelectedProject,
+  selectedProjectId,
   onCreateFolder,
   onUpdateFolder,
   onDeleteFolder,
@@ -52,18 +50,18 @@ export function FolderNode({
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="min-w-0 flex-1 flex items-center px-1 py-1.5 cursor-pointer hover:bg-slate-800/40 text-slate-300 hover:text-slate-100"
+          className="min-w-0 flex-1 flex items-center py-1 cursor-pointer text-slate-200 hover:text-slate-100"
         >
           {hasChildren &&
             (open ? (
-              <ChevronDown className="w-3 h-3 shrink-0 mr-1" />
+              <ChevronDown className="w-3 h-3 shrink-0 mr-0.5" />
             ) : (
-              <ChevronRight className="w-3 h-3 shrink-0 mr-1" />
+              <ChevronRight className="w-3 h-3 shrink-0 mr-0.5" />
             ))}
 
-          {!hasChildren && <span className="w-3 shrink-0 mr-1" />}
+          {!hasChildren && <span className="w-3 shrink-0 mr-0.5" />}
 
-          <Folder className="w-3.5 h-3.5 shrink-0 mr-2" />
+          <Folder className="w-3.5 h-3.5 shrink-0 mr-1" />
 
           <span className="truncate min-w-0">{folder.name}</span>
         </button>
@@ -79,37 +77,38 @@ export function FolderNode({
       </div>
 
       {open && hasChildren && (
-        <div className="ml-5 border-l border-slate-800 mt-1">
+        <div className="ml-3.75 border-l border-slate-800/70 mt-1">
           {childFolders.map((childFolder) => (
-            <FolderNode
-              key={childFolder.id}
-              folder={childFolder}
-              folders={folders}
-              selectedProject={selectedProject}
-              setSelectedProject={setSelectedProject}
-              projects={projects}
-              onCreateFolder={onCreateFolder}
-              onUpdateFolder={onUpdateFolder}
-              onDeleteFolder={onDeleteFolder}
-              onCreateProject={onCreateProject}
-              onUpdateProject={onUpdateProject}
-              onCompletionToggleProject={onCompletionToggleProject}
-              onArchiveProject={onArchiveProject}
-              onDeleteProject={onDeleteProject}
-            />
+            <div className="pl-1" key={childFolder.id}>
+              <FolderNode
+                folder={childFolder}
+                folders={folders}
+                selectedProjectId={selectedProjectId}
+                projects={projects}
+                onCreateFolder={onCreateFolder}
+                onUpdateFolder={onUpdateFolder}
+                onDeleteFolder={onDeleteFolder}
+                onCreateProject={onCreateProject}
+                onUpdateProject={onUpdateProject}
+                onCompletionToggleProject={onCompletionToggleProject}
+                onArchiveProject={onArchiveProject}
+                onDeleteProject={onDeleteProject}
+              />
+            </div>
           ))}
 
           {folderProjects.map((project) => (
-            <ProjectItem
-              selected={selectedProject === project.id}
-              setSelected={setSelectedProject}
-              key={project.id}
-              project={project}
-              onCompletionToggleProject={onCompletionToggleProject}
-              onArchiveProject={onArchiveProject}
-              onUpdateProject={onUpdateProject}
-              onDeleteProject={onDeleteProject}
-            />
+            <div className="pl-1" key={project.id}>
+              <ProjectItem
+                selected={selectedProjectId === project.id}
+
+                project={project}
+                onCompletionToggleProject={onCompletionToggleProject}
+                onArchiveProject={onArchiveProject}
+                onUpdateProject={onUpdateProject}
+                onDeleteProject={onDeleteProject}
+              />
+            </div>
           ))}
         </div>
       )}

@@ -1,107 +1,170 @@
 "use client";
 
 import { Layers3, Plus, Tag } from "lucide-react";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectActions } from "@/features/projects/components/project-actions";
-import { getProjects } from "@/features/projects/services/project.service";
-import type { Project } from "@/features/projects/types/project";
 import { ProjectTaskList } from "@/features/tasks/components/project-task-list";
 import { ProtectedRoute } from "@/features/auth/components/protected-routes";
 import { AppShell } from "@/components/app-shell";
-import { Panel } from "@/components/ui/panel";
-import { TaskSettings } from "@/features/tasks/components/task-settings";
-import { AnimatePresence } from "motion/react";
-import { Tag as TagType } from "@/features/tags/types/tag";
-import { getTags } from "@/features/tags/services/tag.service";
 import { TagActions } from "@/features/tags/components/tag-actions";
 import { TagTaskList } from "@/features/tasks/components/tag-task-list";
+import { useProjects } from "@/features/projects/hooks/use-projects";
+import { useTags } from "@/features/tags/hooks/use-tags";
+import { ActionConfirm } from "@/components/ui/action-confirm";
+import { useProjectMutations } from "@/features/projects/hooks/use-project-mutations";
+import { useTagMutations } from "@/features/tags/hooks/use-tag-mutations";
+import { TagDialog } from "@/features/tags/components/tag-dialog";
+import { usePanel } from "@/contexts/panel-context";
 
 function TasksPageContent() {
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isEditingTag, setIsEditingTag] = useState(false);
+  const [isDeleteTagConfirmOpen, setIsDeleteTagConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+
+  const router = useRouter();
+
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
   const tagId = searchParams.get("tagId");
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [tag, setTag] = useState<TagType | null>(null);
+  const {
+    data: projects = [],
+    isLoading: isProjectsLoading,
+    isError: isProjectsError,
+  } = useProjects();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [updatedTask, setUpdatedTask] = useState<Task | null>(null);
+  const {
+    data: tags = [],
+    isLoading: isTagsLoading,
+    isError: isTagsError,
+  } = useTags();
 
-  const editingTaskRef = useRef<Task | null>(null);
+  const { updateProjectMutation, deleteProjectMutation } =
+    useProjectMutations();
+  const { deleteTagMutation, updateTagMutation } = useTagMutations();
 
-  useEffect(() => {
-    editingTaskRef.current = editingTask;
-  }, [editingTask]);
+  const project = projects.find((item) => item.id === projectId) ?? null;
+  const tag = tags.find((item) => item.id === tagId) ?? null;
 
-  useEffect(() => {
-    async function loadProject() {
-      try {
-        const projects = await getProjects();
-        setProject(projects.find((item) => item.id === projectId) ?? null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const isLoading = isProjectsLoading || isTagsLoading;
+  const hasError = isProjectsError || isTagsError;
 
-    async function loadTag() {
-      try {
-        const tags = await getTags();
-        setTag(tags.find((item) => item.id === tagId) ?? null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (projectId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTag(null);
-      loadProject();
-    } else if (tagId) {
-      setProject(null);
-      loadTag();
-    }
-  }, [projectId, tagId]);
+  const {
+    activePanel,
+    openTaskPanel,
+    openProjectPanel,
+    closePanel,
+    switchProjectPanel,
+  } = usePanel();
 
   function handleOpenDetails(task: Task) {
-    setEditingTask(task);
     setSelectedTask(task);
+    openTaskPanel(task, primaryColor, accentColor);
   }
 
   function handleTaskSelect(task: Task) {
     setSelectedTask(task);
-
-    if (editingTask) {
-      setEditingTask(task);
+    if (activePanel !== null && activePanel.type === "task") {
+      openTaskPanel(task, primaryColor, accentColor);
     }
+  }
+
+  function handleTaskUpdated(updatedTask: Task) {
+    setSelectedTask((current) =>
+      current?.id === updatedTask.id ? updatedTask : current,
+    );
+  }
+
+  function handleClosePanel() {
+    closePanel();
   }
 
   function handleCreateTask() {
     setIsCreatingTask(true);
   }
 
-  function handleTaskUpdated(updatedTask: Task) {
-    setUpdatedTask(updatedTask);
+  function handleProjectCompletionToggle() {
+    if (!project) return;
 
-    if (editingTaskRef.current?.id === updatedTask.id) {
-      setEditingTask(updatedTask);
-    }
+    updateProjectMutation.mutate({
+      projectId: project.id,
+      data: { completed: !project.completed },
+    });
   }
 
-  function handleClosePanel() {
-    editingTaskRef.current = null;
-    setEditingTask(null);
+  async function handleProjectArchive() {
+    if (!project) return;
+
+    await updateProjectMutation.mutateAsync({
+      projectId: project.id,
+      data: { archived: !project.archived },
+    });
   }
+
+  async function handleProjectDelete() {
+    if (!project) return;
+
+    await deleteProjectMutation.mutateAsync({ projectId: project.id });
+
+    setIsDeleteConfirmOpen(false);
+    router.push("/dashboard");
+  }
+
+  function handleEditTag() {
+    if (!tag) return;
+
+    setIsEditingTag(true);
+  }
+
+  async function handleTagUpdate(data: { name: string; color: string }) {
+    if (!tag) return;
+
+    await updateTagMutation.mutateAsync({
+      tagId: tag.id,
+      data,
+    });
+  }
+
+  function handleDeleteTagRequest() {
+    if (!tag) return;
+
+    setIsDeleteTagConfirmOpen(true);
+  }
+
+  async function handleDeleteTag() {
+    if (!tag) return;
+
+    await deleteTagMutation.mutateAsync(tag.id);
+
+    setIsDeleteTagConfirmOpen(false);
+    router.push("/dashboard");
+  }
+
+  useEffect(() => {
+    if (!project || activePanel?.type !== "project") return;
+    switchProjectPanel(project);
+  }, [activePanel, project, switchProjectPanel]);
 
   if (isLoading) {
     return (
       <main className="flex-1 p-6">
         <div className="py-20 text-center text-sm text-slate-500">
           Carregando...
+        </div>
+      </main>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <main className="flex-1 p-6">
+        <div className="py-20 text-center text-sm text-slate-500">
+          Não foi possível carregar os dados.
         </div>
       </main>
     );
@@ -149,7 +212,7 @@ function TasksPageContent() {
               setSelectedTask(null);
             }}
           />
-          <div className="relative z-10">
+          <div className="relative z-1">
             <div className="flex items-center justify-between pb-4 z-10">
               <div className="flex items-center gap-3">
                 <div
@@ -197,19 +260,24 @@ function TasksPageContent() {
                     </button>
                     <ProjectActions
                       projectCompleted={project.completed}
-                      onEdit={() => {}}
-                      onCompletionToggle={() => {}}
-                      onArchive={() => {}}
-                      onDelete={() => {}}
+                      onEdit={() => {
+                        if (project) {
+                          openProjectPanel(project);
+                        }
+                      }}
+                      onCompletionToggle={handleProjectCompletionToggle}
+                      onArchive={() => setIsArchiveConfirmOpen(true)}
+                      onDelete={() => setIsDeleteConfirmOpen(true)}
                       size={6}
                     />
                   </>
                 )}
-
                 {tag && tagId && (
-                  <>
-                    <TagActions onDelete={() => {}} onEdit={() => {}} />
-                  </>
+                  <TagActions
+                    onEdit={handleEditTag}
+                    onDelete={handleDeleteTagRequest}
+                    size={6}
+                  />
                 )}
               </div>
             </div>
@@ -233,7 +301,6 @@ function TasksPageContent() {
                   onClearSelectedTask={() => setSelectedTask(null)}
                   onOpenDetails={handleOpenDetails}
                   onTaskUpdated={handleTaskUpdated}
-                  updatedTask={updatedTask}
                 />
               )}
 
@@ -246,25 +313,45 @@ function TasksPageContent() {
                   onClearSelectedTask={() => setSelectedTask(null)}
                   onOpenDetails={handleOpenDetails}
                   onTaskUpdated={handleTaskUpdated}
-                  updatedTask={updatedTask}
                 />
               )}
             </div>
           </div>
         </main>
-        <AnimatePresence>
-          {editingTask && (
-            <Panel>
-              <TaskSettings
-                task={editingTask}
-                onClose={handleClosePanel}
-                onTaskUpdated={handleTaskUpdated}
-                primaryColor={primaryColor}
-                accentColor={accentColor}
-              />
-            </Panel>
-          )}
-        </AnimatePresence>
+        <TagDialog
+          open={isEditingTag && !!tag}
+          title="Editar tag"
+          initialTag={tag}
+          onClose={() => setIsEditingTag(false)}
+          onSubmit={handleTagUpdate}
+        />
+        <ActionConfirm
+          open={isDeleteConfirmOpen}
+          title="Excluir projeto"
+          message="Tem certeza de que deseja excluir o projeto"
+          confirmLabel="Excluir projeto"
+          itemName={project?.name ?? ""}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={handleProjectDelete}
+        />
+        <ActionConfirm
+          open={isArchiveConfirmOpen}
+          title={"Arquivar projeto"}
+          message="Tem certeza de que deseja arquivar o projeto"
+          confirmLabel="Arquivar projeto"
+          itemName={project?.name ?? ""}
+          onClose={() => setIsArchiveConfirmOpen(false)}
+          onConfirm={handleProjectArchive}
+        />
+        <ActionConfirm
+          open={isDeleteTagConfirmOpen}
+          title="Excluir tag"
+          message="Tem certeza de que deseja excluir a tag"
+          confirmLabel="Excluir tag"
+          itemName={tag?.name ?? ""}
+          onClose={() => setIsDeleteTagConfirmOpen(false)}
+          onConfirm={handleDeleteTag}
+        />
       </AppShell>
     </ProtectedRoute>
   );

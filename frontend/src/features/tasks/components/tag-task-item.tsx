@@ -4,7 +4,7 @@ import { FileText, Layers3 } from "lucide-react";
 import type { Task } from "@/features/tasks/types/task";
 import { TagTaskActions } from "./tag-task-actions";
 import { TaskTitleInput } from "@/features/tasks/components/task-title-input";
-import { Project } from "@/features/projects/types/project";
+import type { Project } from "@/features/projects/types/project";
 
 interface TagTaskItemProps {
   task: Task;
@@ -46,11 +46,11 @@ export function TagTaskItem({
       }}
       className={`
         relative group flex flex-col border px-3 py-1.5
-        cursor-pointer transition-colors bg-slate-800/15
+        cursor-pointer transition-colors
         ${
           isTaskSelected
             ? "bg-slate-800/70"
-            : "border-slate-800/50 hover:bg-slate-800/20"
+            : "bg-slate-800/15 hover:bg-slate-800/20"
         }
         ${task.completed ? "opacity-25 bg-transparent/95" : ""}
       `}

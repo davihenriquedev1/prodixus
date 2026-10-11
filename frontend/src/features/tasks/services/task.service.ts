@@ -42,15 +42,15 @@ export async function updateTask(
 }
 
 export async function deleteTask(projectId: string, taskId: string) {
-  await api.delete<Task>(`/api/projects/${projectId}/tasks/${taskId}`);
+  await api.delete(`/api/projects/${projectId}/tasks/${taskId}`);
 }
 
 export async function addTagToTask(taskId: string, tagId: string) {
   const response = await api.post(`/api/tasks/${taskId}/tags/${tagId}`);
+
   return response.data;
 }
 
 export async function removeTagFromTask(taskId: string, tagId: string) {
-  const response = await api.delete(`/api/tasks/${taskId}/tags/${tagId}`);
-  return response.data;
+  await api.delete(`/api/tasks/${taskId}/tags/${tagId}`);
 }

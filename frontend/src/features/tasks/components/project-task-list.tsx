@@ -10,23 +10,16 @@ import {
   type KeyboardEvent,
 } from "react";
 import { toast } from "sonner";
-import {
-  addTagToTask,
-  createTask,
-  deleteTask,
-  getProjectTasks,
-  removeTagFromTask,
-  updateTask,
-} from "@/features/tasks/services/task.service";
-import { getTags } from "@/features/tags/services/tag.service";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskItem } from "./project-task-item";
 import { ActionConfirm } from "@/components/ui/action-confirm";
 import { ChooseProjectToMove } from "./choose-project-to-move";
-import type { Project } from "@/features/projects/types/project";
+import { useProjectTasks } from "@/features/tasks/hooks/use-tasks";
+import { useTaskMutations } from "@/features/tasks/hooks/use-task-mutations";
+import { useTags } from "@/features/tags/hooks/use-tags";
+import { useProjects } from "@/features/projects/hooks/use-projects";
 import type { MovePosition } from "@/types/move-position";
-import { getProjects } from "@/features/projects/services/project.service";
-import { Tag } from "@/features/tags/types/tag";
+import type { Tag } from "@/features/tags/types/tag";
 import { TaskTagSelector } from "./task-tag-selector";
 
 interface ProjectTaskListProps {
@@ -36,7 +29,6 @@ interface ProjectTaskListProps {
   errorColor: string;
   isCreatingTask: boolean;
   selectedTask: Task | null;
-  updatedTask: Task | null;
   onSelectTask: (task: Task) => void;
   onClearSelectedTask: () => void;
   onOpenDetails: (task: Task) => void;
@@ -51,19 +43,12 @@ export function ProjectTaskList({
   errorColor,
   isCreatingTask,
   selectedTask,
-  updatedTask,
   onSelectTask,
   onClearSelectedTask,
   onOpenDetails,
   onCreatingTaskChange,
   onTaskUpdated,
 }: ProjectTaskListProps) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
-
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -96,6 +81,28 @@ export function ProjectTaskList({
     left: 0,
   });
 
+  const {
+    data: projectTasks = [],
+    isLoading,
+    isError: error,
+  } = useProjectTasks(projectId);
+
+  const tasks = projectTasks.filter((task) => !task.archived);
+
+  const { data: tags = [] } = useTags();
+
+  const { data: allProjects = [] } = useProjects();
+
+  const projects = allProjects.filter((project) => !project.archived);
+
+  const {
+    createTaskMutation,
+    updateTaskMutation,
+    deleteTaskMutation,
+    addTagToTaskMutation,
+    removeTagFromTaskMutation,
+  } = useTaskMutations();
+
   const subtasksByParent = tasks.reduce<Record<string, Task[]>>(
     (groups, task) => {
       if (!task.parentId) {
@@ -123,12 +130,10 @@ export function ProjectTaskList({
     setIsCreatingTaskRequest(true);
 
     try {
-      const newTask = await createTask({
+      await createTaskMutation.mutateAsync({
         title,
         projectId,
       });
-
-      setTasks((currentTasks) => [...currentTasks, newTask]);
 
       setNewTaskTitle("");
       onCreatingTaskChange(false);
@@ -168,13 +173,11 @@ export function ProjectTaskList({
     setIsCreatingSubtaskRequest(true);
 
     try {
-      const newSubtask = await createTask({
+      await createTaskMutation.mutateAsync({
         title,
         projectId,
         parentId: parentTaskId,
       });
-
-      setTasks((currentTasks) => [...currentTasks, newSubtask]);
 
       setNewSubtaskTitle("");
       setParentTaskId(null);
@@ -217,8 +220,12 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await updateTask(task.projectId, task.id, {
-        title: normalizedTitle,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: {
+          title: normalizedTitle,
+        },
       });
 
       onTaskUpdated(updatedTask);
@@ -237,27 +244,13 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await updateTask(task.projectId, task.id, {
-        completed: !task.completed,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: {
+          completed: !task.completed,
+        },
       });
-
-      const updatedTaskIds = new Set([
-        updatedTask.id,
-        ...(subtasksByParent[updatedTask.id] ?? []).map(
-          (subtask) => subtask.id,
-        ),
-      ]);
-
-      setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          updatedTaskIds.has(currentTask.id)
-            ? {
-                ...currentTask,
-                completed: updatedTask.completed,
-              }
-            : currentTask,
-        ),
-      );
 
       onTaskUpdated(updatedTask);
     } catch {
@@ -277,49 +270,34 @@ export function ProjectTaskList({
       return;
     }
 
+    const task = taskToEditTags;
     const hasTag = taskToEditTags.tags.some(
       (currentTag) => currentTag.id === tag.id,
     );
 
-    setPendingTaskId(taskToEditTags.id);
+    setPendingTaskId(task.id);
 
     try {
       if (hasTag) {
-        await removeTagFromTask(taskToEditTags.id, tag.id);
+        await removeTagFromTaskMutation.mutateAsync({
+          taskId: task.id,
+          tagId: tag.id,
+        });
 
-        const updatedTask = {
-          ...taskToEditTags,
-          tags: taskToEditTags.tags.filter(
-            (currentTag) => currentTag.id !== tag.id,
-          ),
-        };
-
-        setTaskToEditTags(updatedTask);
-
-        setTasks((currentTasks) =>
-          currentTasks.map((currentTask) =>
-            currentTask.id === updatedTask.id ? updatedTask : currentTask,
-          ),
-        );
-
-        onTaskUpdated(updatedTask);
+        setTaskToEditTags({
+          ...task,
+          tags: task.tags.filter((currentTag) => currentTag.id !== tag.id),
+        });
       } else {
-        await addTagToTask(taskToEditTags.id, tag.id);
+        await addTagToTaskMutation.mutateAsync({
+          taskId: task.id,
+          tagId: tag.id,
+        });
 
-        const updatedTask = {
-          ...taskToEditTags,
-          tags: [...taskToEditTags.tags, tag],
-        };
-
-        setTaskToEditTags(updatedTask);
-
-        setTasks((currentTasks) =>
-          currentTasks.map((currentTask) =>
-            currentTask.id === updatedTask.id ? updatedTask : currentTask,
-          ),
-        );
-
-        onTaskUpdated(updatedTask);
+        setTaskToEditTags({
+          ...task,
+          tags: [...task.tags, tag],
+        });
       }
     } catch {
       toast.error("Erro ao atualizar as tags da tarefa.");
@@ -340,15 +318,13 @@ export function ProjectTaskList({
     setPendingTaskId(task.id);
 
     try {
-      const updatedTask = await updateTask(task.projectId, task.id, {
-        parentId: null,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: {
+          parentId: null,
+        },
       });
-
-      setTasks((currentTasks) =>
-        currentTasks.map((currentTask) =>
-          currentTask.id === updatedTask.id ? updatedTask : currentTask,
-        ),
-      );
 
       onTaskUpdated(updatedTask);
     } catch {
@@ -368,27 +344,23 @@ export function ProjectTaskList({
       return;
     }
 
-    setPendingTaskId(taskToMove.id);
+    const task = taskToMove;
+
+    setPendingTaskId(task.id);
+    setTaskToMove(null);
 
     try {
-      const updatedTask = await updateTask(projectId, taskToMove.id, {
-        projectId: targetProjectId,
+      const updatedTask = await updateTaskMutation.mutateAsync({
+        projectId: task.projectId,
+        taskId: task.id,
+        data: {
+          projectId: targetProjectId,
+        },
       });
-
-      const movedTaskIds = new Set([
-        taskToMove.id,
-        ...(subtasksByParent[taskToMove.id] ?? []).map((subtask) => subtask.id),
-      ]);
-
-      setTasks((currentTasks) =>
-        currentTasks.filter((currentTask) => !movedTaskIds.has(currentTask.id)),
-      );
 
       if (selectedTask?.id === updatedTask.id) {
         onClearSelectedTask();
       }
-
-      setTaskToMove(null);
     } catch {
       toast.error("Não foi possível mover a tarefa.");
     } finally {
@@ -422,35 +394,20 @@ export function ProjectTaskList({
     setPendingTaskId(actionTask.id);
     try {
       if (actionConfirmType === "archive") {
-        await updateTask(actionTask.projectId, actionTask.id, {
-          archived: true,
+        await updateTaskMutation.mutateAsync({
+          projectId: actionTask.projectId,
+          taskId: actionTask.id,
+          data: {
+            archived: true,
+          },
         });
-
-        const archivedTaskIds = new Set([
-          actionTask.id,
-          ...(subtasksByParent[actionTask.id] ?? []).map(
-            (subtask) => subtask.id,
-          ),
-        ]);
-
-        setTasks((currentTasks) =>
-          currentTasks.filter((task) => !archivedTaskIds.has(task.id)),
-        );
       }
 
       if (actionConfirmType === "delete") {
-        await deleteTask(actionTask.projectId, actionTask.id);
-
-        const deletedTaskIds = new Set([
-          actionTask.id,
-          ...(subtasksByParent[actionTask.id] ?? []).map(
-            (subtask) => subtask.id,
-          ),
-        ]);
-
-        setTasks((currentTasks) =>
-          currentTasks.filter((task) => !deletedTaskIds.has(task.id)),
-        );
+        await deleteTaskMutation.mutateAsync({
+          projectId: actionTask.projectId,
+          taskId: actionTask.id,
+        });
       }
 
       if (selectedTask?.id === actionTask.id) {
@@ -471,16 +428,6 @@ export function ProjectTaskList({
   }
 
   useEffect(() => {
-    async function loadProjects() {
-      const data = await getProjects();
-      const availableProjects = data.filter((p) => !p.archived);
-      setProjects(availableProjects);
-    }
-
-    void loadProjects();
-  }, []);
-
-  useEffect(() => {
     if (!isCreatingTask) {
       return;
     }
@@ -499,6 +446,12 @@ export function ProjectTaskList({
       document.removeEventListener("mousedown", handleMouseDown);
     };
   }, [handleCancelCreateTask, isCreatingTask]);
+
+  useEffect(() => {
+    if (isCreatingTask && parentTaskId === null) {
+      newTaskInputRef.current?.focus();
+    }
+  }, [isCreatingTask, parentTaskId]);
 
   useEffect(() => {
     if (parentTaskId === null) {
@@ -525,47 +478,6 @@ export function ProjectTaskList({
       document.removeEventListener("mousedown", handleMouseDown);
     };
   }, [parentTaskId]);
-
-  useEffect(() => {
-    async function loadTasks() {
-      try {
-        setError(false);
-        setIsLoading(true);
-        const data = await getProjectTasks(projectId);
-        setTasks(data.filter((task) => !task.archived));
-      } catch {
-        setError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    void loadTasks();
-  }, [projectId]);
-
-  useEffect(() => {
-    if (!updatedTask) return;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTasks((currentTasks) =>
-      currentTasks.map((task) =>
-        task.id === updatedTask.id ? updatedTask : task,
-      ),
-    );
-  }, [updatedTask]);
-
-  useEffect(() => {
-    async function loadTags() {
-      try {
-        const data = await getTags();
-        setTags(data);
-      } catch {
-        toast.error("Não foi possível carregar as tags.");
-      }
-    }
-
-    void loadTags();
-  }, []);
 
   if (isLoading) {
     return (
@@ -639,7 +551,7 @@ export function ProjectTaskList({
                 onKeyDown={handleKeyDownCreating}
                 placeholder="Nome da tarefa..."
                 autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent p-1 text-sm text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
+                className="min-w-0 flex-1 bg-transparent p-1 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
               />
 
               <div className="flex items-center">

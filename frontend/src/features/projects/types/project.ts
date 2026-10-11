@@ -27,11 +27,11 @@ export interface CreateProjectData {
 
 export interface UpdateProjectData {
   name?: string;
-  notes?: string;
+  notes?: string | null;
   completed?: boolean;
   archived?: boolean;
-  estimatedDuration?: number;
-  dueAt?: string;
+  estimatedDuration?: number | null;
+  dueAt?: string | null;
   primaryColor?: string;
   accentColor?: string;
   errorColor?: string;

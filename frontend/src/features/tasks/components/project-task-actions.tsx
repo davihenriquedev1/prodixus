@@ -1,7 +1,7 @@
 "use client";
 
 import type { MovePosition } from "@/types/move-position";
-import type { ButtonHTMLAttributes, MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { getMenuPosition } from "@/utils/get-menu-position";
 import {
   Archive,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-interface ProjectTaskActionsProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ProjectTaskActionsProps {
   onEdit: () => void;
   onCompletionToggle: () => void;
   taskCompleted: boolean;
@@ -80,6 +80,13 @@ export function ProjectTaskActions({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (disabled) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOpen(false);
+    }
+  }, [disabled]);
 
   function handleEdit() {
     setOpen(false);
