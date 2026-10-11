@@ -551,7 +551,7 @@ export function ProjectTaskList({
                 onKeyDown={handleKeyDownCreating}
                 placeholder="Nome da tarefa..."
                 autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent p-1 text-sm text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
+                className="min-w-0 flex-1 bg-transparent p-1 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
               />
 
               <div className="flex items-center">

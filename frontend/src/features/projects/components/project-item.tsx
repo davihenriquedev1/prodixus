@@ -60,7 +60,10 @@ export function ProjectItem({
 
         <div className="hover:bg-slate-800/40 flex items-center justify-center">
           <ProjectActions
-            onEdit={() => onUpdateProject(project)}
+            onEdit={() => {
+              console.log("2. onEdit do ProjectItem executado:", project.name);
+              onUpdateProject(project);
+            }}
             onCompletionToggle={() => onCompletionToggleProject(project)}
             projectCompleted={project.completed}
             onArchive={() => onArchiveProject(project)}

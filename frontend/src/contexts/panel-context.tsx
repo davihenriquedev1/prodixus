@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 
 import type { Project } from "@/features/projects/types/project";
 import type { Task } from "@/features/tasks/types/task";
@@ -26,6 +32,7 @@ interface PanelContextValue {
   ) => void;
   closePanel: () => void;
   updateProjectPanel: (project: Project) => void;
+  switchProjectPanel: (project: Project) => void;
   updateTaskPanel: (task: Task) => void;
 }
 
@@ -74,6 +81,15 @@ export function PanelProvider({ children }: PanelProviderProps) {
     });
   }
 
+  const switchProjectPanel = useCallback((project: Project) => {
+    setActivePanel((current) => {
+      if (current?.type !== "project") return current;
+      if (current.project.id === project.id) return current;
+
+      return { type: "project", project };
+    });
+  }, []);
+
   function updateTaskPanel(task: Task) {
     setActivePanel((current) => {
       if (current?.type !== "task" || current.task.id !== task.id) {
@@ -96,6 +112,7 @@ export function PanelProvider({ children }: PanelProviderProps) {
         closePanel,
         updateProjectPanel,
         updateTaskPanel,
+        switchProjectPanel,
       }}
     >
       {children}

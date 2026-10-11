@@ -1,7 +1,7 @@
 "use client";
 
 import { Layers3, Plus, Tag } from "lucide-react";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectActions } from "@/features/projects/components/project-actions";
@@ -54,16 +54,24 @@ function TasksPageContent() {
   const isLoading = isProjectsLoading || isTagsLoading;
   const hasError = isProjectsError || isTagsError;
 
-  const { openTaskPanel, openProjectPanel, closePanel } = usePanel();
+  const {
+    activePanel,
+    openTaskPanel,
+    openProjectPanel,
+    closePanel,
+    switchProjectPanel,
+  } = usePanel();
 
   function handleOpenDetails(task: Task) {
     setSelectedTask(task);
-
     openTaskPanel(task, primaryColor, accentColor);
   }
 
   function handleTaskSelect(task: Task) {
     setSelectedTask(task);
+    if (activePanel !== null && activePanel.type === "task") {
+      openTaskPanel(task, primaryColor, accentColor);
+    }
   }
 
   function handleTaskUpdated(updatedTask: Task) {
@@ -136,6 +144,11 @@ function TasksPageContent() {
     setIsDeleteTagConfirmOpen(false);
     router.push("/dashboard");
   }
+
+  useEffect(() => {
+    if (!project || activePanel?.type !== "project") return;
+    switchProjectPanel(project);
+  }, [activePanel, project, switchProjectPanel]);
 
   if (isLoading) {
     return (

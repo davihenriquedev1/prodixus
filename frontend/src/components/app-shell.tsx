@@ -14,16 +14,12 @@ function GlobalPanel() {
   const { activePanel, closePanel, updateProjectPanel, updateTaskPanel } =
     usePanel();
 
+  console.log("Projeto ativo no painel:", activePanel);
+
   return (
     <AnimatePresence>
       {activePanel && (
-        <Panel
-          key={
-            activePanel.type === "project"
-              ? `project-${activePanel.project.id}`
-              : `task-${activePanel.task.id}`
-          }
-        >
+        <Panel key="global-panel">
           {activePanel.type === "project" ? (
             <ProjectSettings
               project={activePanel.project}

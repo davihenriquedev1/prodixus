@@ -244,6 +244,7 @@ export function ProjectSettings({
                 disabled={isSaving}
                 accentColor={project.accentColor ?? "#64748B"}
                 placeholder="Nome do projeto"
+                className="text-xs"
               />
             </div>
 
@@ -264,6 +265,7 @@ export function ProjectSettings({
                 rows={6}
                 placeholder="Adicione observações sobre este projeto..."
                 accentColor={project.accentColor ?? "#64748B"}
+                className="text-xs"
               />
             </div>
           </section>
@@ -290,7 +292,7 @@ export function ProjectSettings({
                   disabled={isSaving}
                   placeholder="Duração"
                   accentColor={project.accentColor ?? "#64748B"}
-                  className="rounded-r-none"
+                  className="rounded-r-none text-xs"
                 />
 
                 <Select

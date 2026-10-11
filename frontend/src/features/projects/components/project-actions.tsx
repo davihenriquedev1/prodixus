@@ -64,6 +64,7 @@ export function ProjectActions({
   }
 
   function handleEdit() {
+    console.log("1. handleEdit executado");
     setOpen(false);
     onEdit();
   }

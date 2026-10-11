@@ -265,6 +265,7 @@ export function TaskSettings({
                 disabled={isSaving}
                 accentColor={accentColor}
                 placeholder="Título da tarefa"
+                className="text-xs"
               />
             </div>
 
@@ -285,6 +286,7 @@ export function TaskSettings({
                 rows={6}
                 placeholder="Adicione observações sobre esta tarefa..."
                 accentColor={accentColor}
+                className="text-xs"
               />
             </div>
           </section>
@@ -311,6 +313,7 @@ export function TaskSettings({
                   onBlur={handlePriorityBlur}
                   disabled={isSaving}
                   accentColor={accentColor}
+                  className="text-xs"
                 />
               </div>
 
@@ -334,7 +337,7 @@ export function TaskSettings({
                     disabled={isSaving}
                     placeholder="10"
                     accentColor={accentColor}
-                    className="rounded-r-none"
+                    className="rounded-r-none text-xs"
                   />
 
                   <Select

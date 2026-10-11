@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Settings } from "lucide-react";
+import { Circle, Home, Settings } from "lucide-react";
 import { useState } from "react";
 import { useFolderMutations } from "@/features/folders/hooks/use-folder-mutations";
 import { useTagMutations } from "@/features/tags/hooks/use-tag-mutations";
@@ -228,11 +228,18 @@ export function Sidebar() {
 
         <nav>
           <button
-            className={`w-full cursor-pointer flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50" : ""} `}
+            className={`w-full cursor-pointer flex items-center justify-between rounded-lg text-sm font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50 px-3 py-2" : "px-3.25 py-2.25"} `}
             onClick={() => router.push("/dashboard")}
           >
-            <Home className="w-4 h-4" />
-            <span>Início</span>
+            <div className="flex gap-2 items-center">
+              <Home className="w-4 h-4" />
+              <span>Início</span>
+            </div>
+            {location === "/dashboard" ? (
+              <Circle className="w-2.5 h-2.5 shrink-0" fill="#fff" />
+            ) : (
+              <span className="w-2.5 h-2.5 shrink-0"></span>
+            )}
           </button>
         </nav>
 
@@ -258,6 +265,11 @@ export function Sidebar() {
             setIsCreatingProject(true);
           }}
           onUpdateProject={(project) => {
+            console.log(
+              "Projeto clicado para edição:",
+              project.id,
+              project.name,
+            );
             openProjectPanel(project);
           }}
           onCompletionToggleProject={(project) => {
