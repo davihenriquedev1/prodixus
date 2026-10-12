@@ -14,7 +14,7 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <AppShell>
-        <main className="p-4 max-w-6xl w-full mx-auto space-y-8">
+        <main className="p-4 w-full mx-auto space-y-8 overflow-x-hidden">
           <DashboardGreeting />
 
           <DashboardMetrics

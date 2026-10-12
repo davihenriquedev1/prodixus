@@ -120,7 +120,7 @@ export function ProjectsOverview({
                     }}
                   />
 
-                  <span className="text-sm font-medium text-slate-200 truncate">
+                  <span className="text-xs font-bold text-slate-200 truncate">
                     {project.name}
                   </span>
                 </div>

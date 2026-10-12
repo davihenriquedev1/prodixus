@@ -10,7 +10,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace("login");
+      router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
 
