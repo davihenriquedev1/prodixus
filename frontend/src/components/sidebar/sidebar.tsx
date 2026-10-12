@@ -213,10 +213,19 @@ export function Sidebar() {
     }
   }
 
+  function handleGoToSettings() {
+    const lastRoute =
+      selectedProjectId !== null || selectedTagId !== null
+        ? `${location}${"?"}${searchParams}`
+        : location;
+    sessionStorage.setItem("settings:returnTo", lastRoute);
+    router.push("/settings/preferencies");
+  }
+
   return (
     <aside className="w-72 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
       <div className="p-3 space-y-6 overflow-y-auto">
-        <div className="flex items-center gap-2.5 py-1">
+        <div className="flex items-center gap-3 py-1">
           <div className="w-6 h-6 rounded-lg bg-slate-700 flex items-center justify-center">
             <div className="w-2 h-2 bg-slate-200 rounded-sm" />
           </div>
@@ -228,7 +237,7 @@ export function Sidebar() {
 
         <nav>
           <button
-            className={`w-full cursor-pointer flex items-center justify-between rounded-lg text-sm font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50 px-3 py-2" : "px-3.25 py-2.25"} `}
+            className={`w-full cursor-pointer flex items-center justify-between rounded-lg text-sm px-3 py-2 font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50 " : " bg-slate-800/7 hover:bg-slate-800/20 border border-transparent border-b-slate-800/20"} `}
             onClick={() => router.push("/dashboard")}
           >
             <div className="flex gap-2 items-center">
@@ -301,7 +310,11 @@ export function Sidebar() {
         />
       </div>
       <div className="p-3 border-t border-slate-800/60">
-        <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+        <button
+          type="button"
+          className="w-full cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+          onClick={handleGoToSettings}
+        >
           <Settings className="w-4 h-4" />
           <span>Configurações</span>
         </button>

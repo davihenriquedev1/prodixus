@@ -4,6 +4,7 @@ import {
   clearSession,
   getAuthUser,
   getRefreshToken,
+  setAuthUser,
   setSession,
 } from "@/features/auth/storage/auth-storage";
 import {
@@ -27,6 +28,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateUser: (user: AuthUser) => void;
   logout: () => Promise<void>;
 }
 
@@ -68,11 +70,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (refreshToken) {
         await logoutUser(refreshToken);
       }
+    } catch {
+      // A sessão local deve ser encerrada mesmo se a API falhar.
     } finally {
       clearSession();
       setUser(null);
       router.push("/login");
     }
+  }
+
+  function updateUser(user: AuthUser) {
+    setAuthUser(user);
+    setUser(user);
   }
 
   return (
@@ -84,6 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         register,
         logout,
+        updateUser,
       }}
     >
       {children}

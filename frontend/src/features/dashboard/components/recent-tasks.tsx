@@ -127,7 +127,7 @@ export function RecentTasks({
                 <div className="min-w-0 flex-1">
                   <div className="flex justify-between items-center gap-2">
                     <span
-                      className={`truncate text-sm font-medium transition ${
+                      className={`truncate text-xs font-medium transition ${
                         task.completed
                           ? "text-slate-500 line-through"
                           : "text-slate-200 group-hover:text-white"
