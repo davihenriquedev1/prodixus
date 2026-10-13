@@ -24,7 +24,7 @@ export function Input({
     <div className="relative">
       <input
         type={isPassword && showPassword ? "text" : type}
-        className={`w-full rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition ${
+        className={`w-full rounded-lg border border-border bg-surface-elevated px-3 py-2.5 text-sm text-foreground placeholder:text-subtle outline-none transition ${
           isPassword ? "pr-10" : ""
         } ${type === "number" ? "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" : ""} ${className}`}
         style={{
@@ -45,7 +45,7 @@ export function Input({
         <button
           type="button"
           onClick={() => setShowPassword((current) => !current)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-300"
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-muted transition hover:text-foreground"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

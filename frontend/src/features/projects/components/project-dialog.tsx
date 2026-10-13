@@ -150,7 +150,7 @@ export function ProjectDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-background/60 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSubmitting) {
           onClose();
@@ -161,19 +161,19 @@ export function ProjectDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-dialog-title"
-        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-2xl"
+        className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-2xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <h2
               id="project-dialog-title"
-              className="text-sm font-semibold text-slate-100"
+              className="text-sm font-semibold text-foreground"
             >
               Criar projeto
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted">
               Configure as informações iniciais do projeto.
             </p>
           </div>
@@ -184,7 +184,7 @@ export function ProjectDialog({
             disabled={isSubmitting}
             aria-label="Fechar dialog"
             title="Fechar"
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-elevated hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -196,9 +196,9 @@ export function ProjectDialog({
             <div>
               <label
                 htmlFor="create-project-name"
-                className="mb-2 block text-xs font-medium text-slate-400"
+                className="mb-2 block text-xs font-medium text-muted"
               >
-                Nome <span className="text-red-400">*</span>
+                Nome <span className="text-danger">*</span>
               </label>
 
               <Input
@@ -216,7 +216,7 @@ export function ProjectDialog({
             <div>
               <label
                 htmlFor="create-project-notes"
-                className="mb-2 block text-xs font-medium text-slate-400"
+                className="mb-2 block text-xs font-medium text-muted"
               >
                 Notas
               </label>
@@ -235,7 +235,7 @@ export function ProjectDialog({
             <div>
               <label
                 htmlFor="create-project-folder"
-                className="mb-2 block text-xs font-medium text-slate-400"
+                className="mb-2 block text-xs font-medium text-muted"
               >
                 Pasta
               </label>
@@ -261,7 +261,7 @@ export function ProjectDialog({
             <div>
               <label
                 htmlFor="create-project-duration"
-                className="mb-2 block text-xs font-medium text-slate-400"
+                className="mb-2 block text-xs font-medium text-muted"
               >
                 Duração estimada
               </label>
@@ -289,7 +289,7 @@ export function ProjectDialog({
                   }
                   disabled={isSubmitting}
                   accentColor={accentColor}
-                  className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-slate-400"
+                  className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-muted"
                 >
                   <option value="minutes">Minutos</option>
                   <option value="hours">Horas</option>
@@ -302,7 +302,7 @@ export function ProjectDialog({
             <div>
               <label
                 htmlFor="create-project-due-at"
-                className="mb-2 block text-xs font-medium text-slate-400"
+                className="mb-2 block text-xs font-medium text-muted"
               >
                 Prazo
               </label>
@@ -315,8 +315,8 @@ export function ProjectDialog({
               />
             </div>
 
-            <div className="border-t border-slate-800 pt-5">
-              <h3 className="mb-3 text-xs font-medium text-slate-400">
+            <div className="border-t border-border pt-5">
+              <h3 className="mb-3 text-xs font-medium text-muted">
                 Cores do projeto
               </h3>
 
@@ -346,12 +346,12 @@ export function ProjectDialog({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 border-t border-slate-800 px-5 py-4">
+          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="cursor-pointer rounded-lg px-4 py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer rounded-lg px-4 py-2 text-xs font-medium text-muted transition-colors hover:bg-surface-elevated hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancelar
             </button>

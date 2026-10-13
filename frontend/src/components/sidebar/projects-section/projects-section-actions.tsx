@@ -66,16 +66,16 @@ export function ProjectsSectionActions({
         ref={buttonRef}
         type="button"
         onClick={toggleMenu}
-        className="text-slate-500 cursor-pointer hover:text-slate-300"
+        className="cursor-pointer text-subtle hover:text-foreground"
         aria-label="Create"
       >
-        <Plus className="w-3.5 h-3.5" />
+        <Plus className="h-3.5 w-3.5" />
       </button>
 
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-100 w-40 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150"
+          className="animate-in fade-in-0 zoom-in-95 fixed z-100 w-40 rounded-md border border-border bg-surface p-1 shadow-xl duration-150"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,
@@ -84,18 +84,18 @@ export function ProjectsSectionActions({
           <button
             type="button"
             onClick={handleCreateFolder}
-            className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 cursor-pointer hover:bg-slate-800/60"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-muted hover:bg-surface-elevated"
           >
-            <FolderPlus className="w-3.5 h-3.5" />
+            <FolderPlus className="h-3.5 w-3.5" />
             <span>Nova pasta</span>
           </button>
 
           <button
             type="button"
             onClick={handleCreateProject}
-            className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 cursor-pointer hover:bg-slate-800/60"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-muted hover:bg-surface-elevated"
           >
-            <SquarePlus className="w-3.5 h-3.5" />
+            <SquarePlus className="h-3.5 w-3.5" />
             <span>Novo projeto</span>
           </button>
         </div>

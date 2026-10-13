@@ -11,6 +11,7 @@ import tagRouter from "./routes/tag.routes.js";
 import notFound from "./middlewares/not-found.middleware.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import folderRouter from "./routes/folder.routes.js";
+import userSettingsRouter from "./routes/user-settings.routes.js";
 
 // Express APP
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/projects/:projectId/tasks", taskRouter);
 app.use("/api/tasks/:taskId/tags", taskTagRouter);
 app.use("/api/tags", tagRouter);
 app.use("/api/folders", folderRouter);
+app.use("/api/user-settings", userSettingsRouter);
 
 // Error handlers (middlewares)
 app.use(notFound);

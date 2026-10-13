@@ -43,18 +43,18 @@ export function LoginForm() {
       className="w-full max-w-sm space-y-5"
     >
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-100">
-          Welcome back
+        <h1 className="text-lg font-bold tracking-tight text-foreground">
+          Login
         </h1>
 
-        <p className="text-sm text-slate-400">
-          Sign in to continue to your workspace.
+        <p className="text-sm text-muted">
+          Entre com email e senha para utilizar o sistema.
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="email" className="text-xs font-medium text-slate-300">
+          <label htmlFor="email" className="text-xs font-medium text-muted">
             Email
           </label>
 
@@ -62,46 +62,45 @@ export function LoginForm() {
             id="email"
             type="email"
             autoComplete="email"
+            className="text-xs"
             {...registerField("email")}
           />
 
           {errors.email && (
-            <p className="text-xs text-red-400">{errors.email.message}</p>
+            <p className="text-xs text-danger">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label
-            htmlFor="password"
-            className="text-xs font-medium text-slate-300"
-          >
-            Password
+          <label htmlFor="password" className="text-xs font-medium text-muted">
+            Senha
           </label>
 
           <Input
             id="password"
             type="password"
+            className="text-xs"
             autoComplete="current-password"
             {...registerField("password")}
           />
 
           {errors.password && (
-            <p className="text-xs text-red-400">{errors.password.message}</p>
+            <p className="text-xs text-danger">{errors.password.message}</p>
           )}
         </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Signing in..." : "Sign in"}
+        {isSubmitting ? "Entrando..." : "Entrar"}
       </Button>
 
-      <p className="text-center text-xs text-slate-500">
-        Don&apos;t have an account?{" "}
+      <p className="text-center text-xs text-subtle">
+        Ainda não tem uma conta?{" "}
         <Link
           href="/register"
-          className="text-slate-300 transition hover:text-white"
+          className="text-muted transition hover:text-foreground"
         >
-          Create one
+          Crie uma
         </Link>
       </p>
     </form>

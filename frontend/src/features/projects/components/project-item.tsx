@@ -35,30 +35,30 @@ export function ProjectItem({
         <button
           type="button"
           onClick={selectProject}
-          className={`min-w-0 flex-1 flex items-center py-1 cursor-pointer ${
+          className={`flex min-w-0 flex-1 cursor-pointer items-center py-1 ${
             project.completed
-              ? "text-slate-500"
-              : "text-slate-300 hover:text-slate-100"
+              ? "text-subtle"
+              : "text-foreground hover:text-primary"
           }`}
-          style={selected ? { color: "#f8fafc" } : {}}
+          style={selected ? { color: "var(--color-foreground)" } : {}}
         >
           {project.completed ? (
-            <Check className="w-2.5 h-2.5 shrink-0 mr-1" />
+            <Check className="mr-1 h-2.5 w-2.5 shrink-0" />
           ) : selected ? (
             <Circle
-              className="w-2.5 h-2.5 shrink-0 mr-1"
+              className="mr-1 h-2.5 w-2.5 shrink-0"
               fill={project.primaryColor || ""}
             />
           ) : (
-            <span className="w-2.5 shrink-0 mr-1" />
+            <span className="mr-1 w-2.5 shrink-0" />
           )}
 
-          <Layers3 className="w-3.5 h-3.5 mr-1" />
+          <Layers3 className="mr-1 h-3.5 w-3.5 text-muted" />
 
           <span className="truncate">{project.name}</span>
         </button>
 
-        <div className="hover:bg-slate-800/40 flex items-center justify-center">
+        <div className="flex items-center justify-center hover:bg-surface-elevated">
           <ProjectActions
             onEdit={() => {
               console.log("2. onEdit do ProjectItem executado:", project.name);
@@ -73,7 +73,7 @@ export function ProjectItem({
       </div>
 
       {project.completed && (
-        <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px bg-slate-400/30" />
+        <div className="pointer-events-none absolute top-1/2 right-0 left-0 h-px bg-border" />
       )}
     </div>
   );

@@ -41,11 +41,11 @@ export function ProjectsSection({
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <span className="text-xs font-semibold tracking-wider text-muted uppercase">
           Projetos
         </span>
 
-        <div className="flex items-center text-slate-500">
+        <div className="flex items-center text-subtle">
           <ProjectsSectionActions
             onCreateFolder={() => onCreateFolder(null)}
             onCreateProject={() => onCreateProject(null)}
@@ -54,15 +54,15 @@ export function ProjectsSection({
       </div>
 
       {mutationError && (
-        <div className="py-1 text-xs text-red-400">
+        <div className="py-1 text-xs text-danger">
           Não foi possível concluir a operação.
         </div>
       )}
 
       {isLoading ? (
-        <div className="py-1 text-xs text-slate-500">Carregando...</div>
+        <div className="py-1 text-xs text-subtle">Carregando...</div>
       ) : error ? (
-        <div className="py-1 text-xs text-red-400">
+        <div className="py-1 text-xs text-danger">
           Não foi possível carregar os projetos.
         </div>
       ) : (

@@ -161,7 +161,7 @@ export function TagTaskList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
+      <div className="flex items-center gap-2 py-4 text-sm text-muted">
         <span
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: color }}
@@ -191,9 +191,7 @@ export function TagTaskList({
       <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
         <ListTodo className="h-5 w-5" style={{ color: color }} />
 
-        <p className="text-sm text-slate-500">
-          Nenhuma tarefa possui esta tag.
-        </p>
+        <p className="text-sm text-muted">Nenhuma tarefa possui esta tag.</p>
       </div>
     );
   }

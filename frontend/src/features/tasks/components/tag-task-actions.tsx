@@ -108,7 +108,7 @@ export function TagTaskActions({
         ref={buttonRef}
         disabled={disabled}
         type="button"
-        className="cursor-pointer p-1.5 text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 disabled:cursor-not-allowed disabled:opacity-40 opacity-100"
+        className="cursor-pointer p-1.5 text-muted hover:bg-surface-elevated hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 opacity-100"
         aria-label="Ações da tarefa"
         title="Ações da tarefa"
         style={{ color }}
@@ -122,7 +122,7 @@ export function TagTaskActions({
       {open && (
         <div
           ref={menuRef}
-          className="fixed z-100 w-46 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150 opacity-100"
+          className="fixed z-100 w-46 rounded-md border border-border bg-surface-elevated p-1 shadow-xl animate-in fade-in-0 zoom-in-95 duration-150 opacity-100"
           style={{
             top: menuPosition.top,
             left: menuPosition.left,
@@ -132,25 +132,25 @@ export function TagTaskActions({
           <button
             type="button"
             onClick={handleEdit}
-            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-surface"
           >
-            <Pencil className="h-3.5 w-3.5 text-slate-500" />
+            <Pencil className="h-3.5 w-3.5 text-muted" />
             Editar tarefa
           </button>
 
           <button
             type="button"
             onClick={handleCompletionToggle}
-            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-surface"
           >
             {taskCompleted ? (
               <>
-                <RotateCcw className="h-3.5 w-3.5 text-slate-500" />
+                <RotateCcw className="h-3.5 w-3.5 text-muted" />
                 Reabrir tarefa
               </>
             ) : (
               <>
-                <CheckCircle className="h-3.5 w-3.5 text-slate-500" />
+                <CheckCircle className="h-3.5 w-3.5 text-muted" />
                 Concluir tarefa
               </>
             )}
@@ -159,16 +159,16 @@ export function TagTaskActions({
           <button
             type="button"
             onClick={handleArchive}
-            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-slate-800/60"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-surface"
           >
-            <Archive className="h-3.5 w-3.5 text-slate-500" />
+            <Archive className="h-3.5 w-3.5 text-muted" />
             Arquivar tarefa
           </button>
 
           <button
             type="button"
             onClick={handleDelete}
-            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
+            className="flex w-full cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-danger hover:bg-danger/10"
           >
             <Trash2 className="h-3.5 w-3.5" />
             Excluir tarefa

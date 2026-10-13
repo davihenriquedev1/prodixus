@@ -218,17 +218,17 @@ export function TaskSettings({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-slate-800/80 py-2 px-4">
+      <div className="border-b border-border py-2 px-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2
-              className="text-sm font-semibold text-slate-100"
+              className="text-sm font-semibold text-foreground"
               style={{ color: primaryColor }}
             >
               Editar tarefa
             </h2>
 
-            <p className="mt-1 truncate text-xs text-slate-500">{task.title}</p>
+            <p className="mt-1 truncate text-xs text-muted">{task.title}</p>
           </div>
 
           <button
@@ -236,7 +236,7 @@ export function TaskSettings({
             onClick={onClose}
             aria-label="Fechar painel"
             title="Fechar"
-            className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200"
+            className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -251,7 +251,7 @@ export function TaskSettings({
             <div>
               <label
                 htmlFor="task-title"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Título
               </label>
@@ -272,7 +272,7 @@ export function TaskSettings({
             <div>
               <label
                 htmlFor="task-notes"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Notas
               </label>
@@ -291,7 +291,7 @@ export function TaskSettings({
             </div>
           </section>
 
-          <div className="h-px bg-slate-800/70" />
+          <div className="h-px bg-border" />
 
           {/* Task metadata */}
           <section className="space-y-4">
@@ -299,7 +299,7 @@ export function TaskSettings({
               <div>
                 <label
                   htmlFor="task-priority"
-                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
                 >
                   Prioridade
                 </label>
@@ -320,7 +320,7 @@ export function TaskSettings({
               <div onBlur={handleEstimatedDurationFocusOut}>
                 <label
                   htmlFor="task-estimated-duration"
-                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
                 >
                   Duração
                 </label>
@@ -349,7 +349,7 @@ export function TaskSettings({
                     }
                     disabled={isSaving}
                     accentColor={accentColor}
-                    className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-slate-400"
+                    className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-muted"
                   >
                     <option value="minutes">Minutos</option>
                     <option value="hours">Horas</option>
@@ -364,7 +364,7 @@ export function TaskSettings({
               <div>
                 <label
                   htmlFor="task-start-at"
-                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
                 >
                   Início
                 </label>
@@ -381,7 +381,7 @@ export function TaskSettings({
               <div>
                 <label
                   htmlFor="task-due-at"
-                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                  className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
                 >
                   Prazo
                 </label>
@@ -400,10 +400,8 @@ export function TaskSettings({
 
       {/* Saving state */}
       {isSaving && (
-        <div
-          className={`overflow-hidden border-t border-slate-800/80 transition-all`}
-        >
-          <div className="px-5 py-2.5 text-[11px] text-slate-500">
+        <div className="overflow-hidden border-t border-border transition-all">
+          <div className="px-5 py-2.5 text-[11px] text-muted">
             Salvando alterações...
           </div>
         </div>

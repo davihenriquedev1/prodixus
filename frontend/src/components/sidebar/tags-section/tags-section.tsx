@@ -26,31 +26,31 @@ export function TagsSection({
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <span className="text-xs font-semibold tracking-wider text-muted uppercase">
           Tags
         </span>
 
-        <div className="flex items-center text-slate-500">
+        <div className="flex items-center text-subtle">
           <button
             type="button"
             onClick={onCreateTag}
-            className="w-full flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
+            className="flex w-full cursor-pointer items-center text-subtle hover:text-foreground"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
       {mutationError && (
-        <div className="py-1 text-xs text-red-400">
+        <div className="py-1 text-xs text-danger">
           Não foi possível concluir a operação.
         </div>
       )}
 
       {isLoading ? (
-        <div className="py-1 text-xs text-slate-500">Carregando...</div>
+        <div className="py-1 text-xs text-subtle">Carregando...</div>
       ) : error ? (
-        <div className="py-1 text-xs text-red-400">
+        <div className="py-1 text-xs text-danger">
           Não foi possível carregar as tags
         </div>
       ) : (

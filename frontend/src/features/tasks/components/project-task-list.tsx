@@ -481,7 +481,7 @@ export function ProjectTaskList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
+      <div className="flex items-center gap-2 py-4 text-sm text-muted">
         <span
           className="h-2 w-2 rounded-full"
           style={{ backgroundColor: primaryColor }}
@@ -511,9 +511,9 @@ export function ProjectTaskList({
       <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
         <ListTodo className="h-5 w-5" style={{ color: accentColor }} />
 
-        <p className="text-sm text-slate-500">Nenhuma tarefa neste projeto.</p>
+        <p className="text-sm text-muted">Nenhuma tarefa neste projeto.</p>
 
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-subtle">
           Crie uma nova tarefa para começar.
         </p>
       </div>
@@ -535,12 +535,12 @@ export function ProjectTaskList({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18 }}
-              className="group flex items-center gap-3 bg-slate-800/10 px-3 py-2"
+              className="group flex items-center gap-3 bg-surface/10 px-3 py-2"
               style={{
                 border: `1px solid ${accentColor}`,
               }}
             >
-              <div className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-500 opacity-40" />
+              <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted opacity-40" />
 
               <input
                 ref={newTaskInputRef}
@@ -551,12 +551,12 @@ export function ProjectTaskList({
                 onKeyDown={handleKeyDownCreating}
                 placeholder="Nome da tarefa..."
                 autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent p-1 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
+                className="min-w-0 flex-1 bg-transparent p-1 text-xs text-foreground outline-none placeholder:text-subtle focus:border focus:border-border/40"
               />
 
               <div className="flex items-center">
                 <div className="flex shrink-0 items-center justify-center p-1.5">
-                  <MoreHorizontal className="h-6 w-6 text-slate-500/30" />
+                  <MoreHorizontal className="h-6 w-6 text-muted/30" />
                 </div>
               </div>
             </motion.div>

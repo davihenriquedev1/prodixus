@@ -17,9 +17,7 @@ export function Textarea({
 
   return (
     <textarea
-      className={`w-full rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-2.5 text-sm leading-6 text-slate-100 placeholder:text-slate-600 outline-none transition resize-none ${
-        className
-      }`}
+      className={`w-full resize-none rounded-lg border border-border bg-surface-elevated px-3 py-2.5 text-sm leading-6 text-foreground placeholder:text-subtle outline-none transition ${className}`}
       style={{
         borderColor: isFocused ? accentColor : undefined,
       }}

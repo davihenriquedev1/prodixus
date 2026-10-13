@@ -26,24 +26,24 @@ export function TaskTagSelector({
 
   return (
     <div
-      className="fixed z-100 w-56 rounded-md border border-slate-800 bg-[#0D0F14] p-1 shadow-xl"
+      className="fixed z-100 w-56 rounded-md border border-border bg-surface-elevated p-1 shadow-xl"
       style={{
         top: position.top,
         left: position.left,
       }}
       onClick={(event) => event.stopPropagation()}
     >
-      <div className="flex items-center justify-between border-b border-slate-800 px-2 py-2">
+      <div className="flex items-center justify-between border-b border-border px-2 py-2">
         <div className="flex items-center gap-2">
-          <Tag className="h-3.5 w-3.5 text-slate-500" />
-          <span className="text-xs font-medium text-slate-300">
+          <Tag className="h-3.5 w-3.5 text-muted" />
+          <span className="text-xs font-medium text-foreground">
             Tags da tarefa
           </span>
         </div>
         <button
           type="button"
           onClick={onCancel}
-          className="cursor-pointer rounded p-1 text-slate-500 hover:bg-slate-800/60 hover:text-slate-300"
+          className="cursor-pointer rounded p-1 text-muted hover:bg-surface hover:text-foreground"
           aria-label="Fechar"
           title="Fechar"
         >
@@ -53,7 +53,7 @@ export function TaskTagSelector({
 
       <div className="max-h-60 overflow-y-auto py-1">
         {tags.length === 0 ? (
-          <p className="px-2 py-3 text-center text-xs text-slate-500">
+          <p className="px-2 py-3 text-center text-xs text-muted">
             Nenhuma tag cadastrada.
           </p>
         ) : (
@@ -63,7 +63,7 @@ export function TaskTagSelector({
             return (
               <label
                 key={tag.id}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-slate-800/60"
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-surface"
               >
                 <input
                   type="checkbox"
@@ -77,7 +77,7 @@ export function TaskTagSelector({
                   style={{ backgroundColor: tag.color }}
                 />
 
-                <span className="min-w-0 flex-1 truncate text-xs text-slate-300">
+                <span className="min-w-0 flex-1 truncate text-xs text-foreground">
                   {tag.name}
                 </span>
               </label>

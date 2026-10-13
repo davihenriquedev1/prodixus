@@ -193,11 +193,11 @@ export function ProjectSettings({
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-slate-800/80 px-4 py-2">
+      <div className="border-b border-border/80 px-4 py-2">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2
-              className="text-sm font-semibold text-slate-100"
+              className="text-sm font-semibold text-foreground"
               style={{
                 color: project.primaryColor ?? "#64748B",
               }}
@@ -205,9 +205,7 @@ export function ProjectSettings({
               Editar projeto
             </h2>
 
-            <p className="mt-1 truncate text-xs text-slate-500">
-              {project.name}
-            </p>
+            <p className="mt-1 truncate text-xs text-muted">{project.name}</p>
           </div>
 
           <button
@@ -215,7 +213,7 @@ export function ProjectSettings({
             onClick={onClose}
             aria-label="Fechar painel"
             title="Fechar"
-            className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200"
+            className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -230,7 +228,7 @@ export function ProjectSettings({
             <div>
               <label
                 htmlFor="project-name"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Nome
               </label>
@@ -251,7 +249,7 @@ export function ProjectSettings({
             <div>
               <label
                 htmlFor="project-notes"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Notas
               </label>
@@ -270,14 +268,14 @@ export function ProjectSettings({
             </div>
           </section>
 
-          <div className="h-px bg-slate-800/70" />
+          <div className="h-px bg-border/70" />
 
           {/* Project metadata */}
           <section className="space-y-4">
             <div>
               <label
                 htmlFor="project-estimated-duration"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Duração estimada
               </label>
@@ -304,7 +302,7 @@ export function ProjectSettings({
                   }
                   disabled={isSaving}
                   accentColor={project.accentColor ?? "#64748B"}
-                  className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-slate-400"
+                  className="w-auto rounded-l-none rounded-r-lg px-3 text-xs text-muted"
                 >
                   <option value="minutes">Minutos</option>
                   <option value="hours">Horas</option>
@@ -317,7 +315,7 @@ export function ProjectSettings({
             <div>
               <label
                 htmlFor="project-due-at"
-                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-slate-500"
+                className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
               >
                 Prazo
               </label>
@@ -332,11 +330,11 @@ export function ProjectSettings({
             </div>
           </section>
 
-          <div className="h-px bg-slate-800/70" />
+          <div className="h-px bg-border/70" />
 
           {/* Project colors */}
           <section className="space-y-4">
-            <h3 className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+            <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted">
               Cores do projeto
             </h3>
 
@@ -416,8 +414,8 @@ export function ProjectSettings({
 
       {/* Saving state */}
       {isSaving && (
-        <div className="overflow-hidden border-t border-slate-800/80">
-          <div className="px-5 py-2.5 text-[11px] text-slate-500">
+        <div className="overflow-hidden border-t border-border/80">
+          <div className="px-5 py-2.5 text-[11px] text-muted">
             Salvando alterações...
           </div>
         </div>

@@ -47,7 +47,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#0A0C10] font-sans text-[#E2E8F0] antialiased">
+    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground antialiased">
       <Sidebar />
 
       <div className="relative flex min-w-0 flex-1 overflow-hidden">

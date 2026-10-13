@@ -32,8 +32,8 @@ export function TagItem({
         <button
           type="button"
           onClick={selectTag}
-          className="min-w-0 flex-1 flex items-center py-1 cursor-pointer text-slate-300 hover:text-slate-100"
-          style={selected ? { color: "#f8fafc" } : {}}
+          className="min-w-0 flex-1 flex items-center py-1 cursor-pointer text-foreground hover:text-primary"
+          style={selected ? { color: "var(--color-foreground)" } : {}}
         >
           {selected ? (
             <Circle className="w-2.5 h-2.5 shrink-0 mr-1" fill="#90a1b9" />
@@ -44,15 +44,12 @@ export function TagItem({
           <Tag className="w-3.5 h-3.5 mr-1" fill={tag.color} />
 
           <span className="truncate mr-1">{tag.name}</span>
-          <span
-            className="text-xs text-slate-500/70"
-            title="Tarefas a realizar"
-          >
+          <span className="text-xs text-muted" title="Tarefas a realizar">
             ({taskCount})
           </span>
         </button>
 
-        <div className="hover:bg-slate-800/80 flex items-center justify-center">
+        <div className="flex items-center justify-center hover:bg-surface-elevated">
           <TagActions
             onEdit={() => onUpdateTag(tag)}
             onDelete={() => onDeleteTag(tag)}
