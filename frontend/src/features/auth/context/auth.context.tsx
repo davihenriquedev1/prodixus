@@ -2,6 +2,7 @@
 
 import {
   clearSession,
+  getAccessToken,
   getAuthUser,
   getRefreshToken,
   setAuthUser,
@@ -12,11 +13,13 @@ import {
   register as registerUser,
   logout as logoutUser,
 } from "@/features/auth/services/auth.service";
-import { AuthUser } from "@/features/auth/types/auth";
+import { setOnSessionExpired } from "@/lib/axios";
+import type { AuthUser } from "@/features/auth/types/auth";
 import { useRouter } from "next/navigation";
 import {
   createContext,
-  ReactNode,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -39,19 +42,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const storedUser = getAuthUser();
+  const handleSessionExpired = useCallback(() => {
+    setUser(null);
+    router.replace("/login");
+  }, [router]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUser(storedUser);
-    setIsLoading(false);
-  }, []);
+  useEffect(() => {
+    setOnSessionExpired(handleSessionExpired);
+
+    try {
+      const storedUser = getAuthUser();
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
+
+      if (storedUser && (accessToken || refreshToken)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUser(storedUser);
+      } else {
+        clearSession();
+      }
+    } catch {
+      clearSession();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+
+    return () => {
+      setOnSessionExpired(() => {});
+    };
+  }, [handleSessionExpired]);
 
   async function login(email: string, password: string) {
     const response = await loginUser(email, password);
 
     setSession(response.user, response.accessToken, response.refreshToken);
-
     setUser(response.user);
   }
 
@@ -59,29 +84,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const response = await registerUser(name, email, password);
 
     setSession(response.user, response.accessToken, response.refreshToken);
-
     setUser(response.user);
   }
 
   async function logout() {
     const refreshToken = getRefreshToken();
 
+    clearSession();
+    setUser(null);
+
     try {
       if (refreshToken) {
         await logoutUser(refreshToken);
       }
     } catch {
-      // A sessão local deve ser encerrada mesmo se a API falhar.
     } finally {
-      clearSession();
-      setUser(null);
-      router.push("/login");
+      router.replace("/login");
     }
   }
 
-  function updateUser(user: AuthUser) {
-    setAuthUser(user);
-    setUser(user);
+  function updateUser(updatedUser: AuthUser) {
+    setAuthUser(updatedUser);
+    setUser(updatedUser);
   }
 
   return (

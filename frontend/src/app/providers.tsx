@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { PanelProvider } from "@/contexts/panel-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { UserThemeSync } from "@/features/user-settings/components/user-theme-sync";
+import axios from "axios";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -19,7 +20,13 @@ export function Providers({ children }: ProvidersProps) {
         defaultOptions: {
           queries: {
             staleTime: 30_000,
-            retry: 1,
+            retry: (failureCount, error) => {
+              if (axios.isAxiosError(error) && error.response?.status === 401) {
+                return false;
+              }
+
+              return failureCount < 1;
+            },
             refetchOnWindowFocus: false,
           },
         },
