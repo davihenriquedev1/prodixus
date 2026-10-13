@@ -19,22 +19,36 @@ export function TagsSectionList({
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadTaskCounts() {
-      const results = await Promise.all(
-        tags.map(async (tag) => {
-          const tasks = await getTagTasks(tag.id);
+      try {
+        const results = await Promise.all(
+          tags.map(async (tag) => {
+            const tasks = await getTagTasks(tag.id);
 
-          return {
-            tagId: tag.id,
-            count: tasks.filter((task) => !task.archived && !task.completed)
-              .length,
-          };
-        }),
-      );
+            return {
+              tagId: tag.id,
+              count: tasks.filter((task) => !task.archived && !task.completed)
+                .length,
+            };
+          }),
+        );
 
-      setTaskCounts(
-        Object.fromEntries(results.map(({ tagId, count }) => [tagId, count])),
-      );
+        if (!cancelled) {
+          setTaskCounts(
+            Object.fromEntries(
+              results.map(({ tagId, count }) => [tagId, count]),
+            ),
+          );
+        }
+      } catch (error) {
+        if (cancelled) return;
+        console.error(
+          "Não foi possível carregar as contagens das tags:",
+          error,
+        );
+      }
     }
 
     if (tags.length > 0) {
@@ -43,6 +57,10 @@ export function TagsSectionList({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTaskCounts({});
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [tags]);
 
   return (
