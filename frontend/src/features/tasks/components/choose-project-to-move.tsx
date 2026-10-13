@@ -45,7 +45,7 @@ export function ChooseProjectToMove({
   return (
     <div
       ref={menuRef}
-      className="fixed z-100 w-64 rounded-md border border-slate-800 bg-[#0D0F14] p-2 shadow-xl"
+      className="fixed z-100 w-64 rounded-md border border-border bg-surface-elevated p-2 shadow-xl"
       style={{
         top: position.top,
         left: position.left,
@@ -53,7 +53,7 @@ export function ChooseProjectToMove({
     >
       <div className="space-y-1">
         {availableProjects.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">
+          <p className="py-6 text-center text-sm text-muted">
             Nenhum outro projeto disponível.
           </p>
         ) : (
@@ -67,7 +67,7 @@ export function ChooseProjectToMove({
                 aria-pressed={isSelected}
                 onClick={() => setSelectedProject(project.id)}
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-left transition-colors ${
-                  isSelected ? "bg-slate-800/80" : "hover:bg-slate-800/60"
+                  isSelected ? "bg-surface" : "hover:bg-surface"
                 }`}
               >
                 <Layers3
@@ -75,7 +75,7 @@ export function ChooseProjectToMove({
                   style={{ color: project.primaryColor || "#64748B" }}
                 />
 
-                <span className="min-w-0 flex-1 truncate text-sm text-slate-300">
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                   {project.name}
                 </span>
               </button>
@@ -84,11 +84,11 @@ export function ChooseProjectToMove({
         )}
       </div>
 
-      <div className="flex justify-end gap-2 border-t border-slate-800 pt-3">
+      <div className="flex justify-end gap-2 border-t border-border pt-3">
         <button
           type="button"
           onClick={onCancelMove}
-          className="cursor-pointer rounded-md px-3 py-2 text-xs text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-slate-200"
+          className="cursor-pointer rounded-md px-3 py-2 text-xs text-muted transition-colors hover:bg-surface hover:text-foreground"
         >
           Cancelar
         </button>
@@ -103,7 +103,7 @@ export function ChooseProjectToMove({
 
             onMoveToProject(selectedProject);
           }}
-          className="cursor-pointer rounded-md bg-slate-800 px-3 py-2 text-xs text-slate-200 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="cursor-pointer rounded-md bg-primary px-3 py-2 text-xs text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Mover
         </button>

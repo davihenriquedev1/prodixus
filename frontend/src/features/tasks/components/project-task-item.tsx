@@ -90,15 +90,17 @@ export function ProjectTaskItem({
         relative cursor-pointer flex flex-col overflow-hidden transition-colors
         ${subtasks.length > 0 ? " border" : ""}
         ${
-          isSelected
-            ? "bg-slate-800/70"
-            : "bg-slate-800/15 hover:bg-slate-800/20"
+          isSelected && !task.completed
+            ? "bg-surface-elevated"
+            : !task.completed
+              ? "bg-surface/50 hover:bg-surface/90"
+              : ""
         }
       `}
       style={
         subtasks.length > 0 && isSelected
           ? { borderColor: accentColor }
-          : { borderColor: "#1d293d" }
+          : { borderColor: "var(--color-border)" }
       }
     >
       <div
@@ -110,12 +112,12 @@ export function ProjectTaskItem({
           relative group flex flex-col px-2.5 py-1.5 transition-colors 
           ${
             subtasks.length === 0 ? "border" : openSubtasks ? "border-b" : ""
-          } ${isTaskSelected ? "bg-slate-800/70" : "hover:bg-slate-800/20"}
-          } ${task.completed ? "opacity-15 bg-transparent/95" : ""}`}
+          } ${isTaskSelected && !task.completed ? "bg-surface-elevated" : !task.completed ? "hover:bg-surface/20" : ""}
+          } ${task.completed ? "opacity-30 bg-muted/20" : ""}`}
         style={
           isTaskSelected
             ? { borderColor: accentColor }
-            : { borderColor: "#1d293d" }
+            : { borderColor: "var(--color-border)" }
         }
       >
         <div className="flex items-center gap-2">
@@ -143,7 +145,7 @@ export function ProjectTaskItem({
             }}
           >
             {task.completed && (
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-950" />
+              <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
             )}
           </button>
           <TaskTitleInput
@@ -162,7 +164,7 @@ export function ProjectTaskItem({
                 setOpenSubtasks(true);
                 onCreateSubtask(task.id);
               }}
-              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-1.5 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-1.5 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
               style={{ color: accentColor }}
             >
               <Plus className="h-6 w-6" />
@@ -176,7 +178,7 @@ export function ProjectTaskItem({
                 event.stopPropagation();
                 onOpenDetails(task);
               }}
-              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
               style={{ color: accentColor }}
             >
               <FileText className="h-5 w-5" />
@@ -199,7 +201,7 @@ export function ProjectTaskItem({
             </div>
             {task.completed && (
               <div
-                className={`pointer-events-none absolute inset-x-3 ${task.tags.length > 0 ? "top-[38%]" : "top-1/2"} h-px bg-slate-400/70`}
+                className={`pointer-events-none absolute inset-x-[-0.5%] w-[101%] ${task.tags.length > 0 ? "top-[38%]" : "top-1/2"} h-px bg-muted/70`}
               />
             )}
           </div>
@@ -215,13 +217,13 @@ export function ProjectTaskItem({
           className={`
             cursor-pointer flex justify-center transition-colors
             ${
-              isTaskSelected && !openSubtasks
-                ? "bg-slate-800/70 "
-                : !isTaskSelected
-                  ? " bg-slate-800/15 hover:bg-slate-800/20"
+              isTaskSelected && !openSubtasks && !task.completed
+                ? "bg-surface-elevated "
+                : !isTaskSelected && !task.completed
+                  ? " bg-surface/15 hover:bg-surface/20"
                   : ""
             } 
-            ${task.completed ? "opacity-10 hover:bg-slate-600/40" : ""}
+            ${task.completed ? "opacity-30 bg-muted/20" : ""}
           `}
           onClick={(event) => {
             event.stopPropagation();
@@ -229,9 +231,9 @@ export function ProjectTaskItem({
           }}
         >
           {openSubtasks ? (
-            <ChevronUp className="h-4 w-4 text-slate-500/80" />
+            <ChevronUp className="h-4 w-4 text-muted" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-slate-500/80" />
+            <ChevronDown className="h-4 w-4 text-muted" />
           )}
         </button>
       )}
@@ -239,16 +241,16 @@ export function ProjectTaskItem({
       {isCreatingSubtask && parentTaskId === task.id && (
         <>
           {subtasks.length === 0 && (
-            <ChevronUp className="h-4 w-4 text-slate-500/80 opacity-30 self-center" />
+            <ChevronUp className="h-4 w-4 text-muted opacity-30 self-center" />
           )}
           <div
             ref={newSubtaskItemRef}
-            className="group flex items-center gap-3 bg-slate-800/10 px-3 py-2 mx-2 mb-2"
+            className="group flex items-center gap-3 bg-surface/10 px-3 py-2 mx-2 mb-2"
             style={{
               border: `1px solid ${accentColor}`,
             }}
           >
-            <div className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-500 opacity-40" />
+            <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted opacity-40" />
 
             <input
               ref={newSubtaskInputRef}
@@ -258,19 +260,28 @@ export function ProjectTaskItem({
               onKeyDown={handleKeyDownCreatingSubtask}
               placeholder="Nome da tarefa..."
               autoComplete="off"
-              className="min-w-0 flex-1 bg-transparent p-1 text-sm text-slate-200 outline-none placeholder:text-slate-600 focus:border focus:border-slate-600/40"
+              className="min-w-0 flex-1 bg-transparent p-1 text-sm text-foreground outline-none placeholder:text-subtle focus:border focus:border-border/40"
             />
 
             <div className="flex items-center">
               <div className="flex shrink-0 items-center justify-center p-1.5">
-                <MoreHorizontal className="h-6 w-6 text-slate-500/30" />
+                <MoreHorizontal className="h-6 w-6 text-muted/30" />
               </div>
             </div>
           </div>
         </>
       )}
       <AnimatePresence initial={false}>
-        <motion.div>
+        <motion.div
+          className={` 
+          ${
+            isTaskSelected && !task.completed
+              ? "bg-surface-elevated"
+              : !task.completed
+                ? "border-border/50 hover:bg-surface/20"
+                : ""
+          } ${task.completed ? "opacity-30 bg-muted/20" : ""}`}
+        >
           {openSubtasks &&
             subtasks.map((subtask) => {
               const isSubtaskSelected = selectedTask?.id === subtask.id;
@@ -288,12 +299,14 @@ export function ProjectTaskItem({
                     onSelect(subtask);
                   }}
                   className={`
-                    relative group flex items-center gap-3 border px-3 py-1.5 transition-colors mx-2 mb-2 
+                    relative group z-10 flex items-center gap-3 border border-foreground/10 px-3 py-1.5 transition-colors mx-2 mb-2 
                     ${
-                      isSubtaskSelected
-                        ? "bg-slate-800/70"
-                        : "border-slate-800/50  hover:bg-slate-800/20"
-                    } ${subtask.completed ? "opacity-25 bg-transparent/95" : ""}`}
+                      isSubtaskSelected && !subtask.completed
+                        ? "bg-surface-elevated"
+                        : !subtask.completed
+                          ? "border-border/50 hover:bg-surface/20"
+                          : ""
+                    } ${subtask.completed ? "opacity-50 bg-muted/30" : ""}`}
                   style={
                     isSubtaskSelected ? { borderColor: accentColor } : undefined
                   }
@@ -326,7 +339,7 @@ export function ProjectTaskItem({
                     }}
                   >
                     {subtask.completed && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-slate-950" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
                     )}
                   </button>
 
@@ -346,7 +359,7 @@ export function ProjectTaskItem({
                         event.stopPropagation();
                         onOpenDetails(subtask);
                       }}
-                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-slate-800 p-2 disabled:cursor-not-allowed disabled:opacity-50 ${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-50 ${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
                       style={{ color: accentColor }}
                     >
                       <FileText className="h-5 w-5" />
@@ -368,7 +381,7 @@ export function ProjectTaskItem({
                     </div>
                   </div>
                   {subtask.completed && (
-                    <div className="pointer-events-none absolute inset-x-3 top-1/2 h-px bg-slate-400/70" />
+                    <div className="pointer-events-none absolute inset-x-[-0.5%] top-1/2 w-[101%] h-px bg-muted/70" />
                   )}
                 </motion.div>
               );

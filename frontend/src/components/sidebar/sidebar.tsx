@@ -224,7 +224,7 @@ export function Sidebar() {
         : location;
 
     sessionStorage.setItem("settings:returnTo", lastRoute);
-    router.push("/settings/preferencies");
+    router.push("/settings/preferences");
   }
 
   return (

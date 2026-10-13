@@ -13,7 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 const settingsItems = [
   {
     label: "Preferências",
-    href: "/settings/preferencies",
+    href: "/settings/preferences",
     icon: SlidersHorizontal,
   },
   {

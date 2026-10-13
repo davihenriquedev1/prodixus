@@ -6,7 +6,7 @@ import { AuthProvider } from "@/features/auth/context/auth.context";
 import { Toaster } from "sonner";
 import { PanelProvider } from "@/contexts/panel-context";
 import { ThemeProvider } from "@/components/theme-provider";
-import { UserThemeSync } from "@/features/user-settings/componentes/user-theme-sync";
+import { UserThemeSync } from "@/features/user-settings/components/user-theme-sync";
 
 interface ProvidersProps {
   children: ReactNode;

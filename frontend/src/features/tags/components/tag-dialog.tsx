@@ -97,15 +97,15 @@ export function TagDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-background/60 p-4"
       onMouseDown={handleBackdropClick}
     >
-      <div className="w-full max-w-lg rounded-xl border border-slate-800 bg-[#0D0F14] p-5 shadow-2xl">
-        <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
+      <div className="w-full max-w-lg rounded-xl border border-border bg-surface p-5 shadow-2xl">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs text-slate-400">Nome</label>
+            <label className="mb-1.5 block text-xs text-muted">Nome</label>
             <input
               type="text"
               value={name}
@@ -113,7 +113,7 @@ export function TagDialog({
               placeholder="Nome da tag"
               autoFocus
               disabled={isSubmitting}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-slate-600"
+              className="w-full rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-foreground outline-none placeholder:text-subtle focus:border-primary"
             />
           </div>
           <div>
@@ -129,7 +129,7 @@ export function TagDialog({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg px-3 py-2 text-xs text-slate-400 hover:bg-slate-800/60 cursor-pointer hover:text-slate-200"
+              className="rounded-lg px-3 py-2 text-xs text-muted hover:bg-surface-elevated cursor-pointer hover:text-foreground"
             >
               Cancelar
             </button>
@@ -137,7 +137,7 @@ export function TagDialog({
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-900 cursor-pointer hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white cursor-pointer hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? "Salvando..." : "Salvar"}
             </button>

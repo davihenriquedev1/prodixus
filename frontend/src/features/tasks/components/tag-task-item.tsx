@@ -49,13 +49,13 @@ export function TagTaskItem({
         cursor-pointer transition-colors
         ${
           isTaskSelected
-            ? "bg-slate-800/70"
-            : "bg-slate-800/15 hover:bg-slate-800/20"
+            ? "bg-surface-elevated"
+            : "bg-surface/15 hover:bg-surface/20"
         }
         ${task.completed ? "opacity-25 bg-transparent/95" : ""}
       `}
       style={{
-        borderColor: isTaskSelected ? color : "#1d293d",
+        borderColor: isTaskSelected ? color : "var(--color-border)",
       }}
     >
       <div className="flex items-center gap-2 w-full">
@@ -83,7 +83,7 @@ export function TagTaskItem({
           }}
         >
           {task.completed && (
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-950" />
+            <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
           )}
         </button>
         <TaskTitleInput
@@ -103,7 +103,7 @@ export function TagTaskItem({
             }}
             className={`
               flex shrink-0 cursor-pointer items-center justify-center
-              p-2 hover:bg-slate-800
+              p-2 hover:bg-surface-elevated
               disabled:cursor-not-allowed disabled:opacity-30
               ${
                 !isTaskSelected
@@ -139,14 +139,14 @@ export function TagTaskItem({
         <div className="flex items-center gap-1">
           <Layers3
             className="w-3 h-3 "
-            stroke={project.primaryColor || "#1d293d"}
+            stroke={project.primaryColor || "var(--color-border)"}
           />
-          <span className="text-slate-400/80 text-xs">{project.name}</span>
+          <span className="text-muted/80 text-xs">{project.name}</span>
         </div>
       )}
 
       {task.completed && (
-        <div className="pointer-events-none absolute inset-x-3 top-[38%] h-px bg-slate-400/70" />
+        <div className="pointer-events-none absolute inset-x-3 top-[38%] h-px bg-muted/70" />
       )}
     </div>
   );
