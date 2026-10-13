@@ -20,12 +20,11 @@ export function DateTimeInput({
 
   return (
     <div
-      className={`flex h-10 w-full p-2 gap-2 overflow-hidden rounded-lg border border-slate-800 bg-slate-900/70 transition-all hover:border-slate-600/70 focus:bg-slate-700`}
+      className="flex h-10 w-full gap-2 overflow-hidden rounded-lg border border-border bg-surface-elevated p-2 transition-all hover:border-subtle focus-within:bg-surface"
       style={{
         borderColor: isFocused ? accentColor : undefined,
       }}
       onFocus={() => setIsFocused(true)}
-
       onBlur={(event) => {
         if (
           event.relatedTarget &&
@@ -33,6 +32,7 @@ export function DateTimeInput({
         ) {
           return;
         }
+
         setIsFocused(false);
         onBlur?.();
       }}
@@ -42,17 +42,17 @@ export function DateTimeInput({
         value={date}
         onChange={(event) => onChange(`${event.target.value}T${time}`)}
         disabled={disabled}
-        className="min-w-0 flex-1 bg-transparent text-xs text-slate-200 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-60"
       />
 
-      <div className="w-px bg-slate-800" />
+      <div className="w-px bg-border" />
 
       <input
         type="time"
         value={time}
         onChange={(event) => onChange(`${date}T${event.target.value}`)}
         disabled={disabled}
-        className="w-23 text-end flex-0 bg-transparent text-xs text-slate-200 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-23 flex-0 bg-transparent text-end text-xs text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-60"
       />
     </div>
   );

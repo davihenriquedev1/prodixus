@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/features/auth/context/auth.context";
 import { Toaster } from "sonner";
 import { PanelProvider } from "@/contexts/panel-context";
+import { ThemeProvider } from "@/components/theme-provider";
+import { UserThemeSync } from "@/features/user-settings/componentes/user-theme-sync";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -26,10 +28,13 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <PanelProvider>{children}</PanelProvider>
-        <Toaster />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <UserThemeSync />
+          <PanelProvider>{children}</PanelProvider>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

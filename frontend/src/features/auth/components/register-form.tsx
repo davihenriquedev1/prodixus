@@ -37,88 +37,87 @@ export function RegisterForm() {
       toast.error("Unable to create account.");
     }
   }
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="w-full max-w-sm space-y-5"
     >
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-100">
-          Create account
+        <h1 className="text-lg font-bold tracking-tight text-foreground">
+          Registro
         </h1>
 
-        <p className="text-sm text-slate-400">
-          Create your account to get started.
-        </p>
+        <p className="text-sm text-muted">Crie sua conta para começar.</p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="name" className="text-xs font-medium text-slate-300">
-            Name
+          <label htmlFor="name" className="text-xs font-medium text-muted">
+            Nome
           </label>
 
           <Input
             id="name"
             type="text"
             autoComplete="name"
+            className="text-xs"
             {...registerField("name")}
           />
 
           {errors.name && (
-            <p className="text-xs text-red-400">{errors.name.message}</p>
+            <p className="text-xs text-danger">{errors.name.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="email" className="text-xs font-medium text-slate-300">
+          <label htmlFor="email" className="text-xs font-medium text-muted">
             Email
           </label>
 
           <Input
             id="email"
             type="email"
+            className="text-xs"
             autoComplete="email"
             {...registerField("email")}
           />
 
           {errors.email && (
-            <p className="text-xs text-red-400">{errors.email.message}</p>
+            <p className="text-xs text-danger">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label
-            htmlFor="password"
-            className="text-xs font-medium text-slate-300"
-          >
-            Password
+          <label htmlFor="password" className="text-xs font-medium text-muted">
+            Senha
           </label>
 
           <Input
             id="password"
             type="password"
+            className="text-xs"
             autoComplete="new-password"
             {...registerField("password")}
           />
 
           {errors.password && (
-            <p className="text-xs text-red-400">{errors.password.message}</p>
+            <p className="text-xs text-danger">{errors.password.message}</p>
           )}
         </div>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Creating account..." : "Create account"}
+        {isSubmitting ? "Registrando..." : "Criar conta"}
       </Button>
 
-      <p className="text-center text-xs text-slate-500">
-        Already have an account?{" "}
+      <p className="text-center text-xs text-subtle">
+        Já possui uma conta?{" "}
         <Link
           href="/login"
-          className="text-slate-300 transition hover:text-white"
+          className="text-muted transition hover:text-foreground"
         >
-          Sign in
+          Faça login
         </Link>
       </p>
     </form>

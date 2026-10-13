@@ -30,10 +30,10 @@ app.use("/api/projects/:projectId/tasks", taskRouter);
 app.use("/api/tasks/:taskId/tags", taskTagRouter);
 app.use("/api/tags", tagRouter);
 app.use("/api/folders", folderRouter);
+app.use("/api/user-settings", userSettingsRouter);
 
 // Error handlers (middlewares)
 app.use(notFound);
 app.use(errorHandler);
-app.use("/api/user-settings", userSettingsRouter);
 
 export default app;

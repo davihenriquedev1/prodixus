@@ -13,8 +13,9 @@ export function ColorInput({
 }: ColorInputProps) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs text-slate-400">{label}</label>
-      <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-1.5">
+      <label className="mb-1.5 block text-xs text-muted">{label}</label>
+
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-elevated px-2 py-1.5">
         <input
           type="color"
           value={value || "#64748B"}
@@ -23,7 +24,7 @@ export function ColorInput({
           className="h-7 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
         />
 
-        <span className="text-xs text-slate-400">{value || "#64748B"}</span>
+        <span className="text-xs text-muted">{value || "#64748B"}</span>
       </div>
     </div>
   );

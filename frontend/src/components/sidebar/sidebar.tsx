@@ -11,7 +11,11 @@ import { ActionConfirm } from "@/components/ui/action-confirm";
 import { FolderDialog } from "@/features/folders/components/folder-dialog";
 import { TagsSection } from "@/components/sidebar/tags-section/tags-section";
 import { ProjectsSection } from "./projects-section/projects-section";
-import { CreateTagData, Tag, UpdateTagData } from "@/features/tags/types/tag";
+import {
+  type CreateTagData,
+  type Tag,
+  type UpdateTagData,
+} from "@/features/tags/types/tag";
 import { TagDialog } from "@/features/tags/components/tag-dialog";
 import { ProjectDialog } from "@/features/projects/components/project-dialog";
 import { useFolders } from "@/features/folders/hooks/use-folders";
@@ -218,36 +222,42 @@ export function Sidebar() {
       selectedProjectId !== null || selectedTagId !== null
         ? `${location}${"?"}${searchParams}`
         : location;
+
     sessionStorage.setItem("settings:returnTo", lastRoute);
     router.push("/settings/preferencies");
   }
 
   return (
-    <aside className="w-72 border-r border-slate-800/60 bg-[#0D0F14]/80 backdrop-blur-xl flex flex-col justify-between z-10">
-      <div className="p-3 space-y-6 overflow-y-auto">
+    <aside className="z-10 flex w-72 flex-col justify-between border-r border-border/60 bg-surface/80 backdrop-blur-xl">
+      <div className="space-y-6 overflow-y-auto p-3">
         <div className="flex items-center gap-3 py-1">
-          <div className="w-6 h-6 rounded-lg bg-slate-700 flex items-center justify-center">
-            <div className="w-2 h-2 bg-slate-200 rounded-sm" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-surface-elevated">
+            <div className="h-2 w-2 rounded-sm bg-muted" />
           </div>
 
-          <span className="font-bold tracking-wider text-sm text-slate-100 uppercase">
+          <span className="text-sm font-bold tracking-wider text-foreground uppercase">
             Prodixus
           </span>
         </div>
 
         <nav>
           <button
-            className={`w-full cursor-pointer flex items-center justify-between rounded-lg text-sm px-3 py-2 font-medium ${location === "/dashboard" ? "bg-slate-800/50 text-slate-100 border border-slate-700/50 " : " bg-slate-800/7 hover:bg-slate-800/20 border border-transparent border-b-slate-800/20"} `}
+            className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
+              location === "/dashboard"
+                ? "border border-border bg-surface-elevated text-foreground"
+                : "border border-transparent border-b-border/40 text-muted hover:bg-surface-elevated/40 hover:text-foreground"
+            }`}
             onClick={() => router.push("/dashboard")}
           >
-            <div className="flex gap-2 items-center">
-              <Home className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
               <span>Início</span>
             </div>
+
             {location === "/dashboard" ? (
-              <Circle className="w-2.5 h-2.5 shrink-0" fill="#fff" />
+              <Circle className="h-2.5 w-2.5 shrink-0" fill="currentColor" />
             ) : (
-              <span className="w-2.5 h-2.5 shrink-0"></span>
+              <span className="h-2.5 w-2.5 shrink-0" />
             )}
           </button>
         </nav>
@@ -309,16 +319,18 @@ export function Sidebar() {
           }}
         />
       </div>
-      <div className="p-3 border-t border-slate-800/60">
+
+      <div className="border-t border-border/60 p-3">
         <button
           type="button"
-          className="w-full cursor-pointer flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted hover:bg-surface-elevated/50 hover:text-foreground"
           onClick={handleGoToSettings}
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="h-4 w-4" />
           <span>Configurações</span>
         </button>
       </div>
+
       <ProjectDialog
         open={isCreatingProject}
         folders={folders}
@@ -335,6 +347,7 @@ export function Sidebar() {
           })
         }
       />
+
       <FolderDialog
         open={isCreatingFolder}
         title={creatingFolderParentId ? "Nova subpasta" : "Nova pasta"}
@@ -344,6 +357,7 @@ export function Sidebar() {
         }}
         onSubmit={(name) => handleCreateFolder(name, creatingFolderParentId)}
       />
+
       <FolderDialog
         open={editingFolder !== null}
         title="Editar pasta"
@@ -359,6 +373,7 @@ export function Sidebar() {
           return handleUpdateFolder(editingFolder.id, name);
         }}
       />
+
       <ActionConfirm
         open={deletingFolder !== null}
         title="Excluir pasta"
@@ -368,6 +383,7 @@ export function Sidebar() {
         onClose={() => setDeletingFolder(null)}
         onConfirm={() => handleDeleteFolder(deletingFolder!.id)}
       />
+
       <ActionConfirm
         open={deletingProject !== null}
         title="Excluir projeto"
@@ -377,6 +393,7 @@ export function Sidebar() {
         onClose={() => setDeletingProject(null)}
         onConfirm={() => handleDeleteProject(deletingProject!.id)}
       />
+
       <ActionConfirm
         open={completionTogglingProject !== null}
         title={
@@ -398,6 +415,7 @@ export function Sidebar() {
           handleCompletionToggleProject(completionTogglingProject!)
         }
       />
+
       <ActionConfirm
         open={archivingProject !== null}
         title="Arquivar projeto"
@@ -407,6 +425,7 @@ export function Sidebar() {
         onClose={() => setArchivingProject(null)}
         onConfirm={() => handleArchiveProject(archivingProject!)}
       />
+
       <TagDialog
         open={isCreatingTag}
         title="Nova Tag"
@@ -415,6 +434,7 @@ export function Sidebar() {
         }}
         onSubmit={(data) => handleCreateTag(data)}
       />
+
       <TagDialog
         open={editingTag !== null}
         title="Editar tag"
@@ -426,9 +446,11 @@ export function Sidebar() {
           if (!editingTag) {
             return Promise.resolve();
           }
+
           return handleUpdateTag(editingTag.id, data);
         }}
       />
+
       <ActionConfirm
         open={deletingTag !== null}
         title="Excluir tag"

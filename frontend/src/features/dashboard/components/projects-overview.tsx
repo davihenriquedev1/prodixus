@@ -26,26 +26,16 @@ export function ProjectsOverview({
 }: DashboardMetricsProps) {
   const router = useRouter();
 
-  if (isLoading) {
+  if (isLoading || error) {
     return (
       <section className="space-y-3">
-        <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="text-xs font-semibold tracking-wider text-muted uppercase">
           Projetos Recentes
         </div>
 
-        <div className="text-sm text-slate-500">Loading projects...</div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="space-y-3">
-        <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-          Projetos Recentes
+        <div className="text-sm text-subtle">
+          {isLoading ? "Loading projects..." : "Unable to load projects."}
         </div>
-
-        <div className="text-sm text-slate-500">Unable to load projects.</div>
       </section>
     );
   }
@@ -72,18 +62,18 @@ export function ProjectsOverview({
   if (projectsWithTasks.length === 0) {
     return (
       <section className="space-y-3">
-        <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="text-xs font-semibold tracking-wider text-muted uppercase">
           Projetos Recentes
         </div>
 
-        <div className="text-sm text-slate-500">No projects yet.</div>
+        <div className="text-sm text-subtle">No projects yet.</div>
       </section>
     );
   }
 
   return (
     <section className="space-y-3">
-      <div className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+      <div className="text-xs font-semibold tracking-wider text-muted uppercase">
         Projetos Recentes
       </div>
 
@@ -101,36 +91,31 @@ export function ProjectsOverview({
               key={project.id}
               type="button"
               onClick={() => router.push(`/tasks?projectId=${project.id}`)}
-              className="w-full text-left rounded-xl p-4 border border-slate-800/70 transition group hover:border-slate-600/80 cursor-pointer"
-              style={{
-                background: `linear-gradient(
-                  90deg,
-                  rgba(15, 23, 42, 0.35) 0%,
-                  ${projectColor}0A 100%
-                )`,
-              }}
+              className="group relative w-full cursor-pointer overflow-hidden rounded-xl border border-border bg-surface p-4 text-left transition hover:border-subtle hover:bg-surface-elevated"
             >
+              <div
+                className="absolute inset-y-3 left-0 w-0.5 rounded-r-full opacity-70 transition-opacity group-hover:opacity-100"
+                style={{ backgroundColor: projectColor }}
+              />
+
               <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex min-w-0 items-center gap-3">
                   <div
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: projectColor,
-                      boxShadow: `0 0 8px ${projectColor}66`,
-                    }}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: projectColor }}
                   />
 
-                  <span className="text-xs font-bold text-slate-200 truncate">
+                  <span className="truncate text-xs font-semibold text-foreground">
                     {project.name}
                   </span>
                 </div>
 
-                <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-subtle transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
               </div>
 
               <div className="mt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] text-slate-500">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[11px] text-muted">
                     {project.completedTaskCount} de {project.taskCount} tarefas
                   </span>
 
@@ -142,13 +127,12 @@ export function ProjectsOverview({
                   </span>
                 </div>
 
-                <div className="h-1.5 w-full rounded-full bg-slate-800/70 overflow-hidden">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-elevated">
                   <div
-                    className="h-full rounded-full transition-all"
+                    className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${progress}%`,
                       backgroundColor: projectColor,
-                      boxShadow: `0 0 8px ${projectColor}66`,
                     }}
                   />
                 </div>

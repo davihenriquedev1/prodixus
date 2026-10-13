@@ -50,20 +50,20 @@ export function FolderNode({
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="min-w-0 flex-1 flex items-center py-1 cursor-pointer text-slate-200 hover:text-slate-100"
+          className="flex min-w-0 flex-1 cursor-pointer items-center py-1 text-foreground hover:text-primary"
         >
           {hasChildren &&
             (open ? (
-              <ChevronDown className="w-3 h-3 shrink-0 mr-0.5" />
+              <ChevronDown className="mr-0.5 h-3 w-3 shrink-0" />
             ) : (
-              <ChevronRight className="w-3 h-3 shrink-0 mr-0.5" />
+              <ChevronRight className="mr-0.5 h-3 w-3 shrink-0" />
             ))}
 
-          {!hasChildren && <span className="w-3 shrink-0 mr-0.5" />}
+          {!hasChildren && <span className="mr-0.5 w-3 shrink-0" />}
 
-          <Folder className="w-3.5 h-3.5 shrink-0 mr-1" />
+          <Folder className="mr-1 h-3.5 w-3.5 shrink-0 text-muted" />
 
-          <span className="truncate min-w-0">{folder.name}</span>
+          <span className="min-w-0 truncate">{folder.name}</span>
         </button>
 
         <div className="flex items-center gap-1">
@@ -77,7 +77,7 @@ export function FolderNode({
       </div>
 
       {open && hasChildren && (
-        <div className="ml-3.75 border-l border-slate-800/70 mt-1">
+        <div className="mt-1 ml-3.75 border-l border-border/70">
           {childFolders.map((childFolder) => (
             <div className="pl-1" key={childFolder.id}>
               <FolderNode
@@ -101,7 +101,6 @@ export function FolderNode({
             <div className="pl-1" key={project.id}>
               <ProjectItem
                 selected={selectedProjectId === project.id}
-
                 project={project}
                 onCompletionToggleProject={onCompletionToggleProject}
                 onArchiveProject={onArchiveProject}

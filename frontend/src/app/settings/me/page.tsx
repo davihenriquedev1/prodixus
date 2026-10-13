@@ -81,7 +81,7 @@ export default function UserAccountSettingsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-64 items-center justify-center">
-        <LoaderCircle className="size-6 animate-spin text-slate-400" />
+        <LoaderCircle className="size-6 animate-spin text-subtle" />
       </div>
     );
   }
@@ -89,12 +89,14 @@ export default function UserAccountSettingsPage() {
   if (isError || !user) {
     return (
       <div className="p-4">
-        <h1 className="text-lg font-semibold text-slate-100">
+        <h1 className="text-lg font-semibold text-foreground">
           Configurações da conta
         </h1>
-        <p className="mt-2 text-xs text-slate-400">
+
+        <p className="mt-2 text-xs text-subtle">
           Não foi possível carregar suas informações. Tente novamente.
         </p>
+
         <Button
           type="button"
           className="mt-4"
@@ -107,29 +109,31 @@ export default function UserAccountSettingsPage() {
   }
 
   return (
-    <div className="min-h-full p-4 ">
-      <div className="">
+    <div className="min-h-full p-4">
+      <div>
         <header className="mb-8">
-          <h1 className="text-lg font-semibold tracking-tight text-slate-100">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Configurações da conta
           </h1>
-          <p className="mt-1 text-xs text-slate-400">
+
+          <p className="mt-1 text-xs text-subtle">
             Gerencie suas informações pessoais e a segurança da sua conta.
           </p>
         </header>
 
         <div className="space-y-6">
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+          <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
             <div className="mb-6 flex items-start gap-3">
-              <div className="rounded-lg border border-slate-700 bg-slate-800 p-2">
-                <UserRound className="size-5 text-slate-300" />
+              <div className="rounded-lg border border-border bg-surface-elevated p-2">
+                <UserRound className="size-5 text-muted" />
               </div>
 
               <div>
-                <h2 className="text-sm font-medium text-slate-100">
+                <h2 className="text-sm font-medium text-foreground">
                   Informações pessoais
                 </h2>
-                <p className="mt-px text-xs text-slate-400">
+
+                <p className="mt-px text-xs text-subtle">
                   Atualize seu nome e endereço de e-mail.
                 </p>
               </div>
@@ -142,10 +146,11 @@ export default function UserAccountSettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="name"
-                  className="text-xs font-medium text-slate-300"
+                  className="text-xs font-medium text-muted"
                 >
                   Nome
                 </label>
+
                 <Input
                   id="name"
                   autoComplete="name"
@@ -153,8 +158,9 @@ export default function UserAccountSettingsPage() {
                   {...profileForm.register("name")}
                   aria-invalid={!!profileForm.formState.errors.name}
                 />
+
                 {profileForm.formState.errors.name && (
-                  <p className="text-xs text-red-400">
+                  <p className="text-xs text-danger">
                     {profileForm.formState.errors.name.message}
                   </p>
                 )}
@@ -163,26 +169,28 @@ export default function UserAccountSettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-xs font-medium text-slate-300"
+                  className="text-xs font-medium text-muted"
                 >
                   E-mail
                 </label>
+
                 <Input
                   id="email"
-                  className="text-xs"
                   type="email"
                   autoComplete="email"
+                  className="text-xs"
                   {...profileForm.register("email")}
                   aria-invalid={!!profileForm.formState.errors.email}
                 />
+
                 {profileForm.formState.errors.email && (
-                  <p className="text-xs text-red-400">
+                  <p className="text-xs text-danger">
                     {profileForm.formState.errors.email.message}
                   </p>
                 )}
               </div>
 
-              <div className="flex justify-end border-t border-slate-800 pt-4">
+              <div className="flex justify-end border-t border-border pt-4">
                 <Button
                   type="submit"
                   disabled={
@@ -198,17 +206,18 @@ export default function UserAccountSettingsPage() {
             </form>
           </section>
 
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 sm:p-6">
+          <section className="rounded-xl border border-border bg-surface p-5 sm:p-6">
             <div className="mb-6 flex items-start gap-3">
-              <div className="rounded-lg border border-slate-700 bg-slate-800 p-2">
-                <LockKeyhole className="size-5 text-slate-300" />
+              <div className="rounded-lg border border-border bg-surface-elevated p-2">
+                <LockKeyhole className="size-5 text-muted" />
               </div>
 
               <div>
-                <h2 className="text-sm font-medium text-slate-100">
+                <h2 className="text-sm font-medium text-foreground">
                   Segurança
                 </h2>
-                <p className="mt-px text-xs text-slate-400">
+
+                <p className="mt-px text-xs text-subtle">
                   Altere sua senha para manter sua conta protegida.
                 </p>
               </div>
@@ -221,10 +230,11 @@ export default function UserAccountSettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="curPassword"
-                  className="text-xs font-medium text-slate-300"
+                  className="text-xs font-medium text-muted"
                 >
                   Senha atual
                 </label>
+
                 <Input
                   id="curPassword"
                   type="password"
@@ -233,8 +243,9 @@ export default function UserAccountSettingsPage() {
                   {...passwordForm.register("curPassword")}
                   aria-invalid={!!passwordForm.formState.errors.curPassword}
                 />
+
                 {passwordForm.formState.errors.curPassword && (
-                  <p className="text-xs text-red-400">
+                  <p className="text-xs text-danger">
                     {passwordForm.formState.errors.curPassword.message}
                   </p>
                 )}
@@ -243,10 +254,11 @@ export default function UserAccountSettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="newPassword"
-                  className="text-xs font-medium text-slate-300"
+                  className="text-xs font-medium text-muted"
                 >
                   Nova senha
                 </label>
+
                 <Input
                   id="newPassword"
                   type="password"
@@ -255,8 +267,9 @@ export default function UserAccountSettingsPage() {
                   {...passwordForm.register("newPassword")}
                   aria-invalid={!!passwordForm.formState.errors.newPassword}
                 />
+
                 {passwordForm.formState.errors.newPassword && (
-                  <p className="text-xs text-red-400">
+                  <p className="text-xs text-danger">
                     {passwordForm.formState.errors.newPassword.message}
                   </p>
                 )}
@@ -265,10 +278,11 @@ export default function UserAccountSettingsPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="text-sm font-medium text-slate-300"
+                  className="text-xs font-medium text-muted"
                 >
                   Confirmar nova senha
                 </label>
+
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -277,14 +291,15 @@ export default function UserAccountSettingsPage() {
                   {...passwordForm.register("confirmPassword")}
                   aria-invalid={!!passwordForm.formState.errors.confirmPassword}
                 />
+
                 {passwordForm.formState.errors.confirmPassword && (
-                  <p className="text-sm text-red-400">
+                  <p className="text-xs text-danger">
                     {passwordForm.formState.errors.confirmPassword.message}
                   </p>
                 )}
               </div>
 
-              <div className="flex justify-end border-t border-slate-800 pt-4">
+              <div className="flex justify-end border-t border-border pt-4">
                 <Button type="submit" disabled={changePassword.isPending}>
                   {changePassword.isPending && (
                     <LoaderCircle className="mr-2 size-4 animate-spin" />

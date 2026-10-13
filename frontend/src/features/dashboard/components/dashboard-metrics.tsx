@@ -25,10 +25,10 @@ export function DashboardMetrics({
         {[1, 2, 3].map((item) => (
           <div
             key={item}
-            className="bg-[#0D0F14]/70 border border-slate-800/80 rounded-xl p-5 backdrop-blur-sm"
+            className="rounded-xl border border-border/80 bg-surface/70 p-5 backdrop-blur-sm"
           >
-            <div className="h-3 w-20 bg-slate-800 rounded animate-pulse mb-3" />
-            <div className="h-8 w-12 bg-slate-800 rounded animate-pulse" />
+            <div className="mb-3 h-3 w-20 animate-pulse rounded bg-surface-elevated" />
+            <div className="h-8 w-12 animate-pulse rounded bg-surface-elevated" />
           </div>
         ))}
       </div>
@@ -37,7 +37,7 @@ export function DashboardMetrics({
 
   if (error) {
     return (
-      <div className="text-sm text-slate-500">
+      <div className="text-sm text-subtle">
         Unable to load dashboard metrics.
       </div>
     );
@@ -66,7 +66,8 @@ export function DashboardMetrics({
 
   return (
     <>
-      <h1 className="text-xl uppercase">Visão geral</h1>
+      <h1 className="text-xl uppercase text-foreground">Visão geral</h1>
+
       <div className="grid grid-cols-3 gap-4">
         {metrics.map((metric) => {
           const Icon = metric.icon;
@@ -74,28 +75,17 @@ export function DashboardMetrics({
           return (
             <div
               key={metric.label.trim()}
-              className="flex flex-col rounded-lg p-4 border border-slate-500/40 bg-slate-600/20"
+              className="flex flex-col rounded-lg border border-border/40 bg-surface-elevated/20 p-4"
             >
               <div
-                className="flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase mb-3"
+                className="mb-3 flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase"
                 style={{ color: metric.color }}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="h-3.5 w-3.5" />
                 <span>{metric.label}</span>
               </div>
 
-              <div
-                className="text-4xl font-normal"
-                style={{
-                  color: "#FFF",
-                  textShadow: `
-                    0 0 1px #ffffff,
-                    0 0 30px #ffffff,
-                    0 0 10px ${metric.color},
-                    0 0 30px ${metric.color}99
-                  `,
-                }}
-              >
+              <div className="text-4xl font-normal text-foreground">
                 {metric.value}
               </div>
             </div>
