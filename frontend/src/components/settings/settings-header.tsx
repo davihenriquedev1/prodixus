@@ -15,7 +15,7 @@ export function SettingsHeader({
 
   return (
     <header
-      className={`h-13.25 border-b px-3.5 border-border/60 flex items-center ${sidebarOpen ? "justify-end" : "justify-between"} sticky top-0 z-10 bg-background`}
+      className={`h-13.25 border-b px-3.5 border-border/60 flex items-center ${sidebarOpen ? "justify-end" : "justify-between"} sticky top-0 z-10 bg-background shrink-0`}
     >
       <button
         type="button"
