@@ -34,9 +34,9 @@ export function TagsSection({
           <button
             type="button"
             onClick={onCreateTag}
-            className="flex w-full cursor-pointer items-center text-subtle hover:text-foreground"
+            className="group flex w-full cursor-pointer items-center text-subtle"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5 group-hover:text-foreground" />
           </button>
         </div>
       </div>

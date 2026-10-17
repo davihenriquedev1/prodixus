@@ -107,7 +107,7 @@ export function TagTaskItem({
               disabled:cursor-not-allowed disabled:opacity-30
               ${
                 !isTaskSelected
-                  ? "opacity-0 transition-all group-hover:opacity-100"
+                  ? "opacity-20 transition-all group-hover:opacity-100"
                   : ""
               }
             `}
@@ -116,11 +116,8 @@ export function TagTaskItem({
             <FileText className="h-5 w-5" />
           </button>
           <div
-            className={
-              !isTaskSelected
-                ? "opacity-0 transition-all group-hover:opacity-100"
-                : ""
-            }
+            className={`${!isTaskSelected ? "opacity-20 transition-all group-hover:opacity-100 " : ""}`}
+            onClickCapture={() => onSelect(task)}
           >
             <TagTaskActions
               disabled={isTaskPending}
