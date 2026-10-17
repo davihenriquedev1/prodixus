@@ -38,7 +38,7 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-surface/50 px-3.5 h-13.25 backdrop-blur-md">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-surface/50 px-3.5 h-13.25 backdrop-blur-md shrink-0">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           className={`${sidebarOpen ? "hidden" : "flex"} items-center shrink-0 cursor-pointer transition`}

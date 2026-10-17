@@ -24,7 +24,7 @@ export function SettingsShell({ children }: SettingsShellProps) {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground antialiased">
+    <div className="flex h-dvh w-full overflow-hidden bg-background font-sans text-foreground antialiased">
       <SettingsSidebar
         open={sidebarOpen}
         setOpen={setSidebarOpen}
@@ -32,7 +32,7 @@ export function SettingsShell({ children }: SettingsShellProps) {
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <SettingsHeader
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}

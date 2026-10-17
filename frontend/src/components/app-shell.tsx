@@ -66,11 +66,11 @@ export function AppShell({ children }: AppShellProps) {
   }, [projectId, tagId]);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground antialiased">
+    <div className="flex h-dvh w-full overflow-hidden bg-background font-sans text-foreground antialiased">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
       <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
             {children}
