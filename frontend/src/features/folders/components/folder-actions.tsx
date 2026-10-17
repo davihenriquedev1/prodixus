@@ -52,11 +52,21 @@ export function FolderActions({
 
     const rect = buttonRef.current.getBoundingClientRect();
 
-    setMenuPosition({
-      top: rect.top,
-      left: rect.right + 4,
-    });
+    const menuWidth = 160;
+    const menuHeight = 76;
+    const spacing = 8;
 
+    const left =
+      rect.right + menuWidth + spacing <= window.innerWidth
+        ? rect.right + 4
+        : Math.max(spacing, rect.left - menuWidth - 20);
+
+    const top = Math.min(
+      Math.max(spacing, rect.top),
+      window.innerHeight - menuHeight - spacing,
+    );
+
+    setMenuPosition({ top, left });
     setOpen((value) => !value);
   }
 
@@ -85,12 +95,12 @@ export function FolderActions({
       <button
         ref={buttonRef}
         type="button"
-        className="cursor-pointer rounded p-1.5 text-subtle transition-colors hover:bg-surface-elevated hover:text-foreground"
+        className="group cursor-pointer rounded text-subtle"
         aria-label="Folder actions"
         aria-expanded={open}
         onClick={toggleMenu}
       >
-        <MoreHorizontal className="h-3.5 w-3.5" />
+        <MoreHorizontal className="h-3.5 w-3.5 group-hover:text-foreground" />
       </button>
 
       {open && (

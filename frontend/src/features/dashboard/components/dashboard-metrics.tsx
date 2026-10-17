@@ -21,7 +21,7 @@ export function DashboardMetrics({
 }: DashboardMetricsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[1, 2, 3].map((item) => (
           <div
             key={item}
@@ -68,24 +68,24 @@ export function DashboardMetrics({
     <>
       <h1 className="text-xl uppercase text-foreground">Visão geral</h1>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
           return (
             <div
               key={metric.label.trim()}
-              className="flex flex-col rounded-lg border border-border/40 bg-surface-elevated/20 p-4"
+              className="flex sm:flex-col items-center sm:items-start justify-between rounded-lg border border-border/40 bg-surface-elevated/20 p-4 gap-3"
             >
               <div
-                className="mb-3 flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase"
+                className="flex items-center gap-2 text-[10px] font-semibold tracking-wider uppercase"
                 style={{ color: metric.color }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span>{metric.label}</span>
               </div>
 
-              <div className="text-4xl font-normal text-foreground">
+              <div className="text-xl md:text-4xl font-normal text-foreground">
                 {metric.value}
               </div>
             </div>

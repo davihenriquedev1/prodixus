@@ -89,12 +89,12 @@ export function ProjectActions({
       <button
         ref={buttonRef}
         type="button"
-        className="cursor-pointer p-1.5 text-subtle hover:bg-surface-elevated hover:text-foreground"
+        className="group cursor-pointer text-subtle"
         aria-label="Ações do projeto"
         onClick={handleToggleActions}
       >
         <MoreHorizontal
-          className={`${!size ? "h-3.5 w-3.5" : `w-${size} h-${size}`}`}
+          className={`${!size ? "h-3.5 w-3.5" : `w-${size} h-${size}`} group-hover:text-foreground`}
         />
       </button>
 

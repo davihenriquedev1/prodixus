@@ -161,10 +161,11 @@ export function ProjectTaskItem({
               title="Adicionar subtarefa"
               onClick={(event) => {
                 event.stopPropagation();
+                onSelect(task);
                 setOpenSubtasks(true);
                 onCreateSubtask(task.id);
               }}
-              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-1.5 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-1.5 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-20 transition-all group-hover:opacity-100" : ""}`}
               style={{ color: accentColor }}
             >
               <Plus className="h-6 w-6" />
@@ -178,13 +179,14 @@ export function ProjectTaskItem({
                 event.stopPropagation();
                 onOpenDetails(task);
               }}
-              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+              className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-30 ${!isTaskSelected ? "opacity-20 transition-all group-hover:opacity-100 " : ""}`}
               style={{ color: accentColor }}
             >
               <FileText className="h-5 w-5" />
             </button>
             <div
-              className={`${!isTaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+              className={`${!isTaskSelected ? "opacity-20 transition-all group-hover:opacity-100 " : ""}`}
+              onClickCapture={() => onSelect(task)}
             >
               <ProjectTaskActions
                 disabled={isTaskPending}
@@ -359,13 +361,13 @@ export function ProjectTaskItem({
                         event.stopPropagation();
                         onOpenDetails(subtask);
                       }}
-                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-50 ${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+                      className={`flex shrink-0 cursor-pointer items-center justify-center hover:bg-surface-elevated p-2 disabled:cursor-not-allowed disabled:opacity-50 ${!isSubtaskSelected ? "opacity-20 transition-all group-hover:opacity-100 " : ""}`}
                       style={{ color: accentColor }}
                     >
                       <FileText className="h-5 w-5" />
                     </button>
                     <div
-                      className={`${!isSubtaskSelected ? "opacity-0 transition-all group-hover:opacity-100 " : ""}`}
+                      className={`${!isSubtaskSelected ? "opacity-20 transition-all group-hover:opacity-100 " : ""}`}
                     >
                       <ProjectTaskActions
                         taskCompleted={subtask.completed}

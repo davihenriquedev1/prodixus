@@ -1,11 +1,23 @@
 "use client";
 
 import { useAuth } from "@/features/auth/context/auth.context";
-import { Bell, Search, User2Icon, Settings, LogOut } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  Bell,
+  Search,
+  User2Icon,
+  Settings,
+  LogOut,
+  SidebarOpen,
+} from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function Header() {
+interface HeaderProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
@@ -26,37 +38,48 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-surface/50 px-4 py-2.5 backdrop-blur-md">
-      <div className="relative w-80">
-        <Search className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-subtle" />
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-surface/50 px-3.5 h-13.25 backdrop-blur-md">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div
+          className={`${sidebarOpen ? "hidden" : "flex"} items-center shrink-0 cursor-pointer transition`}
+          title="Abrir barra lateral"
+          aria-label="Abrir barra lateral"
+          onClick={() => setSidebarOpen(true)}
+        >
+          <SidebarOpen className="size-6 text-primary" />
+        </div>
+        <div className="relative w-full max-w-lg">
+          <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-subtle" />
 
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full rounded-lg border border-border/80 bg-surface-elevated/60 py-1.5 pl-9 pr-12 text-xs text-foreground transition placeholder:text-subtle focus:border-subtle focus:outline-none focus:ring-1 focus:ring-border"
-        />
+          <input
+            type="text"
+            placeholder="Search..."
+            aria-label="Search"
+            className="w-full rounded-lg border border-border/80 bg-surface-elevated/60 py-1.5 pl-9 pr-12 text-xs text-foreground transition placeholder:text-subtle focus:border-subtle focus:outline-none focus:ring-1 focus:ring-border"
+          />
 
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border/60 px-1.5 py-0.5 font-mono text-[10px] text-subtle">
-          ⌘K
-        </span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border/60 px-1.5 py-0.5 font-mono text-[10px] text-subtle">
+            ⌘K
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 pl-4">
         <button
           type="button"
           aria-label="Notifications"
-          className="relative cursor-pointer rounded-full p-1 text-muted hover:bg-surface-elevated hover:text-foreground"
+          className="relative cursor-pointer rounded-full text-muted hover:text-foreground"
         >
           <Bell className="h-5.5 w-5.5" />
         </button>
 
-        <div ref={menuRef} className="relative border-l border-border pl-2">
+        <div ref={menuRef} className="relative">
           <button
             type="button"
             aria-label="User menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex cursor-pointer items-center justify-center rounded-full p-1 text-muted transition hover:bg-surface-elevated hover:text-foreground"
+            className="flex cursor-pointer items-center justify-center rounded-full text-muted transition hover:text-foreground"
           >
             <User2Icon className="h-6 w-6" />
           </button>
