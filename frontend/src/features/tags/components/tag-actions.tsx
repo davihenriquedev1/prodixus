@@ -64,13 +64,13 @@ export function TagActions({ onEdit, onDelete, size }: TagActionsProps) {
       <button
         ref={buttonRef}
         type="button"
-        className="p-1.5 cursor-pointer text-muted hover:bg-surface-elevated hover:text-foreground"
+        className="group cursor-pointer text-subtle"
         aria-label="Ações da tag"
         title="Ações da tag"
         onClick={handleToggleActions}
       >
         <MoreHorizontal
-          className={`${!size ? "w-3.5 h-3.5" : `w-${size} h-${size}`}`}
+          className={`${!size ? "w-3.5 h-3.5" : `w-${size} h-${size}`} group-hover:text-foreground`}
         />
       </button>
 

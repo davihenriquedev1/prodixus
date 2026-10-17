@@ -150,7 +150,7 @@ export function ProjectDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-background/60 p-4"
+      className="fixed inset-0 z-999 flex items-center justify-center bg-background/60 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSubmitting) {
           onClose();
@@ -320,7 +320,7 @@ export function ProjectDialog({
                 Cores do projeto
               </h3>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <ColorInput
                   label="Principal"
                   value={primaryColor}

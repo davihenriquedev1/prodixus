@@ -228,7 +228,7 @@ export function TaskSettings({
               Editar tarefa
             </h2>
 
-            <p className="mt-1 truncate text-xs text-muted">{task.title}</p>
+            <p className="truncate text-xs text-muted">{task.title}</p>
           </div>
 
           <button
@@ -243,10 +243,8 @@ export function TaskSettings({
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-6">
-          {/* Main information */}
           <section className="space-y-4">
             <div>
               <label
@@ -295,7 +293,7 @@ export function TaskSettings({
 
           {/* Task metadata */}
           <section className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
                   htmlFor="task-priority"
@@ -360,7 +358,7 @@ export function TaskSettings({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
                   htmlFor="task-start-at"

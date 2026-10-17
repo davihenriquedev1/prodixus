@@ -1,7 +1,7 @@
 "use client";
 
-import { Circle, Home, Settings } from "lucide-react";
-import { useState } from "react";
+import { Circle, Home, Layers3, Settings, SidebarClose } from "lucide-react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useFolderMutations } from "@/features/folders/hooks/use-folder-mutations";
 import { useTagMutations } from "@/features/tags/hooks/use-tag-mutations";
 import type { CreateProjectData } from "@/features/projects/types/project";
@@ -25,7 +25,12 @@ import { useProjectMutations } from "@/features/projects/hooks/use-project-mutat
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePanel } from "@/contexts/panel-context";
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+export function Sidebar({ open, setOpen }: SidebarProps) {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [creatingFolderParentId, setCreatingFolderParentId] = useState<
     string | null
@@ -228,19 +233,32 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="z-10 flex w-72 flex-col justify-between border-r border-border/60 bg-surface/80 backdrop-blur-xl">
-      <div className="space-y-6 overflow-y-auto p-3">
-        <div className="flex items-center gap-3 py-1">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-surface-elevated">
-            <div className="h-2 w-2 rounded-sm bg-muted" />
+    <aside
+      className={`absolute left-0 top-0 z-100 flex h-full flex-col justify-between border-r border-border/80 bg-surface/80 backdrop-blur-xl transition-all duration-300 md:relative 
+        ${
+          open
+            ? "visible w-72 min-w-72"
+            : "invisible w-0 min-w-0 border-r-0 overflow-hidden"
+        }`}
+    >
+      <div className="space-y-6 overflow-y-auto">
+        <div className="relative flex items-center justify-between px-3.5 py-2 h-13.25 border-b border-foreground/7">
+          <div className="flex items-center gap-2">
+            <Layers3 className="fill-primary" />
+            <span className="text-sm font-bold tracking-wider text-foreground uppercase">
+              Prodixus<span className="text-primary">.</span>
+            </span>
           </div>
-
-          <span className="text-sm font-bold tracking-wider text-foreground uppercase">
-            Prodixus
-          </span>
+          <div
+            className="flex items-center shrink-0 cursor-pointer"
+            title="Abrir/fechar barra lateral"
+            aria-label="Abrir/fechar barra lateral"
+            onClick={() => setOpen(false)}
+          >
+            <SidebarClose className="size-6 text-primary" />
+          </div>
         </div>
-
-        <nav>
+        <nav className="px-3.5">
           <button
             className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
               location === "/dashboard"
@@ -261,69 +279,69 @@ export function Sidebar() {
             )}
           </button>
         </nav>
-
-        <ProjectsSection
-          folders={folders}
-          projects={projects}
-          isLoading={isLoadingFolders || isLoadingProjects}
-          error={foldersError || projectsError}
-          mutationError={mutationError}
-          selectedProjectId={selectedProjectId}
-          onCreateFolder={(parentId) => {
-            setCreatingFolderParentId(parentId);
-            setIsCreatingFolder(true);
-          }}
-          onUpdateFolder={(folder) => {
-            setEditingFolder(folder);
-          }}
-          onDeleteFolder={(folder) => {
-            setDeletingFolder(folder);
-          }}
-          onCreateProject={(folderId) => {
-            setCreatingProjectFolderId(folderId);
-            setIsCreatingProject(true);
-          }}
-          onUpdateProject={(project) => {
-            console.log(
-              "Projeto clicado para edição:",
-              project.id,
-              project.name,
-            );
-            openProjectPanel(project);
-          }}
-          onCompletionToggleProject={(project) => {
-            setCompletionTogglingProject(project);
-          }}
-          onArchiveProject={(project) => {
-            setArchivingProject(project);
-          }}
-          onDeleteProject={(project) => {
-            setDeletingProject(project);
-          }}
-        />
-
-        <TagsSection
-          tags={tags}
-          isLoading={isLoadingTags}
-          error={tagsError}
-          mutationError={mutationError}
-          selectedTagId={selectedTagId}
-          onCreateTag={() => {
-            setIsCreatingTag(true);
-          }}
-          onUpdateTag={(tag) => {
-            setEditingTag(tag);
-          }}
-          onDeleteTag={(tag) => {
-            setDeletingTag(tag);
-          }}
-        />
+        <div className="flex flex-col gap-3 px-3.5">
+          <ProjectsSection
+            folders={folders}
+            projects={projects}
+            isLoading={isLoadingFolders || isLoadingProjects}
+            error={foldersError || projectsError}
+            mutationError={mutationError}
+            selectedProjectId={selectedProjectId}
+            onCreateFolder={(parentId) => {
+              setCreatingFolderParentId(parentId);
+              setIsCreatingFolder(true);
+            }}
+            onUpdateFolder={(folder) => {
+              setEditingFolder(folder);
+            }}
+            onDeleteFolder={(folder) => {
+              setDeletingFolder(folder);
+            }}
+            onCreateProject={(folderId) => {
+              setCreatingProjectFolderId(folderId);
+              setIsCreatingProject(true);
+            }}
+            onUpdateProject={(project) => {
+              console.log(
+                "Projeto clicado para edição:",
+                project.id,
+                project.name,
+              );
+              openProjectPanel(project);
+            }}
+            onCompletionToggleProject={(project) => {
+              setCompletionTogglingProject(project);
+            }}
+            onArchiveProject={(project) => {
+              setArchivingProject(project);
+            }}
+            onDeleteProject={(project) => {
+              setDeletingProject(project);
+            }}
+          />
+          <TagsSection
+            tags={tags}
+            isLoading={isLoadingTags}
+            error={tagsError}
+            mutationError={mutationError}
+            selectedTagId={selectedTagId}
+            onCreateTag={() => {
+              setIsCreatingTag(true);
+            }}
+            onUpdateTag={(tag) => {
+              setEditingTag(tag);
+            }}
+            onDeleteTag={(tag) => {
+              setDeletingTag(tag);
+            }}
+          />
+        </div>
       </div>
 
       <div className="border-t border-border/60 p-3">
         <button
           type="button"
-          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted hover:bg-surface-elevated/50 hover:text-foreground"
+          className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-xs text-muted border-l border-foreground/20 hover:bg-surface-elevated/50 hover:text-foreground hover:rounded-lg"
           onClick={handleGoToSettings}
         >
           <Settings className="h-4 w-4" />

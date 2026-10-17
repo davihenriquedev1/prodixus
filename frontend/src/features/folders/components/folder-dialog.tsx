@@ -78,7 +78,7 @@ export function FolderDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-background/60 p-4"
+      className="fixed inset-0 z-999 flex items-center justify-center bg-background/60 p-4"
       onMouseDown={handleBackdropClick}
     >
       <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-5 shadow-2xl">
