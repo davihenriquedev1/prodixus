@@ -351,6 +351,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
 
       <ProjectDialog
         open={isCreatingProject}
+        initialFolderId={creatingProjectFolderId}
         folders={folders}
         onClose={() => {
           setIsCreatingProject(false);
