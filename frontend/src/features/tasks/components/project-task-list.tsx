@@ -1,6 +1,6 @@
 "use client";
 
-import { ListTodo, MoreHorizontal } from "lucide-react";
+import { ListTodo } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   useCallback,
@@ -145,9 +145,12 @@ export function ProjectTaskList({
   }
 
   const handleCancelCreateTask = useCallback(() => {
+    if (isCreatingTaskRequest) {
+      return;
+    }
     setNewTaskTitle("");
     onCreatingTaskChange(false);
-  }, [onCreatingTaskChange]);
+  }, [isCreatingTaskRequest, onCreatingTaskChange]);
 
   function handleKeyDownCreating(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter") {
@@ -193,6 +196,14 @@ export function ProjectTaskList({
     setNewSubtaskTitle("");
   }
 
+  const handleCancelCreateSubtask = useCallback(() => {
+    if (isCreatingSubtaskRequest) {
+      return;
+    }
+    setNewSubtaskTitle("");
+    setParentTaskId(null);
+  }, [isCreatingSubtaskRequest]);
+
   function handleKeyDownCreatingSubtask(
     event: KeyboardEvent<HTMLInputElement>,
   ) {
@@ -201,8 +212,7 @@ export function ProjectTaskList({
     }
 
     if (event.key === "Escape") {
-      setNewSubtaskTitle("");
-      setParentTaskId(null);
+      void handleCancelCreateSubtask();
     }
   }
 
@@ -554,10 +564,24 @@ export function ProjectTaskList({
                 className="min-w-0 flex-1 bg-transparent p-1 text-xs text-foreground outline-none placeholder:text-subtle focus:border focus:border-border/40"
               />
 
-              <div className="flex items-center">
-                <div className="flex shrink-0 items-center justify-center p-1.5">
-                  <MoreHorizontal className="h-6 w-6 text-muted/30" />
-                </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isCreatingTaskRequest || !newTaskTitle.trim()}
+                  onClick={() => void handleCreateTask()}
+                  className="flex cursor-pointer items-center justify-center rounded-sm bg-primary p-1.5 text-xs text-background disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isCreatingTaskRequest ? "Criando..." : "Criar"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isCreatingTaskRequest}
+                  onClick={handleCancelCreateTask}
+                  className="flex cursor-pointer items-center justify-center rounded-sm bg-danger p-1.5 text-xs text-background disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
               </div>
             </motion.div>
           )}
@@ -582,6 +606,9 @@ export function ProjectTaskList({
               onOpenDetails={onOpenDetails}
               onEditTags={handleOpenTagSelector}
               onCreateSubtask={handleStartCreateSubtask}
+              isCreatingSubtaskRequest={isCreatingSubtaskRequest}
+              handleCreateSubtask={handleCreateSubtask}
+              handleCancelCreateSubtask={handleCancelCreateSubtask}
               newSubtaskInputRef={newSubtaskInputRef}
               newSubtaskItemRef={newSubtaskItemRef}
               newSubtaskTitle={newSubtaskTitle}
