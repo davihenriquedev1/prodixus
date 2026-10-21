@@ -17,6 +17,7 @@ import { DEFAULT_ERROR_COLOR } from "@/utils/generate-random-colors";
 interface ProjectDialogProps {
   open: boolean;
   folders: Array<{ id: string; name: string }>;
+  initialFolderId?: string | null;
   onClose: () => void;
   onSubmit: (data: CreateProjectData) => Promise<void>;
 }
@@ -33,6 +34,7 @@ const DURATION_MULTIPLIERS: Record<EstimatedDurationUnit, number> = {
 export function ProjectDialog({
   open,
   folders,
+  initialFolderId,
   onClose,
   onSubmit,
 }: ProjectDialogProps) {
@@ -79,11 +81,11 @@ export function ProjectDialog({
     setEstimatedDuration("");
     setEstimatedDurationUnit("hours");
     setDueAt("");
-    setFolderId("");
+    setFolderId(initialFolderId ?? "");
     setPrimaryColor(DEFAULT_COLOR);
     setAccentColor(DEFAULT_COLOR);
     setErrorColor(DEFAULT_ERROR_COLOR);
-  }, [open]);
+  }, [open, initialFolderId]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -163,7 +165,6 @@ export function ProjectDialog({
         aria-labelledby="project-dialog-title"
         className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-2xl"
       >
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <h2
@@ -190,7 +191,6 @@ export function ProjectDialog({
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
           <div className="space-y-5 overflow-y-auto p-5">
             <div>
@@ -345,7 +345,6 @@ export function ProjectDialog({
             </div>
           </div>
 
-          {/* Footer */}
           <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
             <button
               type="button"
