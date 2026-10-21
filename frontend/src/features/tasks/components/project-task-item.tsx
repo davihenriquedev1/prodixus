@@ -1,10 +1,4 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  MoreHorizontal,
-  Plus,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, FileText, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Task } from "@/features/tasks/types/task";
 import { ProjectTaskActions } from "./project-task-actions";
@@ -19,7 +13,6 @@ interface ProjectTaskItemProps {
   primaryColor: string;
   accentColor: string;
   parentTaskId: string | null;
-
   onSelect: (task: Task) => void;
   onCompletionToggle: (task: Task) => void;
   onMove: (task: Task, position: MovePosition) => void;
@@ -29,16 +22,16 @@ interface ProjectTaskItemProps {
   onOpenDetails: (task: Task) => void;
   onEditTags: (task: Task, position: MovePosition) => void;
   onCreateSubtask: (parentTaskId: string) => void;
+  handleCreateSubtask: () => void;
+  handleCancelCreateSubtask: () => void;
+  isCreatingSubtaskRequest: boolean;
   selectedTask: Task | null;
-
   newSubtaskInputRef: RefObject<HTMLInputElement | null>;
   newSubtaskItemRef: RefObject<HTMLDivElement | null>;
   newSubtaskTitle: string;
   setNewSubtaskTitle: (title: string) => void;
   isCreatingSubtask: boolean;
-
   onTitleUpdate: (task: Task, title: string) => void;
-
   handleKeyDownCreatingSubtask: KeyboardEventHandler<HTMLInputElement>;
   pendingTaskId: string | null;
 }
@@ -58,6 +51,9 @@ export function ProjectTaskItem({
   onDelete,
   onOpenDetails,
   onEditTags,
+  handleCancelCreateSubtask,
+  handleCreateSubtask,
+  isCreatingSubtaskRequest,
   onCreateSubtask,
   newSubtaskInputRef,
   newSubtaskItemRef,
@@ -257,18 +253,33 @@ export function ProjectTaskItem({
             <input
               ref={newSubtaskInputRef}
               type="text"
+              disabled={isCreatingSubtaskRequest}
               value={newSubtaskTitle}
               onChange={(event) => setNewSubtaskTitle(event.target.value)}
               onKeyDown={handleKeyDownCreatingSubtask}
               placeholder="Nome da tarefa..."
               autoComplete="off"
-              className="min-w-0 flex-1 bg-transparent p-1 text-sm text-foreground outline-none placeholder:text-subtle focus:border focus:border-border/40"
+              className="min-w-0 flex-1 bg-transparent p-1 text-xs text-foreground outline-none placeholder:text-subtle focus:border focus:border-border/40"
             />
 
-            <div className="flex items-center">
-              <div className="flex shrink-0 items-center justify-center p-1.5">
-                <MoreHorizontal className="h-6 w-6 text-muted/30" />
-              </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                disabled={isCreatingSubtaskRequest || !newSubtaskTitle.trim()}
+                onClick={() => void handleCreateSubtask()}
+                className="flex cursor-pointer items-center justify-center rounded-sm bg-primary p-1.5 text-xs text-background disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isCreatingSubtaskRequest ? "Criando..." : "Criar"}
+              </button>
+
+              <button
+                type="button"
+                disabled={isCreatingSubtaskRequest}
+                onClick={handleCancelCreateSubtask}
+                className="flex cursor-pointer items-center justify-center rounded-sm bg-danger p-1.5 text-xs text-background disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </>
