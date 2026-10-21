@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle, Home, Layers3, Settings, SidebarClose } from "lucide-react";
+import { Circle, Home, Settings, SidebarClose } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useFolderMutations } from "@/features/folders/hooks/use-folder-mutations";
 import { useTagMutations } from "@/features/tags/hooks/use-tag-mutations";
@@ -24,6 +24,7 @@ import { useProjects } from "@/features/projects/hooks/use-projects";
 import { useProjectMutations } from "@/features/projects/hooks/use-project-mutations";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { usePanel } from "@/contexts/panel-context";
+import Image from "next/image";
 
 interface SidebarProps {
   open: boolean;
@@ -243,11 +244,15 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
     >
       <div className="space-y-6 overflow-y-auto">
         <div className="relative flex items-center justify-between px-3.5 py-2 h-13.25 border-b border-foreground/7">
-          <div className="flex items-center gap-2">
-            <Layers3 className="fill-primary" />
-            <span className="text-sm font-bold tracking-wider text-foreground uppercase">
-              Prodixus<span className="text-primary">.</span>
-            </span>
+          <div className="flex min-w-0 items-center">
+            <Image
+              src="/logo-horiz-no-background.png"
+              alt="Prodixus"
+              width={140}
+              height={59}
+              className="h-auto w-36 max-w-full object-contain"
+              priority
+            />
           </div>
           <div
             className="flex items-center shrink-0 cursor-pointer"

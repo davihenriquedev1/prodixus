@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowUpRight, Layers3 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
 const footerNavigation = [
   {
@@ -29,13 +30,12 @@ export function LandingFooter() {
               aria-label="Prodixus — página inicial"
               className="group inline-flex items-center gap-3"
             >
-              <span className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-blue-400 transition-colors group-hover:bg-blue-500/20">
-                <Layers3 size={21} strokeWidth={1.8} aria-hidden="true" />
-              </span>
-
-              <span className="text-xl font-semibold tracking-tight text-white">
-                Prodixus<span className="text-blue-400">.</span>
-              </span>
+              <Image
+                src={"/logo-horiz-no-background.png"}
+                width={140}
+                height={140}
+                alt={"logo-landing-page"}
+              />
             </Link>
 
             <p className="mt-5 text-sm leading-7 text-slate-400">
