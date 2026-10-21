@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Camera, MonitorPlay, Music2 } from "lucide-react";
 import Image from "next/image";
 
 const footerNavigation = [
@@ -19,11 +19,29 @@ const footerNavigation = [
   },
 ];
 
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/prodixus/",
+    icon: Camera,
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@prodixus",
+    icon: Music2,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@prodixusapp",
+    icon: MonitorPlay,
+  },
+];
+
 export function LandingFooter() {
   return (
     <footer className="border-t border-white/6 bg-[#080B12]">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
-        <div className="grid gap-12 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr] lg:gap-16 lg:py-16">
+        <div className="grid gap-12 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-12 lg:py-16">
           <div className="max-w-sm">
             <Link
               href="/"
@@ -55,7 +73,30 @@ export function LandingFooter() {
               />
             </Link>
           </div>
+          <nav aria-label="Redes sociais">
+            <h2 className="text-sm font-semibold text-white">Redes sociais</h2>
 
+            <ul className="mt-5 space-y-4">
+              {socialLinks.map(({ label, href, icon: Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Prodixus no ${label} (abre em nova aba)`}
+                    className="group inline-flex items-center gap-3 text-sm text-slate-400 transition-colors hover:text-white"
+                  >
+                    <Icon
+                      size={18}
+                      aria-hidden="true"
+                      className="transition-colors group-hover:text-blue-400"
+                    />
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           {footerNavigation.map((group) => (
             <nav key={group.title} aria-label={group.title}>
               <h2 className="text-sm font-semibold text-white">
