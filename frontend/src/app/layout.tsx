@@ -15,8 +15,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Prodixus",
   title: "Prodixus",
-  description: "Productivity management application",
+  description: "Organize suas tarefas e gerencie seus projetos com o Prodixus.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: "/icons/apple-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Prodixus",
+  },
+  themeColor: "#2563EB",
 };
 
 export default function RootLayout({
