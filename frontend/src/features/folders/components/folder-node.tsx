@@ -1,5 +1,4 @@
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
-import { useState } from "react";
 import { FolderActions } from "./folder-actions";
 import type { Folder as FolderType } from "@/features/folders/types/folder";
 import type { Project as ProjectType } from "@/features/projects/types/project";
@@ -10,6 +9,8 @@ interface FolderNodeProps {
   folders: FolderType[];
   projects: ProjectType[];
   selectedProjectId: string | null;
+  expandedFolderIds: Set<string>;
+  onToggleFolder: (folderId: string) => void;
   onCreateFolder: (parentId: string | null) => void;
   onUpdateFolder: (folder: FolderType) => void;
   onDeleteFolder: (folder: FolderType) => void;
@@ -26,6 +27,8 @@ export function FolderNode({
   projects,
   selectedProjectId,
   onCreateFolder,
+  expandedFolderIds,
+  onToggleFolder,
   onUpdateFolder,
   onDeleteFolder,
   onCreateProject,
@@ -34,7 +37,7 @@ export function FolderNode({
   onArchiveProject,
   onDeleteProject,
 }: FolderNodeProps) {
-  const [open, setOpen] = useState(true);
+  const open = expandedFolderIds.has(folder.id);
 
   const childFolders = folders.filter((child) => child.parentId === folder.id);
 
@@ -49,7 +52,7 @@ export function FolderNode({
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={() => onToggleFolder(folder.id)}
           className="flex min-w-0 flex-1 cursor-pointer items-center py-1 text-foreground hover:text-primary"
         >
           {hasChildren &&
@@ -85,6 +88,8 @@ export function FolderNode({
                 folders={folders}
                 selectedProjectId={selectedProjectId}
                 projects={projects}
+                expandedFolderIds={expandedFolderIds}
+                onToggleFolder={onToggleFolder}
                 onCreateFolder={onCreateFolder}
                 onUpdateFolder={onUpdateFolder}
                 onDeleteFolder={onDeleteFolder}
