@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowUpRight, Layers3 } from "lucide-react";
+import { ArrowUpRight, Camera, MonitorPlay, Music2 } from "lucide-react";
+import Image from "next/image";
 
 const footerNavigation = [
   {
@@ -18,24 +19,41 @@ const footerNavigation = [
   },
 ];
 
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/prodixus/",
+    icon: Camera,
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@prodixus",
+    icon: Music2,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@prodixusapp",
+    icon: MonitorPlay,
+  },
+];
+
 export function LandingFooter() {
   return (
     <footer className="border-t border-white/6 bg-[#080B12]">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
-        <div className="grid gap-12 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr] lg:gap-16 lg:py-16">
+        <div className="grid gap-12 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-12 lg:py-16">
           <div className="max-w-sm">
             <Link
               href="/"
               aria-label="Prodixus — página inicial"
               className="group inline-flex items-center gap-3"
             >
-              <span className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-500/10 text-blue-400 transition-colors group-hover:bg-blue-500/20">
-                <Layers3 size={21} strokeWidth={1.8} aria-hidden="true" />
-              </span>
-
-              <span className="text-xl font-semibold tracking-tight text-white">
-                Prodixus<span className="text-blue-400">.</span>
-              </span>
+              <Image
+                src={"/logo-horiz-no-background.png"}
+                width={140}
+                height={140}
+                alt={"logo-landing-page"}
+              />
             </Link>
 
             <p className="mt-5 text-sm leading-7 text-slate-400">
@@ -55,7 +73,30 @@ export function LandingFooter() {
               />
             </Link>
           </div>
+          <nav aria-label="Redes sociais">
+            <h2 className="text-sm font-semibold text-white">Redes sociais</h2>
 
+            <ul className="mt-5 space-y-4">
+              {socialLinks.map(({ label, href, icon: Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Prodixus no ${label} (abre em nova aba)`}
+                    className="group inline-flex items-center gap-3 text-sm text-slate-400 transition-colors hover:text-white"
+                  >
+                    <Icon
+                      size={18}
+                      aria-hidden="true"
+                      className="transition-colors group-hover:text-blue-400"
+                    />
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           {footerNavigation.map((group) => (
             <nav key={group.title} aria-label={group.title}>
               <h2 className="text-sm font-semibold text-white">
